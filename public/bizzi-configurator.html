@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="bizzi-favicon.svg">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>biZzi — Configurer mon organisation</title>
+<link rel="stylesheet" href="bizzi-global.css">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Mono:wght@400;500&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#020200;--s1:#080800;--s2:#080800;--card:#0f0e00;
+  --b1:#1a1900;--b2:#222000;--w:#fff8e0;--mid:#5a5030;
+  --accent:#ffd23f;--grn:#ffd23f;--amb:#ffd23f;--blu:#ffd23f;
+  --D:'Syne',sans-serif;--B:'Outfit',sans-serif;--M:'DM Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;background:var(--bg);color:var(--w);font-family:var(--B);-webkit-font-smoothing:antialiased}
+
+/* ── NAV ── */
+nav{height:56px;background:var(--s1);border-bottom:1px solid var(--b1);display:flex;align-items:center;padding:0 32px;gap:14px;position:sticky;top:0;z-index:100}
+.logo{font-family:var(--D);font-size:1rem;font-weight:900;letter-spacing:-.04em;color:var(--accent)}
+.logo::before{content:'⬡ ';font-size:.8rem}
+.nav-step-info{font-size:.72rem;color:var(--mid);margin-left:auto}
+
+/* ── PROGRESS BAR ── */
+.progress-wrap{background:var(--s1);border-bottom:1px solid var(--b1);padding:0 32px}
+.progress-steps{display:flex;gap:0;max-width:700px;margin:0 auto}
+.pstep{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;position:relative;cursor:pointer}
+.pstep::after{content:'';position:absolute;top:24px;left:50%;right:-50%;height:2px;background:var(--b2);z-index:0}
+.pstep:last-child::after{display:none}
+.pstep-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--b2);background:var(--bg);display:flex;align-items:center;justify-content:center;font-family:var(--D);font-size:.68rem;font-weight:700;color:var(--mid);z-index:1;transition:all .3s}
+.pstep.done .pstep-dot{background:#ffd23f;border-color:#ffd23f;color:#fff}
+.pstep.active .pstep-dot{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 0 4px rgba(224,45,45,.2)}
+.pstep.done::after{background:#ffd23f}
+.pstep-label{font-size:.6rem;font-weight:600;color:var(--mid);text-align:center;letter-spacing:.04em}
+.pstep.active .pstep-label{color:var(--w)}
+.pstep.done .pstep-label{color:#ffd23f}
+
+/* ── LAYOUT ── */
+.layout{display:grid;grid-template-columns:1fr 380px;min-height:calc(100vh - 112px);max-width:1100px;margin:0 auto;gap:0}
+
+/* ── FORMULAIRE ── */
+.form-area{padding:40px 40px 40px 32px;border-right:1px solid var(--b1)}
+.step{display:none}.step.active{display:block}
+
+.step-title{font-family:var(--D);font-size:1.5rem;font-weight:800;letter-spacing:-.03em;margin-bottom:6px}
+.step-title span{color:var(--accent)}
+.step-sub{font-size:.85rem;color:var(--mid);margin-bottom:32px;line-height:1.6}
+
+/* Domaine cards */
+.domain-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
+.domain-card{background:var(--card);border:2px solid var(--b1);border-radius:12px;padding:18px;cursor:pointer;transition:all .2s;position:relative}
+.domain-card:hover{border-color:var(--b2);transform:translateY(-2px)}
+.domain-card.selected{border-color:var(--accent);background:rgba(224,45,45,.05)}
+.domain-card.selected::after{content:'✓';position:absolute;top:10px;right:12px;font-size:.75rem;font-weight:700;color:var(--accent)}
+.domain-ico{font-size:1.8rem;margin-bottom:10px;display:block}
+.domain-name{font-family:var(--D);font-size:.88rem;font-weight:700;margin-bottom:5px}
+.domain-desc{font-size:.72rem;color:var(--mid);line-height:1.5}
+
+/* Champs */
+.field{margin-bottom:18px}
+.field label{display:block;font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);margin-bottom:6px}
+.field input,.field select,.field textarea{
+  width:100%;background:var(--s1);border:1px solid var(--b2);border-radius:8px;
+  padding:11px 14px;color:var(--w);font-size:.82rem;font-family:var(--B);
+  outline:none;transition:border-color .15s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
+.field input::placeholder{color:var(--mid)}
+.field textarea{resize:vertical;min-height:80px;line-height:1.6}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field-hint{font-size:.65rem;color:var(--mid);margin-top:5px}
+
+/* Outils toggles */
+.tools-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:24px}
+.tool-toggle-card{background:var(--card);border:2px solid var(--b1);border-radius:10px;padding:14px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:10px}
+.tool-toggle-card:hover{border-color:var(--b2)}
+.tool-toggle-card.selected{border-color:var(--accent);background:rgba(224,45,45,.05)}
+.ttc-ico{font-size:1.3rem;flex-shrink:0}
+.ttc-name{font-size:.76rem;font-weight:600;margin-bottom:2px}
+.ttc-desc{font-size:.63rem;color:var(--mid)}
+.ttc-check{margin-left:auto;width:18px;height:18px;border-radius:50%;border:2px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:.6rem;flex-shrink:0;transition:all .2s}
+.tool-toggle-card.selected .ttc-check{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* Agents */
+.agents-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.agent-row{background:var(--card);border:1px solid var(--b1);border-radius:9px;padding:12px 14px;display:flex;align-items:center;gap:10px;animation:slideIn .2s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.agent-av{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--D);font-size:.72rem;font-weight:800;color:#fff}
+.agent-row input{background:var(--s1);border:1px solid var(--b2);border-radius:6px;padding:6px 9px;color:var(--w);font-size:.75rem;outline:none;transition:border-color .15s}
+.agent-row input:focus{border-color:var(--accent)}
+.agent-row select{background:var(--s1);border:1px solid var(--b2);border-radius:6px;padding:6px 9px;color:var(--w);font-size:.73rem;outline:none}
+.agent-del{background:transparent;border:none;color:var(--mid);cursor:pointer;font-size:.85rem;padding:4px;transition:color .15s;flex-shrink:0}
+.agent-del:hover{color:var(--accent)}
+.btn-add-agent{width:100%;background:transparent;border:1px dashed var(--b2);border-radius:9px;padding:11px;color:var(--mid);font-size:.75rem;cursor:pointer;transition:all .15s;font-family:var(--B)}
+.btn-add-agent:hover{border-color:var(--b1);color:var(--w);background:var(--s1)}
+
+/* Couleurs agents */
+.color-dots{display:flex;gap:5px;flex-wrap:wrap}
+.cdot{width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0}
+.cdot.sel{border-color:#fff;transform:scale(1.2)}
+
+/* Navigation étapes */
+.step-nav{display:flex;gap:10px;margin-top:32px;padding-top:24px;border-top:1px solid var(--b1)}
+.btn-prev{font-family:var(--D);font-size:.72rem;font-weight:700;padding:11px 22px;border-radius:8px;background:transparent;color:var(--mid);border:1px solid var(--b2);cursor:pointer;transition:all .15s}
+.btn-prev:hover{color:var(--w);border-color:var(--b1)}
+.btn-next{font-family:var(--D);font-size:.72rem;font-weight:700;padding:11px 26px;border-radius:8px;background:var(--accent);color:#fff;border:none;cursor:pointer;transition:all .15s;margin-left:auto}
+.btn-next:hover{background:#e6b800}
+.btn-next:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── PREVIEW YAML ── */
+.preview-area{padding:32px 32px 32px 28px;position:sticky;top:112px;height:calc(100vh - 112px);overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+.preview-title{font-family:var(--D);font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--mid);margin-bottom:4px}
+.yaml-block{background:var(--s1);border:1px solid var(--b1);border-radius:10px;padding:16px;font-family:var(--M);font-size:.7rem;line-height:1.8;color:rgba(238,240,248,.7);flex:1;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+.yaml-key{color:#ffd23f}
+.yaml-val{color:#ffd23f}
+.yaml-comment{color:var(--mid)}
+.yaml-section{color:var(--accent)}
+.copy-btn{font-family:var(--D);font-size:.65rem;font-weight:700;padding:7px 14px;border-radius:6px;background:var(--s2);color:var(--mid);border:1px solid var(--b2);cursor:pointer;transition:all .15s;align-self:flex-start}
+.copy-btn:hover{color:var(--w)}
+
+/* ── ÉTAPE 5 — SUCCESS ── */
+.success-wrap{display:flex;flex-direction:column;align-items:center;text-align:center;padding:40px 20px}
+.success-ico{font-size:4rem;margin-bottom:20px;animation:pop .4s ease}
+@keyframes pop{0%{transform:scale(0)}80%{transform:scale(1.1)}100%{transform:scale(1)}}
+.success-title{font-family:var(--D);font-size:1.8rem;font-weight:900;margin-bottom:10px}
+.success-sub{font-size:.88rem;color:var(--mid);max-width:400px;line-height:1.7;margin-bottom:32px}
+.token-box{background:var(--s1);border:1px solid var(--b2);border-radius:10px;padding:16px;width:100%;text-align:left;margin-bottom:24px}
+.token-label{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);margin-bottom:6px}
+.token-val{font-family:var(--M);font-size:.82rem;color:#ffd23f;word-break:break-all}
+.success-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.btn-success{font-family:var(--D);font-size:.75rem;font-weight:700;padding:12px 24px;border-radius:8px;cursor:pointer;border:none;transition:all .15s;text-decoration:none}
+.bs-primary{background:var(--accent);color:#fff}.bs-primary:hover{background:#e6b800}
+.bs-secondary{background:var(--s2);color:var(--mid);border:1px solid var(--b2)}.bs-secondary:hover{color:var(--w)}
+
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Bizzi</div>
+  <div class="nav-step-info" id="nav-step-info">Étape 1 sur 5</div>
+</nav>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-steps" style="max-width:900px;margin:0 auto">
+    <div class="pstep active" id="ps1" onclick="goStep(1)">
+      <div class="pstep-dot">1</div>
+      <div class="pstep-label">Organisation</div>
+    </div>
+    <div class="pstep" id="ps2" onclick="goStep(2)">
+      <div class="pstep-dot">2</div>
+      <div class="pstep-label">Domaine</div>
+    </div>
+    <div class="pstep" id="ps3" onclick="goStep(3)">
+      <div class="pstep-dot">3</div>
+      <div class="pstep-label">Équipe</div>
+    </div>
+    <div class="pstep" id="ps4" onclick="goStep(4)">
+      <div class="pstep-dot">4</div>
+      <div class="pstep-label">Outils</div>
+    </div>
+    <div class="pstep" id="ps5" onclick="goStep(5)">
+      <div class="pstep-dot">5</div>
+      <div class="pstep-label">Lancement</div>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+
+<!-- ══ FORMULAIRE ══ -->
+<div class="form-area">
+
+  <!-- ÉTAPE 1 — Organisation -->
+  <div class="step active" id="step1">
+    <div class="step-title">Votre <span>organisation</span></div>
+    <div class="step-sub">Ces informations seront utilisées pour personnaliser vos agents et leurs communications.</div>
+
+    <div class="field">
+      <label>Nom de l'organisation *</label>
+      <input id="org-name" type="text" placeholder="Les Démocrates, Cabinet Mercier, Onyx..." oninput="updateYaml()">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Site web</label>
+        <input id="org-site" type="url" placeholder="https://monsite.fr" oninput="updateYaml()">
+      </div>
+      <div class="field">
+        <label>Email de contact *</label>
+        <input id="org-email" type="email" placeholder="contact@monsite.fr" oninput="updateYaml()">
+      </div>
+    </div>
+    <div class="field">
+      <label>Tagline / Slogan</label>
+      <input id="org-tagline" type="text" placeholder="Justice sociale. Responsabilité. Souveraineté." oninput="updateYaml()">
+      <div class="field-hint">Phrase courte qui résume votre organisation. Utilisée par vos agents dans leurs communications.</div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Langue</label>
+        <select id="org-lang" onchange="updateYaml()">
+          <option value="fr">Français</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="de">Deutsch</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Fuseau horaire</label>
+        <select id="org-tz" onchange="updateYaml()">
+          <option value="Europe/Paris">Europe/Paris</option>
+          <option value="Europe/London">Europe/London</option>
+          <option value="America/New_York">America/New_York</option>
+          <option value="America/Los_Angeles">America/Los_Angeles</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-next" onclick="goStep(2)">Suivant → Domaine</button>
+    </div>
+  </div>
+
+  <!-- ÉTAPE 2 — Domaine -->
+  <div class="step" id="step2">
+    <div class="step-title">Votre <span>domaine d'activité</span></div>
+    <div class="step-sub">Choisissez le type d'organisation. Le moteur adaptera les agents, le pipeline et le vocabulaire automatiquement.</div>
+
+    <div class="domain-grid">
+      <div class="domain-card" onclick="selectDomain('media',this)">
+        <span class="domain-ico">📰</span>
+        <div class="domain-name">Journal & Média</div>
+        <div class="domain-desc">Articles, journalistes, fact-checking, distribution réseaux sociaux</div>
+      </div>
+      <div class="domain-card" onclick="selectDomain('politics',this)">
+        <span class="domain-ico">🏛️</span>
+        <div class="domain-name">Parti politique & Mouvement</div>
+        <div class="domain-desc">Communiqués, positions politiques, veille, militants terrain</div>
+      </div>
+      <div class="domain-card" onclick="selectDomain('diagnostic',this)">
+        <span class="domain-ico">🔍</span>
+        <div class="domain-name">Cabinet d'expertise</div>
+        <div class="domain-desc">Rapports techniques, conformité réglementaire, relation client</div>
+      </div>
+      <div class="domain-card" onclick="selectDomain('association',this)">
+        <span class="domain-ico">🤝</span>
+        <div class="domain-name">Association & ONG</div>
+        <div class="domain-desc">Communication, adhérents, événements, collecte de fonds</div>
+      </div>
+      <div class="domain-card" onclick="selectDomain('enterprise',this)">
+        <span class="domain-ico">🏢</span>
+        <div class="domain-name">Entreprise & PME</div>
+        <div class="domain-desc">Support client, marketing, emails automatiques, rapports</div>
+      </div>
+      <div class="domain-card" onclick="selectDomain('custom',this)">
+        <span class="domain-ico">⚙️</span>
+        <div class="domain-name">Autre / Sur mesure</div>
+        <div class="domain-desc">Décrivez votre activité, le moteur génère le domaine adapté</div>
+      </div>
+    </div>
+
+    <!-- Description libre si custom -->
+    <div class="field" id="custom-desc-field" style="display:none">
+      <label>Décrivez votre activité</label>
+      <textarea id="custom-desc" placeholder="Ex : Cabinet de conseil en stratégie d'entreprise. Nous produisons des analyses sectorielles, des rapports de marché et des recommandations stratégiques pour nos clients grands comptes..." oninput="updateYaml()"></textarea>
+      <div class="field-hint">Le moteur analysera votre description pour générer le bon domaine.</div>
+    </div>
+
+    <div class="field">
+      <label>Couleur principale</label>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:4px">
+        <input id="org-color" type="color" value="#ffd23f" style="width:44px;height:36px;border:1px solid var(--b2);border-radius:6px;background:transparent;cursor:pointer;padding:2px" onchange="updateYaml()">
+        <input id="org-color-hex" type="text" value="#ffd23f" placeholder="#ffd23f" style="width:100px;background:var(--s1);border:1px solid var(--b2);border-radius:6px;padding:8px 10px;color:var(--w);font-family:var(--M);font-size:.78rem;outline:none" oninput="syncColor(this.value)">
+        <div style="display:flex;gap:6px">
+          <div style="width:22px;height:22px;border-radius:50%;background:#ffd23f;cursor:pointer;border:2px solid transparent" onclick="setColor('#ffd23f')"></div>
+          <div style="width:22px;height:22px;border-radius:50%;background:#e6b800;cursor:pointer;border:2px solid transparent" onclick="setColor('#e6b800')"></div>
+          <div style="width:22px;height:22px;border-radius:50%;background:#e6b800;cursor:pointer;border:2px solid transparent" onclick="setColor('#e6b800')"></div>
+          <div style="width:22px;height:22px;border-radius:50%;background:#6a0572;cursor:pointer;border:2px solid transparent" onclick="setColor('#6a0572')"></div>
+          <div style="width:22px;height:22px;border-radius:50%;background:#2d6a4f;cursor:pointer;border:2px solid transparent" onclick="setColor('#2d6a4f')"></div>
+          <div style="width:22px;height:22px;border-radius:50%;background:#c85e00;cursor:pointer;border:2px solid transparent" onclick="setColor('#c85e00')"></div>
+          <div style="width:22px;height:22px;border-radius:50%;background:#374151;cursor:pointer;border:2px solid transparent" onclick="setColor('#374151')"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-prev" onclick="goStep(1)">← Retour</button>
+      <button class="btn-next" onclick="goStep(3)">Suivant → Équipe</button>
+    </div>
+  </div>
+
+  <!-- ÉTAPE 3 — Équipe -->
+  <div class="step" id="step3">
+    <div class="step-title">Votre <span>équipe d'agents</span></div>
+    <div class="step-sub">Ajoutez les membres de votre équipe IA. Chaque agent a un rôle précis dans le pipeline. Les prompts sont générés automatiquement.</div>
+
+    <div class="agents-list" id="agents-list"></div>
+    <button class="btn-add-agent" onclick="addAgent()">+ Ajouter un agent</button>
+
+    <div class="field" style="margin-top:20px">
+      <label>Fréquence du pipeline automatique</label>
+      <select id="pipeline-schedule" onchange="updateYaml()">
+        <option value="0 */1 * * *">Toutes les heures</option>
+        <option value="0 */2 * * *">Toutes les 2 heures</option>
+        <option value="0 */3 * * *" selected>Toutes les 3 heures</option>
+        <option value="0 */6 * * *">Toutes les 6 heures</option>
+        <option value="0 8 * * 1-5">Tous les jours ouvrés à 8h</option>
+        <option value="0 8 * * *">Tous les jours à 8h</option>
+        <option value="manual">Manuel uniquement</option>
+      </select>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-prev" onclick="goStep(2)">← Retour</button>
+      <button class="btn-next" onclick="goStep(4)">Suivant → Outils</button>
+    </div>
+  </div>
+
+  <!-- ÉTAPE 4 — Outils -->
+  <div class="step" id="step4">
+    <div class="step-title">Vos <span>outils</span></div>
+    <div class="step-sub">Choisissez les outils que vous souhaitez activer. Vous pourrez en ajouter ou en supprimer à tout moment depuis votre dashboard.</div>
+
+    <div class="tools-grid">
+      <div class="tool-toggle-card selected" onclick="toggleTool(this,'chat')" data-tool="chat">
+        <span class="ttc-ico">💬</span>
+        <div style="flex:1"><div class="ttc-name">Chat visiteur</div><div class="ttc-desc">Widget sur votre site · réponse 24h/24</div></div>
+        <div class="ttc-check">✓</div>
+      </div>
+      <div class="tool-toggle-card selected" onclick="toggleTool(this,'email')" data-tool="email">
+        <span class="ttc-ico">📧</span>
+        <div style="flex:1"><div class="ttc-name">Email automatique</div><div class="ttc-desc">Classifie et répond aux emails entrants</div></div>
+        <div class="ttc-check">✓</div>
+      </div>
+      <div class="tool-toggle-card" onclick="toggleTool(this,'phone')" data-tool="phone">
+        <span class="ttc-ico">📞</span>
+        <div style="flex:1"><div class="ttc-name">Réponse téléphonique</div><div class="ttc-desc">Accueil vocal Twilio · TTS naturel</div></div>
+        <div class="ttc-check"></div>
+      </div>
+      <div class="tool-toggle-card" onclick="toggleTool(this,'poster')" data-tool="poster">
+        <span class="ttc-ico">🖼️</span>
+        <div style="flex:1"><div class="ttc-name">Génération d'affiches</div><div class="ttc-desc">A4 · Story · Bannière · 4 styles</div></div>
+        <div class="ttc-check"></div>
+      </div>
+      <div class="tool-toggle-card selected" onclick="toggleTool(this,'complaint')" data-tool="complaint">
+        <span class="ttc-ico">⚠️</span>
+        <div style="flex:1"><div class="ttc-name">Gestion des plaintes</div><div class="ttc-desc">Tickets · priorités · réponse empathique</div></div>
+        <div class="ttc-check">✓</div>
+      </div>
+      <div class="tool-toggle-card selected" onclick="toggleTool(this,'rgpd')" data-tool="rgpd">
+        <span class="ttc-ico">🔒</span>
+        <div style="flex:1"><div class="ttc-name">Droits RGPD</div><div class="ttc-desc">6 droits Art.15-21 · DPO · délai 30j</div></div>
+        <div class="ttc-check">✓</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Règles spécifiques à votre organisation</label>
+      <textarea id="custom-rules" placeholder="Ex : Toujours citer nos sources&#10;Ton respectueux même dans l'opposition&#10;Jamais de déclarations diffamatoires" oninput="updateYaml()" style="min-height:100px"></textarea>
+      <div class="field-hint">Une règle par ligne. Ces règles seront injectées dans le prompt de tous vos agents.</div>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-prev" onclick="goStep(3)">← Retour</button>
+      <button class="btn-next" onclick="goStep(5)">Suivant → Lancement</button>
+    </div>
+  </div>
+
+  <!-- ÉTAPE 5 — Lancement -->
+  <div class="step" id="step5">
+    <div class="step-title">Prêt à <span>lancer</span></div>
+    <div class="step-sub">Votre configuration est complète. Choisissez votre plan et démarrez.</div>
+
+    <!-- Plans -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px">
+      <div class="domain-card" onclick="selectPlan('starter',this)" id="plan-starter">
+        <div class="domain-name" style="font-size:.82rem">Starter</div>
+        <div style="font-family:var(--D);font-size:1.6rem;font-weight:900;margin:8px 0">99€<span style="font-size:.8rem;font-weight:400;color:var(--mid)">/mois</span></div>
+        <div class="domain-desc">3 agents · Chat + Email · VPS partagé</div>
+      </div>
+      <div class="domain-card selected" onclick="selectPlan('pro',this)" id="plan-pro">
+        <div style="font-size:.58rem;font-weight:700;color:var(--accent);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">⬡ Recommandé</div>
+        <div class="domain-name" style="font-size:.82rem">Pro</div>
+        <div style="font-family:var(--D);font-size:1.6rem;font-weight:900;margin:8px 0">299€<span style="font-size:.8rem;font-weight:400;color:var(--mid)">/mois</span></div>
+        <div class="domain-desc">10 agents · Tous outils · API complète</div>
+      </div>
+      <div class="domain-card" onclick="selectPlan('business',this)" id="plan-business">
+        <div class="domain-name" style="font-size:.82rem">Business</div>
+        <div style="font-family:var(--D);font-size:1.6rem;font-weight:900;margin:8px 0">699€<span style="font-size:.8rem;font-weight:400;color:var(--mid)">/mois</span></div>
+        <div class="domain-desc">Agents illimités · VPS dédié · SLA</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Email de facturation *</label>
+      <input id="billing-email" type="email" placeholder="facturation@monorganisation.fr">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Prénom</label>
+        <input id="billing-firstname" type="text" placeholder="Pascal">
+      </div>
+      <div class="field">
+        <label>Nom</label>
+        <input id="billing-lastname" type="text" placeholder="REPIR">
+      </div>
+    </div>
+
+    <div style="padding:14px;background:rgba(0,200,150,.06);border:1px solid rgba(0,200,150,.2);border-radius:8px;margin-bottom:20px">
+      <div style="font-size:.72rem;color:#ffd23f;font-weight:600;margin-bottom:4px">✓ Essai gratuit 14 jours</div>
+      <div style="font-size:.7rem;color:var(--mid)">Aucune carte bancaire requise pour commencer. Votre organisation sera opérationnelle en moins de 5 minutes.</div>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-prev" onclick="goStep(4)">← Retour</button>
+      <button class="btn-next" id="launch-btn" onclick="launch()">🚀 Créer mon organisation</button>
+    </div>
+  </div>
+
+  <!-- SUCCÈS -->
+  <div class="step" id="step-success">
+    <div class="success-wrap">
+      <div class="success-ico">🎉</div>
+      <div class="success-title">C'est parti !</div>
+      <div class="success-sub" id="success-msg">Votre organisation est configurée et opérationnelle. Vos agents sont prêts.</div>
+
+      <div class="token-box">
+        <div class="token-label">Votre token API</div>
+        <div class="token-val" id="success-token">Génération en cours...</div>
+      </div>
+      <div class="token-box">
+        <div class="token-label">Fichier de configuration généré</div>
+        <div style="font-family:var(--M);font-size:.72rem;color:var(--mid)" id="success-domain">domains/mon-organisation.yaml</div>
+      </div>
+
+      <div class="success-actions">
+        <a href="bizzi-dashboard.html" class="btn-success bs-primary">Ouvrir mon dashboard →</a>
+        <button class="btn-success bs-secondary" onclick="downloadYaml()">⬇ Télécharger le YAML</button>
+        <a href="bizzi-home.html" class="btn-success bs-secondary">← Retour au site</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ PREVIEW YAML ══ -->
+<div class="preview-area">
+  <div class="preview-title">Aperçu de votre configuration</div>
+  <div style="font-size:.67rem;color:var(--mid);margin-bottom:10px">Mis à jour en temps réel</div>
+  <div class="yaml-block" id="yaml-preview"># Complétez le formulaire
+# pour voir votre configuration</div>
+  <button class="copy-btn" onclick="copyYaml()">📋 Copier le YAML</button>
+</div>
+
+</div><!-- /layout -->
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// ÉTAT GLOBAL
+// ══════════════════════════════════════════════════════════════
+let currentStep = 1;
+let selectedDomain = '';
+let selectedPlan   = 'pro';
+let agents = [];
+let activeTools = ['chat','email','complaint','rgpd'];
+
+const AGENT_COLORS = ['#ffd23f','#6a0572','#374151','#2d6a4f','#c85e00','#023e8a','#e6b800','#1e1e60','#5a5030','#e91e8c','#006d77','#1a3a5c'];
+
+const DOMAIN_DEFAULTS = {
+  media: {
+    agents: [
+      { name:'', role:'Directeur éditorial',    agentId:'director',           color:'#6a0572', specialty:'' },
+      { name:'', role:'Rédacteur en chef',       agentId:'editor',             color:'#374151', specialty:'' },
+      { name:'', role:'Journaliste',             agentId:'writer',             color:'#2d6a4f', specialty:'Société & Politique' },
+      { name:'', role:'Fact-Checker',            agentId:'fact_checker',       color:'#5a5030', specialty:'' },
+      { name:'', role:'Community Manager',       agentId:'community_manager',  color:'#e91e8c', specialty:'' },
+    ],
+    content_unit:'article', producer:'journaliste', validator:'rédacteur en chef', schedule:'0 */2 * * *',
+    rules:['Chaque fait sourcé ou au conditionnel','Aucune position politique affirmée','Citer les sources','Zéro contenu haineux']
+  },
+  politics: {
+    agents: [
+      { name:'', role:'Président',               agentId:'president',          color:'#6a0572', specialty:'' },
+      { name:'', role:'Porte-parole',            agentId:'spokesperson',       color:'#374151', specialty:'' },
+      { name:'', role:'Analyste politique',      agentId:'analyst',            color:'#023e8a', specialty:'Politique nationale' },
+      { name:'', role:'Conseiller juridique',    agentId:'legal_advisor',      color:'#5a5030', specialty:'' },
+      { name:'', role:'Community Manager',       agentId:'community_manager',  color:'#e91e8c', specialty:'' },
+    ],
+    content_unit:'communiqué', producer:'analyste', validator:'porte-parole', schedule:'0 */3 * * *',
+    rules:['Aucune déclaration diffamatoire','Citer les sources des chiffres','Ton respectueux','Positions cohérentes avec la ligne du mouvement']
+  },
+  diagnostic: {
+    agents: [
+      { name:'', role:'Directeur technique',     agentId:'director',           color:'#374151', specialty:'' },
+      { name:'', role:'Expert technique',        agentId:'expert',             color:'#023e8a', specialty:'' },
+      { name:'', role:'Diagnostiqueur',          agentId:'diagnostician',      color:'#2d6a4f', specialty:'PPPT & DPE' },
+      { name:'', role:'Contrôleur réglementaire',agentId:'regulatory_checker', color:'#5a5030', specialty:'' },
+      { name:'', role:'Commercial',              agentId:'commercial',         color:'#c85e00', specialty:'' },
+    ],
+    content_unit:'rapport', producer:'diagnostiqueur', validator:'expert technique', schedule:'0 8 * * 1-5',
+    rules:['Conformité aux normes réglementaires','Chaque anomalie documentée','Recommandations classées par urgence','Langage accessible au client']
+  },
+  association: {
+    agents: [
+      { name:'', role:'Président',               agentId:'president',          color:'#6a0572', specialty:'' },
+      { name:'', role:'Secrétaire général',      agentId:'secretary',          color:'#374151', specialty:'' },
+      { name:'', role:'Chargé de communication', agentId:'writer',             color:'#2d6a4f', specialty:'Communication' },
+      { name:'', role:'Community Manager',       agentId:'community_manager',  color:'#e91e8c', specialty:'' },
+    ],
+    content_unit:'communication', producer:'chargé de comm.', validator:'secrétaire général', schedule:'0 */6 * * *',
+    rules:['Ton inclusif et bienveillant','Toujours valoriser les bénévoles','Respecter les valeurs de l\'association']
+  },
+  enterprise: {
+    agents: [
+      { name:'', role:'Directeur commercial',    agentId:'director',           color:'#374151', specialty:'' },
+      { name:'', role:'Agent support',           agentId:'support',            color:'#023e8a', specialty:'' },
+      { name:'', role:'Rédacteur marketing',     agentId:'writer',             color:'#2d6a4f', specialty:'Marketing' },
+      { name:'', role:'Community Manager',       agentId:'community_manager',  color:'#e91e8c', specialty:'' },
+    ],
+    content_unit:'contenu', producer:'rédacteur', validator:'directeur', schedule:'0 9 * * 1-5',
+    rules:['Ton professionnel et commercial','Toujours orienter vers la valeur client','Réponse sous 24h']
+  },
+  custom: {
+    agents: [
+      { name:'', role:'Directeur',               agentId:'director',           color:'#6a0572', specialty:'' },
+      { name:'', role:'Validateur',              agentId:'editor',             color:'#374151', specialty:'' },
+      { name:'', role:'Producteur',              agentId:'writer',             color:'#2d6a4f', specialty:'' },
+    ],
+    content_unit:'document', producer:'producteur', validator:'validateur', schedule:'0 */3 * * *',
+    rules:['Qualité et précision avant tout','Toujours vérifier les informations']
+  }
+};
+
+// ══════════════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════════════
+function goStep(n) {
+  if (n > currentStep + 1) return; // Pas de saut en avant
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.pstep').forEach((ps, i) => {
+    ps.classList.remove('active','done');
+    if (i + 1 < n)  ps.classList.add('done');
+    if (i + 1 === n) ps.classList.add('active');
+  });
+  const stepEl = document.getElementById('step' + n);
+  if (stepEl) stepEl.classList.add('active');
+  document.getElementById('nav-step-info').textContent = `Étape ${n} sur 5`;
+  currentStep = n;
+  updateYaml();
+}
+
+// ══════════════════════════════════════════════════════════════
+// DOMAINE
+// ══════════════════════════════════════════════════════════════
+function selectDomain(domain, el) {
+  document.querySelectorAll('.domain-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedDomain = domain;
+  document.getElementById('custom-desc-field').style.display = domain === 'custom' ? 'block' : 'none';
+
+  // Charger les agents par défaut
+  const defaults = DOMAIN_DEFAULTS[domain];
+  if (defaults) {
+    agents = defaults.agents.map((a, i) => ({...a}));
+    renderAgents();
+    document.getElementById('pipeline-schedule').value = defaults.schedule;
+  }
+  updateYaml();
+}
+
+// ══════════════════════════════════════════════════════════════
+// AGENTS
+// ══════════════════════════════════════════════════════════════
+function renderAgents() {
+  const list = document.getElementById('agents-list');
+  list.innerHTML = '';
+  agents.forEach((agent, i) => {
+    const initials = agent.name ? agent.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) : '?';
+    const div = document.createElement('div');
+    div.className = 'agent-row';
+    div.innerHTML = `
+      <div class="agent-av" style="background:${agent.color}">${initials}</div>
+      <input type="text" placeholder="Prénom NOM" value="${agent.name}"
+        style="flex:2" oninput="updateAgent(${i},'name',this.value)">
+      <input type="text" placeholder="Spécialité" value="${agent.specialty}"
+        style="flex:1.5" oninput="updateAgent(${i},'specialty',this.value)">
+      <select onchange="updateAgent(${i},'agentId',this.value)" style="flex:1.5">
+        <option value="director"          ${agent.agentId==='director'?'selected':''}>Direction</option>
+        <option value="editor"            ${agent.agentId==='editor'?'selected':''}>Validation</option>
+        <option value="spokesperson"      ${agent.agentId==='spokesperson'?'selected':''}>Porte-parole</option>
+        <option value="writer"            ${agent.agentId==='writer'?'selected':''}>Production</option>
+        <option value="analyst"           ${agent.agentId==='analyst'?'selected':''}>Analyste</option>
+        <option value="fact_checker"      ${agent.agentId==='fact_checker'?'selected':''}>Fact-Checker</option>
+        <option value="community_manager" ${agent.agentId==='community_manager'?'selected':''}>CM / Radar</option>
+        <option value="legal_advisor"     ${agent.agentId==='legal_advisor'?'selected':''}>Juridique</option>
+        <option value="commercial"        ${agent.agentId==='commercial'?'selected':''}>Commercial</option>
+      </select>
+      <div class="color-dots">
+        ${AGENT_COLORS.map(c=>`<div class="cdot ${c===agent.color?'sel':''}" style="background:${c}" onclick="updateAgent(${i},'color','${c}');renderAgents()"></div>`).join('')}
+      </div>
+      <button class="agent-del" onclick="removeAgent(${i})">✕</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function updateAgent(i, key, val) {
+  agents[i][key] = val;
+  if (key === 'name') {
+    const initials = val.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) || '?';
+    const avEl = document.querySelectorAll('.agent-av')[i];
+    if (avEl) avEl.textContent = initials;
+  }
+  updateYaml();
+}
+
+function addAgent() {
+  agents.push({
+    name: '', role: 'Producteur', agentId: 'writer',
+    color: AGENT_COLORS[agents.length % AGENT_COLORS.length], specialty: ''
+  });
+  renderAgents();
+  updateYaml();
+}
+
+function removeAgent(i) {
+  if (agents.length <= 1) { alert('Au moins un agent requis'); return; }
+  agents.splice(i, 1);
+  renderAgents();
+  updateYaml();
+}
+
+// ══════════════════════════════════════════════════════════════
+// OUTILS
+// ══════════════════════════════════════════════════════════════
+function toggleTool(el, tool) {
+  el.classList.toggle('selected');
+  const check = el.querySelector('.ttc-check');
+  if (el.classList.contains('selected')) {
+    check.textContent = '✓';
+    if (!activeTools.includes(tool)) activeTools.push(tool);
+  } else {
+    check.textContent = '';
+    activeTools = activeTools.filter(t => t !== tool);
+  }
+  updateYaml();
+}
+
+// ══════════════════════════════════════════════════════════════
+// PLAN
+// ══════════════════════════════════════════════════════════════
+function selectPlan(plan, el) {
+  document.querySelectorAll('#step5 .domain-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedPlan = plan;
+}
+
+// ══════════════════════════════════════════════════════════════
+// COULEUR
+// ══════════════════════════════════════════════════════════════
+function setColor(hex) {
+  document.getElementById('org-color').value = hex;
+  document.getElementById('org-color-hex').value = hex;
+  updateYaml();
+}
+function syncColor(val) {
+  if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+    document.getElementById('org-color').value = val;
+    updateYaml();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// GÉNÉRATION YAML
+// ══════════════════════════════════════════════════════════════
+function generateYaml() {
+  const name    = document.getElementById('org-name')?.value.trim()    || 'Mon Organisation';
+  const site    = document.getElementById('org-site')?.value.trim()    || 'https://monsite.fr';
+  const email   = document.getElementById('org-email')?.value.trim()   || 'contact@monsite.fr';
+  const tagline = document.getElementById('org-tagline')?.value.trim() || '';
+  const lang    = document.getElementById('org-lang')?.value           || 'fr';
+  const tz      = document.getElementById('org-tz')?.value             || 'Europe/Paris';
+  const color   = document.getElementById('org-color-hex')?.value      || '#ffd23f';
+  const schedule= document.getElementById('pipeline-schedule')?.value  || '0 */3 * * *';
+
+  const domain  = selectedDomain || 'custom';
+  const def     = DOMAIN_DEFAULTS[domain] || DOMAIN_DEFAULTS.custom;
+
+  const customRulesRaw = document.getElementById('custom-rules')?.value || '';
+  const allRules = [...def.rules];
+  if (customRulesRaw.trim()) {
+    customRulesRaw.split('\n').filter(r=>r.trim()).forEach(r => {
+      if (!allRules.includes(r.trim())) allRules.push(r.trim());
+    });
+  }
+
+  const slug = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g,'-');
+
+  let yaml = `# ${slug}.yaml
+# Généré par Bizzi Configurator
+# Organisation : ${name}
+
+domain: ${domain}
+version: "1.0"
+
+identity:
+  name: "${name}"
+  tagline: "${tagline || name}"
+  language: ${lang}
+  timezone: ${tz}
+  site_url: ${site}
+  contact_email: ${email}
+
+agents:
+`;
+
+  agents.forEach(a => {
+    const agentName = a.name || `[Prénom NOM]`;
+    const agentSlug = agentName.toLowerCase().replace(/[^a-z]/g,'-').replace(/-+/g,'-');
+    yaml += `  - id: ${a.agentId}
+    title: "${a.role}"
+    role: ${getRoleFromId(a.agentId)}
+    required: true
+    name: "${agentName}"
+    email: ${agentSlug}@${getDomain(site)}
+    color: "${a.color}"
+${a.specialty ? `    specialty: "${a.specialty}"\n` : ''}    prompt_base: |
+      Tu es ${agentName}, ${a.role} de {org_name}.
+      Tu travailles avec rigueur et professionnalisme.
+      ${a.specialty ? `Ta spécialité : ${a.specialty}.` : ''}
+
+`;
+  });
+
+  yaml += `pipeline:
+  schedule: "${schedule}"
+  steps: [monitor, meeting, write, validate, publish, distribute]
+
+output:
+  type: ${def.content_unit}
+  word_count_min: 200
+  word_count_max: 800
+  validation_score_min: 75
+  formats: [twitter_thread, linkedin_post, facebook_post, newsletter]
+
+editorial_rules:
+`;
+  allRules.forEach(r => { yaml += `  - "${r}"\n`; });
+
+  yaml += `
+tools:
+  chat: ${activeTools.includes('chat')}
+  email: ${activeTools.includes('email')}
+  phone: ${activeTools.includes('phone')}
+  poster: ${activeTools.includes('poster')}
+  complaint: ${activeTools.includes('complaint')}
+  rgpd: ${activeTools.includes('rgpd')}
+
+ui:
+  primary_color: "${color}"
+  vocabulary:
+    content_unit: "${def.content_unit}"
+    content_units: "${def.content_unit}s"
+    producer: "${def.producer}"
+    validator: "${def.validator}"
+    meeting_room: "salle de réunion"
+    workspace: "bureau"
+    score_label: "score qualité"
+`;
+
+  return { yaml, slug };
+}
+
+function getRoleFromId(id) {
+  const roles = {
+    director:'direction', president:'direction', editor:'validation',
+    spokesperson:'validation', expert:'validation', writer:'production',
+    analyst:'production', diagnostician:'production', fact_checker:'verification',
+    legal_advisor:'verification', regulatory_checker:'verification',
+    community_manager:'distribution', commercial:'distribution', support:'distribution', secretary:'direction'
+  };
+  return roles[id] || 'production';
+}
+
+function getDomain(url) {
+  try { return new URL(url).hostname.replace('www.',''); } catch { return 'monorganisation.fr'; }
+}
+
+function updateYaml() {
+  const { yaml } = generateYaml();
+  const block = document.getElementById('yaml-preview');
+  if (!block) return;
+
+  // Coloration syntaxique simple
+  const colored = yaml
+    .replace(/^(# .*)$/gm, `<span class="yaml-comment">$1</span>`)
+    .replace(/^([a-z_]+):/gm, `<span class="yaml-key">$1</span>:`)
+    .replace(/:\s*"([^"]+)"/g, `: <span class="yaml-val">"$1"</span>`)
+    .replace(/:\s*(true|false)/g, `: <span class="yaml-val">$1</span>`)
+    .replace(/:\s*(\d+)/g, `: <span class="yaml-val">$1</span>`);
+
+  block.innerHTML = colored;
+}
+
+function copyYaml() {
+  const { yaml } = generateYaml();
+  navigator.clipboard.writeText(yaml).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✓ Copié !';
+    setTimeout(() => btn.textContent = '📋 Copier le YAML', 2000);
+  });
+}
+
+function downloadYaml() {
+  const { yaml, slug } = generateYaml();
+  const blob = new Blob([yaml], { type: 'text/yaml' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `${slug}.yaml`;
+  a.click(); URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════════════════════════════
+// LANCEMENT
+// ══════════════════════════════════════════════════════════════
+async function launch() {
+  const btn = document.getElementById('launch-btn');
+  btn.disabled = true;
+  btn.textContent = '⟳ Création en cours...';
+
+  const { yaml, slug } = generateYaml();
+  const name  = document.getElementById('org-name')?.value.trim() || 'Mon Organisation';
+  const email = document.getElementById('billing-email')?.value.trim() || document.getElementById('org-email')?.value.trim() || '';
+
+  // Simuler l'appel API (en prod : POST /api/tenant/create)
+  await new Promise(r => setTimeout(r, 2000));
+
+  const token = slug + '-' + Math.random().toString(36).slice(2,10).toUpperCase();
+
+  // Sauvegarder localement
+  localStorage.setItem('core_tenant_token', token);
+  localStorage.setItem('core_tenant_slug',  slug);
+  localStorage.setItem('core_tenant_yaml',  yaml);
+  localStorage.setItem('bizzi_config', JSON.stringify({
+    name, domain: selectedDomain, color: document.getElementById('org-color-hex')?.value,
+    plan: selectedPlan, token,
+  }));
+
+  // Afficher le succès
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.pstep').forEach(ps => ps.classList.add('done'));
+  document.getElementById('step-success').classList.add('active');
+  document.getElementById('success-token').textContent = token;
+  document.getElementById('success-domain').textContent = `domains/${slug}.yaml`;
+  document.getElementById('success-msg').textContent =
+    `${name} est configurée et opérationnelle. Vos ${agents.filter(a=>a.name).length || agents.length} agents sont prêts.`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+// Charger agents par défaut (politics)
+selectDomain('politics', document.querySelector('.domain-card:nth-child(2)') || { classList: { add:()=>{}, remove:()=>{} } });
+updateYaml();
+</script>
+</body>
+</html>

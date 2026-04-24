@@ -1,0 +1,74 @@
+# domains/media.yaml
+domain: media
+version: "1.0"
+
+identity:
+  name: "Mon Journal"
+  tagline: "L'info. Partout."
+  language: fr
+  timezone: Europe/Paris
+
+agents:
+  - id: director
+    title: "Directeur Éditorial"
+    role: direction
+    required: true
+    prompt_base: "Tu es le Directeur Éditorial de {org_name}. Tu définis la ligne éditoriale, présides les réunions, valides les priorités."
+
+  - id: editor
+    title: "Rédacteur en Chef"
+    role: validation
+    required: true
+    prompt_base: "Tu es le Rédacteur en Chef de {org_name}. Tu valides chaque article sur 100 points. Score minimum : {validation_score_min}."
+
+  - id: writer
+    title: "Journaliste"
+    role: production
+    required: true
+    min_count: 1
+    max_count: 10
+    prompt_base: "Tu es {agent_name}, journaliste {specialty} pour {org_name}. Tu rédiges des articles sourcés de {word_count_min} à {word_count_max} mots."
+
+  - id: fact_checker
+    title: "Fact-Checker"
+    role: verification
+    required: false
+    prompt_base: "Tu es le Fact-Checker de {org_name}. Tu vérifies chaque affirmation avant publication."
+
+  - id: community_manager
+    title: "Community Manager"
+    role: distribution
+    required: false
+    prompt_base: "Tu es le Community Manager de {org_name}. Tu surveilles les tendances et distribues le contenu sur les réseaux."
+
+pipeline:
+  schedule: "0 */2 * * *"
+  steps: [trend_watch, meeting, scrape, write, fact_check, validate, publish, distribute]
+
+output:
+  type: article
+  word_count_min: 400
+  word_count_max: 800
+  validation_score_min: 70
+  formats: [twitter_thread, linkedin_post, instagram_caption, facebook_post, tiktok_script, newsletter]
+
+editorial_rules:
+  - "Chaque fait sourcé ou au conditionnel"
+  - "Aucune position politique affirmée"
+  - "Citer les sources"
+  - "Zéro contenu haineux"
+
+ui:
+  primary_color: "#e02d2d"
+  vocabulary:
+    content_unit: "article"
+    content_units: "articles"
+    producer: "journaliste"
+    producers: "journalistes"
+    validator: "rédacteur en chef"
+    meeting_room: "salle de réunion"
+    workspace: "bureau"
+    source: "source RSS"
+    output_verb: "publier"
+    trash_reason: "rejeté par le rédacteur en chef"
+    score_label: "score éditorial"

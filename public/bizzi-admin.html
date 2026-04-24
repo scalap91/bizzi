@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="bizzi-favicon.svg">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>biZzi — Admin</title>
+<link rel="stylesheet" href="bizzi-global.css">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Mono:wght@400;500&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#020200;--s1:#080800;--s2:#080800;--card:#0f0e00;
+  --b1:#1a1900;--b2:#222000;--w:#fff8e0;--mid:#5a5030;
+  --red:#ffd23f;--grn:#ffd23f;--amb:#ffd23f;--blu:#ffd23f;--pur:#e6b800;
+  --D:'Syne',sans-serif;--B:'Outfit',sans-serif;--M:'DM Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--B);background:var(--bg);color:var(--w);display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+
+/* ── TOPBAR ── */
+.bar{height:54px;background:var(--s1);border-bottom:1px solid var(--b1);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0}
+.logo{font-family:var(--D);font-size:1rem;font-weight:900;letter-spacing:-.04em;color:#ffd23f}
+.logo::before{content:'⬡ '}
+.bar-sep{width:1px;height:22px;background:var(--b2)}
+.bar-title{font-size:.72rem;color:var(--mid)}
+.bar-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+.pulse{width:7px;height:7px;border-radius:50%;background:#ffd23f;animation:pu 1.5s infinite}
+@keyframes pu{0%,100%{box-shadow:0 0 0 0 rgba(0,200,150,.5)}70%{box-shadow:0 0 0 5px rgba(0,200,150,0)}}
+.admin-badge{font-size:.58rem;font-weight:700;padding:3px 10px;border-radius:100px;background:rgba(224,45,45,.12);color:#ffd23f;letter-spacing:.08em;text-transform:uppercase}
+.ck{font-family:var(--M);font-size:.68rem;color:var(--mid)}
+
+/* ── LAYOUT ── */
+.layout{flex:1;display:grid;grid-template-columns:220px 1fr;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.snav{background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;overflow:hidden}
+
+/* Barre de recherche */
+.search-wrap{padding:10px 10px 6px}
+.search-box{position:relative}
+.search-box input{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:8px 10px 8px 28px;color:var(--w);font-size:.7rem;font-family:var(--B);outline:none;transition:border-color .15s}
+.search-box input:focus{border-color:#ffd23f}
+.search-box input::placeholder{color:var(--mid)}
+.search-ico{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:.72rem;color:var(--mid);pointer-events:none}
+.search-results{display:none;margin-top:4px;background:var(--s2);border:1px solid var(--b2);border-radius:8px;overflow:hidden;max-height:200px;overflow-y:auto}
+.sr-item{display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--b1);transition:background .12s}
+.sr-item:hover{background:rgba(255,255,255,.04)}
+.sr-item:last-child{border:none}
+.sr-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.sr-name{font-size:.71rem;font-weight:600;flex:1}
+.sr-domain{font-size:.58rem;color:var(--mid)}
+.sr-plan{font-size:.55rem;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(255,255,255,.06);color:var(--mid)}
+
+/* Nav items */
+.snav-section{padding:10px 8px 3px;font-size:.54rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--mid)}
+.si{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:7px;cursor:pointer;font-size:.74rem;color:var(--mid);transition:all .15s;margin:1px 7px}
+.si:hover{background:var(--s2);color:var(--w)}
+.si.on{background:rgba(224,45,45,.1);color:var(--w);border-left:2px solid #ffd23f}
+.si .ico{width:16px;text-align:center;font-size:.86rem}
+.si .bdg{margin-left:auto;font-size:.56rem;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(224,45,45,.2);color:#ffd23f}
+.si .bdg.g{background:rgba(0,200,150,.15);color:#ffd23f}
+.si .bdg.a{background:rgba(245,158,11,.15);color:#ffd23f}
+.snav-bot{margin-top:auto;padding:10px;border-top:1px solid var(--b1)}
+.urow{display:flex;align-items:center;gap:8px;padding:6px}
+.uav{width:28px;height:28px;border-radius:50%;background:#ffd23f;display:flex;align-items:center;justify-content:center;font-family:var(--D);font-size:.65rem;font-weight:800;color:#fff;flex-shrink:0}
+
+/* ── MAIN ── */
+.main{overflow:hidden;display:flex;flex-direction:column}
+.pg{display:none;flex-direction:column;flex:1;overflow:hidden}.pg.on{display:flex}
+.content{flex:1;padding:16px 20px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+.ph{padding:16px 20px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.ph-title{font-family:var(--D);font-size:.92rem;font-weight:800}
+.ph-sub{font-size:.68rem;color:var(--mid);margin-top:2px}
+.card{background:var(--card);border:1px solid var(--b1);border-radius:10px;overflow:hidden}
+.ch{padding:10px 14px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;font-family:var(--D);font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mid)}
+.btn{font-family:var(--D);font-size:.66rem;font-weight:700;padding:6px 13px;border-radius:7px;cursor:pointer;border:none;transition:all .15s}
+.br{background:#ffd23f;color:#fff}.br:hover{opacity:.85}
+.bg{background:var(--s2);color:var(--mid);border:1px solid var(--b2)}.bg:hover{color:var(--w)}
+
+/* ── MÉTRIQUES GLOBALES ── */
+.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--b1);border-bottom:1px solid var(--b1);flex-shrink:0}
+.mc{background:var(--s1);padding:12px 14px;position:relative}
+.mc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.mc.g::after{background:#ffd23f}.mc.r::after{background:#ffd23f}
+.mc.a::after{background:#ffd23f}.mc.b::after{background:#ffd23f}
+.mc.p::after{background:#e6b800}.mc.w::after{background:rgba(255,255,255,.15)}
+.mv{font-family:var(--D);font-size:1.4rem;font-weight:800;line-height:1}
+.ml{font-size:.52rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);margin-top:3px}
+.ms{font-size:.6rem;color:var(--mid);margin-top:2px}
+
+/* ── TABLEAU CLIENTS ── */
+.tbl-head{display:grid;grid-template-columns:24px 1fr 90px 80px 80px 80px 80px 90px 100px;align-items:center;gap:8px;padding:8px 14px;font-size:.56rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);border-bottom:1px solid var(--b1)}
+.tbl-row{display:grid;grid-template-columns:24px 1fr 90px 80px 80px 80px 80px 90px 100px;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .12s}
+.tbl-row:hover{background:rgba(255,255,255,.02)}
+.tbl-row:last-child{border:none}
+.t-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.t-name{font-size:.76rem;font-weight:600}
+.t-domain{font-size:.6rem;color:var(--mid);margin-top:1px}
+.t-plan{font-size:.58rem;font-weight:700;padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:.04em}
+.plan-s{background:rgba(255,255,255,.06);color:var(--mid)}
+.plan-p{background:rgba(59,130,246,.12);color:#ffd23f}
+.plan-b{background:rgba(139,92,246,.12);color:#e6b800}
+.plan-e{background:rgba(224,45,45,.12);color:#ffd23f}
+.t-val{font-family:var(--M);font-size:.7rem;color:var(--mid)}
+.t-val.hi{color:#ffd23f}
+.t-val.warn{color:#ffd23f}
+.t-status{font-size:.62rem;font-weight:600}
+.s-ok{color:#ffd23f}.s-warn{color:#ffd23f}.s-err{color:#ffd23f}
+.t-rev{font-family:var(--M);font-size:.72rem;font-weight:600;color:var(--w)}
+.t-actions{display:flex;gap:4px}
+.t-btn{font-size:.58rem;padding:3px 8px;border-radius:4px;border:1px solid var(--b2);background:transparent;color:var(--mid);cursor:pointer;transition:all .12s}
+.t-btn:hover{color:var(--w);border-color:var(--b1)}
+
+/* ── VUE CLIENT DÉTAIL ── */
+.client-header{padding:16px 20px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:12px;flex-shrink:0}
+.client-av{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--D);font-size:.85rem;font-weight:800;color:#fff;flex-shrink:0}
+.client-name{font-family:var(--D);font-size:.92rem;font-weight:800}
+.client-sub{font-size:.65rem;color:var(--mid);margin-top:2px}
+
+/* Métriques client 5 colonnes */
+.mc5{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--b1);border-bottom:1px solid var(--b1);flex-shrink:0}
+
+/* Activité */
+.act-item{padding:9px 14px;border-bottom:1px solid var(--b1);display:flex;gap:9px;align-items:flex-start}
+.act-item:last-child{border:none}
+.act-ico{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.7rem;background:var(--s2)}
+.act-txt{font-size:.72rem;line-height:1.5;color:rgba(255,255,255,.75)}
+.act-tm{font-size:.58rem;color:var(--mid);margin-top:1px}
+
+/* Pipeline */
+.pipe-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--b1)}
+.pipe-row:last-child{border:none}
+.pipe-name{font-size:.72rem;font-weight:600;width:140px;flex-shrink:0}
+.pipe-status{font-size:.6rem;padding:2px 7px;border-radius:3px;flex-shrink:0}
+.ps-run{background:rgba(0,200,150,.12);color:#ffd23f}
+.ps-wait{background:rgba(245,158,11,.1);color:#ffd23f}
+.ps-idle{background:rgba(255,255,255,.05);color:var(--mid)}
+.ps-err{background:rgba(224,45,45,.12);color:#ffd23f}
+.pipe-step{font-size:.65rem;color:var(--mid);flex:1}
+.pipe-time{font-family:var(--M);font-size:.63rem;color:var(--mid)}
+
+/* Graphique barres */
+.bar-chart{padding:12px 14px;display:flex;flex-direction:column;gap:9px}
+.bc-row{display:flex;align-items:center;gap:10px}
+.bc-label{font-size:.7rem;color:var(--mid);width:110px;flex-shrink:0}
+.bc-track{flex:1;height:5px;background:var(--b2);border-radius:3px;overflow:hidden}
+.bc-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.bc-val{font-family:var(--M);font-size:.68rem;color:var(--w);width:50px;text-align:right;flex-shrink:0}
+
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="bar">
+  <div class="logo">Bizzi</div>
+  <div class="bar-sep"></div>
+  <div class="bar-title">Administration globale</div>
+  <div class="bar-r">
+    <div class="admin-badge">Super Admin</div>
+    <div class="pulse"></div>
+    <div class="ck" id="ck">--:--</div>
+    <div style="font-size:.67rem;color:var(--mid)">Pascal RÉPIR</div>
+  </div>
+</div>
+
+<div class="layout">
+
+<!-- ══ SIDEBAR ══ -->
+<div class="snav">
+
+  <!-- Barre de recherche -->
+  <div class="search-wrap">
+    <div class="search-box">
+      <span class="search-ico">🔍</span>
+      <input id="search-input" type="text" placeholder="Chercher un client..."
+        oninput="searchClients(this.value)">
+    </div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+
+  <div class="snav-section">Vue globale</div>
+  <div class="si on" onclick="go('overview',this)"><span class="ico">🌐</span> Vue d'ensemble</div>
+  <div class="si" onclick="go('clients',this)"><span class="ico">🏢</span> Tous les clients <span class="bdg">9</span></div>
+  <div class="si" onclick="go('pipelines',this)"><span class="ico">⚙️</span> Pipelines</div>
+  <div class="si" onclick="go('alerts',this)"><span class="ico">🔔</span> Alertes <span class="bdg a">2</span></div>
+
+  <div class="snav-section" style="margin-top:6px">Système</div>
+  <div class="si" onclick="go('infra',this)"><span class="ico">🖥️</span> Infrastructure</div>
+  <div class="si" onclick="go('revenue',this)"><span class="ico">💶</span> Revenus</div>
+  <div class="si" onclick="go('settings',this)"><span class="ico">🔧</span> Paramètres</div>
+
+  <div class="snav-bot">
+    <div class="urow">
+      <div class="uav">P</div>
+      <div>
+        <div style="font-size:.7rem;font-weight:600">Pascal RÉPIR</div>
+        <div style="font-size:.58rem;color:var(--mid)">Super Administrateur</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+
+<!-- ══ VUE D'ENSEMBLE ══ -->
+<div class="pg on" id="pg-overview">
+
+  <!-- Métriques globales -->
+  <div class="metrics">
+    <div class="mc g"><div class="mv" style="color:#ffd23f">9</div><div class="ml">Clients actifs</div><div class="ms">↑ +2 ce mois</div></div>
+    <div class="mc b"><div class="mv" style="color:#ffd23f">5 218€</div><div class="ml">MRR</div><div class="ms">↑ +398€ ce mois</div></div>
+    <div class="mc a"><div class="mv" style="color:#ffd23f">1 847</div><div class="ml">Productions</div><div class="ms">Ce mois · ↑ +340</div></div>
+    <div class="mc p"><div class="mv" style="color:#e6b800">124</div><div class="ml">Mises à la poubelle</div><div class="ms">6.7% du total</div></div>
+    <div class="mc r"><div class="mv" style="color:#ffd23f">2</div><div class="ml">Alertes actives</div><div class="ms">Valbonne · Fontaine</div></div>
+    <div class="mc w"><div class="mv">99.8%</div><div class="ml">Uptime</div><div class="ms">30 derniers jours</div></div>
+  </div>
+
+  <div class="content">
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px">
+
+      <!-- Tableau clients -->
+      <div class="card">
+        <div class="ch">Clients <span style="font-weight:400;color:#ffd23f">9 actifs</span></div>
+        <div class="tbl-head">
+          <div></div><div>Client</div><div>Plan</div>
+          <div>Productions</div><div>Poubelle</div>
+          <div>Agents</div><div>Statut</div>
+          <div>MRR</div><div>Actions</div>
+        </div>
+
+        <div class="tbl-row" onclick="openClient('Les Démocrates')">
+          <div class="t-dot" style="background:#ffd23f"></div>
+          <div><div class="t-name">Les Démocrates</div><div class="t-domain">politics · lesdemocrates.org</div></div>
+          <div><span class="t-plan plan-p">Pro</span></div>
+          <div class="t-val hi">284</div>
+          <div class="t-val warn">18</div>
+          <div class="t-val hi">6</div>
+          <div class="t-status s-ok">● Actif</div>
+          <div class="t-rev">299€</div>
+          <div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Les Démocrates')">Voir</button></div>
+        </div>
+
+        <div class="tbl-row" onclick="openClient('Onyx-news')">
+          <div class="t-dot" style="background:#ffd23f"></div>
+          <div><div class="t-name">Onyx-news</div><div class="t-domain">media · onyx-news.fr</div></div>
+          <div><span class="t-plan plan-p">Pro</span></div>
+          <div class="t-val hi">512</div>
+          <div class="t-val warn">31</div>
+          <div class="t-val hi">10</div>
+          <div class="t-status s-ok">● Actif</div>
+          <div class="t-rev">299€</div>
+          <div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Onyx-news')">Voir</button></div>
+        </div>
+
+        <div class="tbl-row" onclick="openClient('Groupe Helios')">
+          <div class="t-dot" style="background:#ffd23f"></div>
+          <div><div class="t-name">Groupe Helios</div><div class="t-domain">diagnostic · groupe-helios.fr</div></div>
+          <div><span class="t-plan plan-b">Business</span></div>
+          <div class="t-val hi">198</div>
+          <div class="t-val">9</div>
+          <div class="t-val hi">12</div>
+          <div class="t-status s-ok">● Actif</div>
+          <div class="t-rev">699€</div>
+          <div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Groupe Helios')">Voir</button></div>
+        </div>
+
+        <div class="tbl-row" onclick="openClient('Le Réseau Local')">
+          <div class="t-dot" style="background:#ffd23f"></div>
+          <div><div class="t-name">Le Réseau Local</div><div class="t-domain">media · reseaulocal.info</div></div>
+          <div><span class="t-plan plan-e">Enterprise</span></div>
+          <div class="t-val hi">892</div>
+          <div class="t-val warn">54</div>
+          <div class="t-val hi">15</div>
+          <div class="t-status s-ok">● Actif</div>
+          <div class="t-rev">2 926€</div>
+          <div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Le Réseau Local')">Voir</button></div>
+        </div>
+
+        <div class="tbl-row" onclick="openClient('Objectif Citoyen')">
+          <div class="t-dot" style="background:#e6b800"></div>
+          <div><div class="t-name">Objectif Citoyen</div><div class="t-domain">media · objectif-citoyen.fr</div></div>
+          <div><span class="t-plan plan-p">Pro</span></div>
+          <div class="t-val hi">512</div>
+          <div class="t-val warn">22</div>
+          <div class="t-val hi">8</div>
+          <div class="t-status s-ok">● Actif</div>
+          <div class="t-rev">299€</div>
+          <div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Objectif Citoyen')">Voir</button></div>
+        </div>
+
+        <div class="tbl-row" onclick="openClient('Cabinet Mercier')">
+          <div class="t-dot" style="background:#ffd23f"></div>
+          <div><div class="t-name">Cabinet Mercier</div><div class="t-domain">diagnostic · cabinet-mercier.fr</div></div>
+          <div><span class="t-plan plan-s">Starter</span></div>
+          <div class="t-val hi">127</div>
+          <div class="t-val">4</div>
+          <div class="t-val hi">3</div>
+          <div class="t-status s-ok">● Actif</div>
+          <div class="t-rev">99€</div>
+          <div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Cabinet Mercier')">Voir</button></div>
+        </div>
+
+        <div class="tbl-row" onclick="openClient('Association AVEF')">
+          <div class="t-dot" style="background:#ffd23f"></div>
+          <div><div class="t-name">Association AVEF</div><div class="t-domain">politics · avef.org</div></div>
+          <div><span class="t-plan plan-s">Starter</span></div>
+          <div class="t-val hi">89</div>
+          <div class="t-val">3</div>
+          <div class="t-val hi">3</div>
+          <div class="t-status s-ok">● Actif</div>
+          <div class="t-rev">99€</div>
+          <div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Association AVEF')">Voir</button></div>
+        </div>
+
+        <div class="tbl-row" onclick="openClient('Mairie de Valbonne')">
+          <div class="t-dot" style="background:var(--mid)"></div>
+          <div><div class="t-name">Mairie de Valbonne</div><div class="t-domain">custom · valbonne.fr</div></div>
+          <div><span class="t-plan plan-p">Pro</span></div>
+          <div class="t-val">43</div>
+          <div class="t-val">5</div>
+          <div class="t-val">7</div>
+          <div class="t-status s-warn">⚠ Config mail</div>
+          <div class="t-rev">299€</div>
+          <div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Mairie de Valbonne')">Voir</button></div>
+        </div>
+
+        <div class="tbl-row" onclick="openClient('Cabinet Fontaine')">
+          <div class="t-dot" style="background:#ffd23f"></div>
+          <div><div class="t-name">Cabinet Fontaine</div><div class="t-domain">diagnostic · fontaine-expert.fr</div></div>
+          <div><span class="t-plan plan-s">Starter</span></div>
+          <div class="t-val">31</div>
+          <div class="t-val warn">8</div>
+          <div class="t-val">2</div>
+          <div class="t-status s-warn">⚠ Ollama lent</div>
+          <div class="t-rev">99€</div>
+          <div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Cabinet Fontaine')">Voir</button></div>
+        </div>
+
+      </div>
+
+      <!-- Activité + Alertes -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+
+        <!-- Nouveaux clients ce mois -->
+        <div class="card">
+          <div class="ch">Nouveaux clients <span style="font-weight:400;color:#ffd23f">+2 ce mois</span></div>
+          <div style="padding:10px 14px;border-bottom:1px solid var(--b1)">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:7px;height:7px;border-radius:50%;background:#ffd23f"></div>
+              <div style="flex:1"><div style="font-size:.74rem;font-weight:600">Le Réseau Local</div><div style="font-size:.6rem;color:var(--mid)">Enterprise · 2 926€/mois</div></div>
+              <div style="font-size:.6rem;color:var(--mid)">Il y a 3 jours</div>
+            </div>
+          </div>
+          <div style="padding:10px 14px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:7px;height:7px;border-radius:50%;background:#ffd23f"></div>
+              <div style="flex:1"><div style="font-size:.74rem;font-weight:600">Cabinet Mercier</div><div style="font-size:.6rem;color:var(--mid)">Starter · 99€/mois</div></div>
+              <div style="font-size:.6rem;color:var(--mid)">Il y a 12 jours</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alertes -->
+        <div class="card">
+          <div class="ch">🔔 Alertes <span style="color:#ffd23f;font-weight:400">2 actives</span></div>
+          <div style="padding:11px 14px;border-bottom:1px solid var(--b1)">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
+              <div style="width:5px;height:5px;border-radius:50%;background:#ffd23f"></div>
+              <div style="font-size:.73rem;font-weight:600">Config mail manquante</div>
+            </div>
+            <div style="font-size:.65rem;color:var(--mid)">Mairie de Valbonne · aucune boîte IMAP</div>
+          </div>
+          <div style="padding:11px 14px">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
+              <div style="width:5px;height:5px;border-radius:50%;background:#ffd23f"></div>
+              <div style="font-size:.73rem;font-weight:600">Ollama lent</div>
+            </div>
+            <div style="font-size:.65rem;color:var(--mid)">Cabinet Fontaine · 45s de latence (normal &lt;8s)</div>
+          </div>
+        </div>
+
+        <!-- Activité -->
+        <div class="card">
+          <div class="ch">Activité <div style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#ffd23f;animation:pu 1.5s infinite;margin-left:6px;vertical-align:middle"></div></div>
+          <div class="act-item"><div class="act-ico">⚙️</div><div><div class="act-txt">Pipeline terminé · Onyx-news · 8 articles · score 81</div><div class="act-tm">Il y a 2 min</div></div></div>
+          <div class="act-item"><div class="act-ico">💬</div><div><div class="act-txt">24 messages chat · Les Démocrates · 3 transferts</div><div class="act-tm">Il y a 5 min</div></div></div>
+          <div class="act-item"><div class="act-ico">🗑️</div><div><div class="act-txt">3 productions mises à la poubelle · Le Réseau Local</div><div class="act-tm">Il y a 18 min</div></div></div>
+          <div class="act-item"><div class="act-ico">🔴</div><div><div class="act-txt">Alerte Ollama lent · Cabinet Fontaine · 45s</div><div class="act-tm">Il y a 22 min</div></div></div>
+          <div class="act-item"><div class="act-ico">🏢</div><div><div class="act-txt">Nouveau client · Le Réseau Local · Enterprise</div><div class="act-tm">Il y a 3 jours</div></div></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Productions vs Poubelle -->
+    <div class="card">
+      <div class="ch">Productions vs Mises à la poubelle <span style="font-weight:400;color:var(--mid)">ce mois</span></div>
+      <div class="bar-chart">
+        <div class="bc-row"><span class="bc-label">Le Réseau Local</span><div class="bc-track"><div class="bc-fill" style="width:100%;background:#ffd23f"></div></div><span class="bc-val" style="color:#ffd23f">892 ✓</span></div>
+        <div class="bc-row"><span class="bc-label">Le Réseau Local 🗑️</span><div class="bc-track"><div class="bc-fill" style="width:6%;background:#ffd23f"></div></div><span class="bc-val" style="color:#ffd23f">54 🗑️</span></div>
+        <div class="bc-row"><span class="bc-label">Onyx-news</span><div class="bc-track"><div class="bc-fill" style="width:57%;background:#ffd23f"></div></div><span class="bc-val" style="color:#ffd23f">512 ✓</span></div>
+        <div class="bc-row"><span class="bc-label">Onyx-news 🗑️</span><div class="bc-track"><div class="bc-fill" style="width:3.5%;background:#ffd23f"></div></div><span class="bc-val" style="color:#ffd23f">31 🗑️</span></div>
+        <div class="bc-row"><span class="bc-label">Les Démocrates</span><div class="bc-track"><div class="bc-fill" style="width:32%;background:#ffd23f"></div></div><span class="bc-val" style="color:#ffd23f">284 ✓</span></div>
+        <div class="bc-row"><span class="bc-label">Les Démocrates 🗑️</span><div class="bc-track"><div class="bc-fill" style="width:2%;background:#ffd23f"></div></div><span class="bc-val" style="color:#ffd23f">18 🗑️</span></div>
+        <div class="bc-row"><span class="bc-label">Groupe Helios</span><div class="bc-track"><div class="bc-fill" style="width:22%;background:#ffd23f"></div></div><span class="bc-val" style="color:#ffd23f">198 ✓</span></div>
+        <div class="bc-row"><span class="bc-label">Cabinet Fontaine 🗑️</span><div class="bc-track"><div class="bc-fill" style="width:1%;background:#ffd23f"></div></div><span class="bc-val" style="color:#ffd23f">8 🗑️ ⚠</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ TOUS LES CLIENTS ══ -->
+<div class="pg" id="pg-clients">
+  <div class="ph"><div><div class="ph-title">Tous les clients</div><div class="ph-sub">9 clients actifs · 5 218€ MRR</div></div><button class="btn br">+ Nouveau client</button></div>
+  <div class="content">
+    <div class="card">
+      <div class="ch">Clients <span style="font-weight:400;color:#ffd23f">9 actifs</span></div>
+      <div class="tbl-head"><div></div><div>Client</div><div>Plan</div><div>Productions</div><div>Poubelle</div><div>Agents</div><div>Statut</div><div>MRR</div><div>Actions</div></div>
+      <div class="tbl-row" onclick="openClient('Les Démocrates')"><div class="t-dot" style="background:#ffd23f"></div><div><div class="t-name">Les Démocrates</div><div class="t-domain">politics · lesdemocrates.org</div></div><div><span class="t-plan plan-p">Pro</span></div><div class="t-val hi">284</div><div class="t-val warn">18</div><div class="t-val hi">6</div><div class="t-status s-ok">● Actif</div><div class="t-rev">299€</div><div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Les Démocrates')">Voir</button></div></div>
+      <div class="tbl-row" onclick="openClient('Onyx-news')"><div class="t-dot" style="background:#ffd23f"></div><div><div class="t-name">Onyx-news</div><div class="t-domain">media · onyx-news.fr</div></div><div><span class="t-plan plan-p">Pro</span></div><div class="t-val hi">512</div><div class="t-val warn">31</div><div class="t-val hi">10</div><div class="t-status s-ok">● Actif</div><div class="t-rev">299€</div><div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Onyx-news')">Voir</button></div></div>
+      <div class="tbl-row" onclick="openClient('Groupe Helios')"><div class="t-dot" style="background:#ffd23f"></div><div><div class="t-name">Groupe Helios</div><div class="t-domain">diagnostic · groupe-helios.fr</div></div><div><span class="t-plan plan-b">Business</span></div><div class="t-val hi">198</div><div class="t-val">9</div><div class="t-val hi">12</div><div class="t-status s-ok">● Actif</div><div class="t-rev">699€</div><div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Groupe Helios')">Voir</button></div></div>
+      <div class="tbl-row" onclick="openClient('Le Réseau Local')"><div class="t-dot" style="background:#ffd23f"></div><div><div class="t-name">Le Réseau Local</div><div class="t-domain">media · reseaulocal.info</div></div><div><span class="t-plan plan-e">Enterprise</span></div><div class="t-val hi">892</div><div class="t-val warn">54</div><div class="t-val hi">15</div><div class="t-status s-ok">● Actif</div><div class="t-rev">2 926€</div><div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Le Réseau Local')">Voir</button></div></div>
+      <div class="tbl-row" onclick="openClient('Mairie de Valbonne')"><div class="t-dot" style="background:var(--mid)"></div><div><div class="t-name">Mairie de Valbonne</div><div class="t-domain">custom · valbonne.fr</div></div><div><span class="t-plan plan-p">Pro</span></div><div class="t-val">43</div><div class="t-val">5</div><div class="t-val">7</div><div class="t-status s-warn">⚠ Config mail</div><div class="t-rev">299€</div><div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Mairie de Valbonne')">Voir</button></div></div>
+      <div class="tbl-row" onclick="openClient('Cabinet Fontaine')"><div class="t-dot" style="background:#ffd23f"></div><div><div class="t-name">Cabinet Fontaine</div><div class="t-domain">diagnostic · fontaine-expert.fr</div></div><div><span class="t-plan plan-s">Starter</span></div><div class="t-val">31</div><div class="t-val warn">8</div><div class="t-val">2</div><div class="t-status s-warn">⚠ Ollama lent</div><div class="t-rev">99€</div><div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Cabinet Fontaine')">Voir</button></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ VUE CLIENT DÉTAIL ══ -->
+<div class="pg" id="pg-client-detail">
+  <!-- Header client -->
+  <div class="client-header">
+    <div class="client-av" id="detail-av" style="background:#ffd23f">?</div>
+    <div>
+      <div class="client-name" id="detail-name">Client</div>
+      <div class="client-sub" id="detail-sub">domain · site.fr</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <button class="btn bg" onclick="go('overview')">← Retour</button>
+    </div>
+  </div>
+
+  <!-- Métriques client -->
+  <div class="mc5">
+    <div class="mc g"><div class="mv" style="color:#ffd23f" id="d-prod">—</div><div class="ml">Productions</div><div class="ms">ce mois</div></div>
+    <div class="mc a"><div class="mv" style="color:#ffd23f" id="d-trash">—</div><div class="ml">Mises à la poubelle</div><div class="ms" id="d-trash-pct">—% du total</div></div>
+    <div class="mc b"><div class="mv" style="color:#ffd23f" id="d-agents">—</div><div class="ml">Agents actifs</div><div class="ms">configurés</div></div>
+    <div class="mc p"><div class="mv" style="color:#e6b800" id="d-score">—</div><div class="ml">Score moyen</div><div class="ms">qualité contenu</div></div>
+    <div class="mc w"><div class="mv" id="d-status" style="font-size:1rem">—</div><div class="ml">Statut</div><div class="ms" id="d-plan">—</div></div>
+  </div>
+
+  <div class="content">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
+      <!-- Productions vs poubelle -->
+      <div class="card">
+        <div class="ch">Productions ce mois</div>
+        <div class="bar-chart">
+          <div class="bc-row"><span class="bc-label">Publiées</span><div class="bc-track"><div class="bc-fill" id="d-bar-pub" style="background:#ffd23f"></div></div><span class="bc-val" id="d-val-pub" style="color:#ffd23f">—</span></div>
+          <div class="bc-row"><span class="bc-label">En attente</span><div class="bc-track"><div class="bc-fill" id="d-bar-wait" style="background:#ffd23f"></div></div><span class="bc-val" id="d-val-wait" style="color:#ffd23f">—</span></div>
+          <div class="bc-row"><span class="bc-label">Mises à la poubelle</span><div class="bc-track"><div class="bc-fill" id="d-bar-trash" style="background:#ffd23f"></div></div><span class="bc-val" id="d-val-trash" style="color:#ffd23f">—</span></div>
+        </div>
+      </div>
+
+      <!-- Pipeline -->
+      <div class="card">
+        <div class="ch">Pipeline</div>
+        <div id="d-pipeline" style="padding:12px 14px;font-size:.72rem;color:var(--mid)">—</div>
+      </div>
+
+    </div>
+
+    <!-- Agents -->
+    <div class="card">
+      <div class="ch">Agents <span id="detail-agents-count" style="font-weight:400;color:#ffd23f">— actifs</span></div>
+      <div id="detail-agents-grid" style="padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div style="padding:10px;text-align:center;color:var(--mid);font-size:.7rem;grid-column:span 2">Chargement...</div>
+      </div>
+    </div>
+
+    <!-- Activité récente (métriques uniquement — pas de contenu) -->
+    <div class="card">
+      <div class="ch">Activité récente <span style="font-weight:400;font-size:.6rem;color:var(--mid)">métriques uniquement — données chiffrées</span></div>
+      <div id="d-activity">
+        <div class="act-item"><div class="act-ico">⚙️</div><div><div class="act-txt" id="d-act-1">—</div><div class="act-tm">Il y a 2h</div></div></div>
+        <div class="act-item"><div class="act-ico">📊</div><div><div class="act-txt" id="d-act-2">—</div><div class="act-tm">Il y a 4h</div></div></div>
+        <div class="act-item"><div class="act-ico">🗑️</div><div><div class="act-txt" id="d-act-3">—</div><div class="act-tm">Hier</div></div></div>
+      </div>
+      <div style="padding:10px 14px;background:rgba(59,130,246,.04);border-top:1px solid var(--b1)">
+        <div style="font-size:.63rem;color:var(--mid)">🔒 Le contenu des productions est chiffré de bout en bout. Seul le client peut le déchiffrer avec sa clé.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ PIPELINES ══ -->
+<div class="pg" id="pg-pipelines">
+  <div class="ph"><div><div class="ph-title">Pipelines</div><div class="ph-sub">État en temps réel</div></div></div>
+  <div class="content">
+    <div class="card">
+      <div class="ch">État des pipelines</div>
+      <div class="pipe-row"><div class="pipe-name">Le Réseau Local</div><span class="pipe-status ps-run">▶ En cours</span><div class="pipe-step">Étape 7/10 · validation</div><div class="pipe-time">3min 14s</div></div>
+      <div class="pipe-row"><div class="pipe-name">Les Démocrates</div><span class="pipe-status ps-wait">⏳ Planifié</span><div class="pipe-step">Prochain run dans 1h 23min</div><div class="pipe-time">—</div></div>
+      <div class="pipe-row"><div class="pipe-name">Onyx-news</div><span class="pipe-status ps-idle">⬜ Terminé</span><div class="pipe-step">8 articles · score moy. 81 · il y a 2min</div><div class="pipe-time">4min 38s</div></div>
+      <div class="pipe-row"><div class="pipe-name">Groupe Helios</div><span class="pipe-status ps-wait">⏳ Planifié</span><div class="pipe-step">Pipeline matin · 8h00</div><div class="pipe-time">—</div></div>
+      <div class="pipe-row"><div class="pipe-name">Cabinet Mercier</div><span class="pipe-status ps-idle">⬜ Terminé</span><div class="pipe-step">3 rapports envoyés clients</div><div class="pipe-time">2min 11s</div></div>
+      <div class="pipe-row"><div class="pipe-name">Mairie de Valbonne</div><span class="pipe-status ps-err">✗ Erreur mail</span><div class="pipe-step">IMAP non configuré → distribution bloquée</div><div class="pipe-time">—</div></div>
+      <div class="pipe-row"><div class="pipe-name">Cabinet Fontaine</div><span class="pipe-status ps-wait" style="background:rgba(245,158,11,.1);color:#ffd23f">⚠ Lent</span><div class="pipe-step">Ollama 45s · pipeline en attente</div><div class="pipe-time">+45s</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ REVENUS ══ -->
+<div class="pg" id="pg-revenue">
+  <div class="ph"><div><div class="ph-title">Revenus</div><div class="ph-sub">5 218€ MRR · ARR estimé 62 616€</div></div></div>
+  <div class="content">
+    <div class="card">
+      <div class="ch">MRR par client</div>
+      <div class="bar-chart">
+        <div class="bc-row"><span class="bc-label">Le Réseau Local</span><div class="bc-track"><div class="bc-fill" style="width:100%;background:#ffd23f"></div></div><span class="bc-val">2 926€</span></div>
+        <div class="bc-row"><span class="bc-label">Groupe Helios</span><div class="bc-track"><div class="bc-fill" style="width:24%;background:#e6b800"></div></div><span class="bc-val">699€</span></div>
+        <div class="bc-row"><span class="bc-label">Les Démocrates</span><div class="bc-track"><div class="bc-fill" style="width:10%;background:#ffd23f"></div></div><span class="bc-val">299€</span></div>
+        <div class="bc-row"><span class="bc-label">Onyx-news</span><div class="bc-track"><div class="bc-fill" style="width:10%;background:#ffd23f"></div></div><span class="bc-val">299€</span></div>
+        <div class="bc-row"><span class="bc-label">Objectif Citoyen</span><div class="bc-track"><div class="bc-fill" style="width:10%;background:#e6b800"></div></div><span class="bc-val">299€</span></div>
+        <div class="bc-row"><span class="bc-label">Mairie de Valbonne</span><div class="bc-track"><div class="bc-fill" style="width:10%;background:var(--mid)"></div></div><span class="bc-val">299€</span></div>
+        <div class="bc-row"><span class="bc-label">Cabinet Mercier</span><div class="bc-track"><div class="bc-fill" style="width:3.4%;background:#ffd23f"></div></div><span class="bc-val">99€</span></div>
+        <div class="bc-row"><span class="bc-label">Association AVEF</span><div class="bc-track"><div class="bc-fill" style="width:3.4%;background:#ffd23f"></div></div><span class="bc-val">99€</span></div>
+        <div class="bc-row"><span class="bc-label">Cabinet Fontaine</span><div class="bc-track"><div class="bc-fill" style="width:3.4%;background:#ffd23f"></div></div><span class="bc-val">99€</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ALERTES ══ -->
+<div class="pg" id="pg-alerts">
+  <div class="ph"><div><div class="ph-title">Alertes</div><div class="ph-sub">2 alertes actives</div></div></div>
+  <div class="content">
+    <div class="card">
+      <div style="padding:14px;border-bottom:1px solid var(--b1)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:6px;height:6px;border-radius:50%;background:#ffd23f"></div><div style="font-size:.78rem;font-weight:600">Config mail manquante</div><span style="font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:3px;background:rgba(245,158,11,.1);color:#ffd23f;margin-left:auto">AVERTISSEMENT</span></div>
+        <div style="font-size:.7rem;color:var(--mid);margin-bottom:8px">Mairie de Valbonne — aucune boîte IMAP configurée. La distribution des contenus est bloquée.</div>
+        <button class="btn br" style="font-size:.63rem">Résoudre</button>
+      </div>
+      <div style="padding:14px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:6px;height:6px;border-radius:50%;background:#ffd23f"></div><div style="font-size:.78rem;font-weight:600">Latence Ollama élevée</div><span style="font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:3px;background:rgba(245,158,11,.1);color:#ffd23f;margin-left:auto">AVERTISSEMENT</span></div>
+        <div style="font-size:.7rem;color:var(--mid);margin-bottom:8px">Cabinet Fontaine — 45s de latence moyenne (normal &lt;8s). Le pipeline est en attente.</div>
+        <button class="btn br" style="font-size:.63rem">Investiguer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Pages simples -->
+<div class="pg" id="pg-infra"><div class="ph"><div><div class="ph-title">Infrastructure</div><div class="ph-sub">3 VPS · Ollama · PostgreSQL</div></div></div><div class="content"></div></div>
+<div class="pg" id="pg-settings"><div class="ph"><div><div class="ph-title">Paramètres</div></div></div><div class="content"></div></div>
+
+</div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+
+// ── Appels API ────────────────────────────────────────────────
+const API   = 'https://api.bizzi.ai';
+const TOKEN = localStorage.getItem('bizzi_admin_token') || 'ADMIN_TOKEN';
+const H     = {'Authorization': `Bearer ${TOKEN}`};
+
+async function loadGlobalStats() {
+  try {
+    const r = await fetch(`${API}/api/admin/stats/global`, {headers: H});
+    if (!r.ok) return;
+    const d = await r.json();
+    // Mettre à jour les métriques globales
+    document.querySelectorAll('[data-stat]').forEach(el => {
+      const key = el.dataset.stat;
+      if (d[key] !== undefined) el.textContent = d[key];
+    });
+  } catch(e) { console.log('Stats globales : mode démo'); }
+}
+
+async function loadTenantsStats() {
+  try {
+    const r = await fetch(`${API}/api/admin/stats/tenants`, {headers: H});
+    if (!r.ok) return;
+    const d = await r.json();
+    // Mettre à jour les données clients
+    d.tenants.forEach(t => {
+      const row = document.querySelector(`[data-tenant="${t.slug}"]`);
+      if (!row) return;
+      const els = row.querySelectorAll('[data-field]');
+      els.forEach(el => {
+        const f = el.dataset.field;
+        if (t[f] !== undefined) el.textContent = t[f];
+      });
+    });
+    // Mettre à jour CLIENTS pour la recherche
+    CLIENTS = d.tenants.map(t => ({
+      name: t.name, initials: t.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),
+      color: t.color, domain: t.domain, plan: t.plan,
+      prod: t.productions, trash: t.trashed, agents: t.agents_active,
+      score: t.avg_score, status: t.status, rev: t.mrr+'€', site: t.site
+    }));
+  } catch(e) { console.log('Stats tenants : mode démo'); }
+}
+
+async function loadClientDetail(slug) {
+  try {
+    const r = await fetch(`${API}/api/admin/stats/tenant/${slug}`, {headers: H});
+    if (!r.ok) return;
+    const d = await r.json();
+    // Agents
+    if (d.agents) {
+      const grid = document.getElementById('detail-agents-grid');
+      if (grid) {
+        grid.innerHTML = d.agents.map(a => `
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 11px;background:var(--s1);border-radius:7px;border:1px solid var(--b1)">
+            <div style="width:26px;height:26px;border-radius:50%;background:${a.color};display:flex;align-items:center;justify-content:center;font-family:var(--D);font-size:.6rem;font-weight:800;color:#fff;flex-shrink:0">${a.initials}</div>
+            <div style="flex:1"><div style="font-size:.72rem;font-weight:600">${a.name}</div><div style="font-size:.6rem;color:var(--mid)">${a.role}</div></div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <div style="width:6px;height:6px;border-radius:50%;background:${a.status==='active'?'#ffd23f':a.status==='idle'?'var(--mid)':'#ffd23f'}"></div>
+              <span style="font-size:.6rem;color:var(--mid)">${a.last_active||''}</span>
+            </div>
+            ${a.score ? `<span style="font-family:var(--M);font-size:.65rem;color:#ffd23f">${a.score}</span>` : ''}
+          </div>
+        `).join('');
+      }
+    }
+  } catch(e) { console.log('Client detail : mode démo'); }
+}
+
+// ── Données clients ───────────────────────────────────────────
+const CLIENTS = [
+  { name:'Les Démocrates',    initials:'LD', color:'#ffd23f', domain:'politics',   plan:'Pro',        prod:284, trash:18, agents:6, score:87, status:'ok',   rev:'299€',   site:'lesdemocrates.org'  },
+  { name:'Onyx-news',         initials:'ON', color:'#ffd23f', domain:'media',      plan:'Pro',        prod:512, trash:31, agents:10,score:81, status:'ok',   rev:'299€',   site:'onyx-news.fr'       },
+  { name:'Groupe Helios',     initials:'GH', color:'#ffd23f', domain:'diagnostic', plan:'Business',   prod:198, trash:9,  agents:12,score:90, status:'ok',   rev:'699€',   site:'groupe-helios.fr'   },
+  { name:'Le Réseau Local',   initials:'RL', color:'#ffd23f', domain:'media',      plan:'Enterprise', prod:892, trash:54, agents:15,score:79, status:'ok',   rev:'2 926€', site:'reseaulocal.info'   },
+  { name:'Objectif Citoyen',  initials:'OC', color:'#e6b800', domain:'media',      plan:'Pro',        prod:512, trash:22, agents:8, score:83, status:'ok',   rev:'299€',   site:'objectif-citoyen.fr'},
+  { name:'Cabinet Mercier',   initials:'CM', color:'#ffd23f', domain:'diagnostic', plan:'Starter',    prod:127, trash:4,  agents:3, score:92, status:'ok',   rev:'99€',    site:'cabinet-mercier.fr' },
+  { name:'Association AVEF',  initials:'AV', color:'#ffd23f', domain:'politics',   plan:'Starter',    prod:89,  trash:3,  agents:3, score:85, status:'ok',   rev:'99€',    site:'avef.org'           },
+  { name:'Mairie de Valbonne',initials:'MV', color:'#5a5030', domain:'custom',     plan:'Pro',        prod:43,  trash:5,  agents:7, score:74, status:'warn', rev:'299€',   site:'valbonne.fr'        },
+  { name:'Cabinet Fontaine',  initials:'CF', color:'#ffd23f', domain:'diagnostic', plan:'Starter',    prod:31,  trash:8,  agents:2, score:68, status:'warn', rev:'99€',    site:'fontaine-expert.fr' },
+];
+
+// ── Recherche ─────────────────────────────────────────────────
+function searchClients(q) {
+  const box = document.getElementById('search-results');
+  if (!q.trim()) { box.style.display = 'none'; return; }
+  const hits = CLIENTS.filter(c =>
+    c.name.toLowerCase().includes(q.toLowerCase()) ||
+    c.domain.toLowerCase().includes(q.toLowerCase()) ||
+    c.plan.toLowerCase().includes(q.toLowerCase())
+  );
+  if (!hits.length) { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  box.innerHTML = hits.map(c => `
+    <div class="sr-item" onclick="openClient('${c.name}');document.getElementById('search-input').value='';document.getElementById('search-results').style.display='none'">
+      <div class="sr-dot" style="background:${c.color}"></div>
+      <div class="sr-name">${c.name} <span class="sr-domain">${c.domain}</span></div>
+      <span class="sr-plan">${c.plan}</span>
+    </div>
+  `).join('');
+}
+
+// Fermer la recherche en cliquant ailleurs
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-wrap')) {
+    document.getElementById('search-results').style.display = 'none';
+  }
+});
+
+// ── Ouvrir un client ──────────────────────────────────────────
+function openClient(name) {
+  const c = CLIENTS.find(x => x.name === name);
+  if (!c) return;
+
+  const pct = Math.round(c.trash / c.prod * 100);
+  const pub  = c.prod - c.trash - Math.round(c.prod * 0.08);
+  const wait = Math.round(c.prod * 0.08);
+
+  document.getElementById('detail-av').textContent   = c.initials;
+  document.getElementById('detail-av').style.background = c.color;
+  document.getElementById('detail-name').textContent = c.name;
+  document.getElementById('detail-sub').textContent  = `${c.domain} · ${c.site}`;
+  document.getElementById('d-prod').textContent      = c.prod;
+  document.getElementById('d-trash').textContent     = c.trash;
+  document.getElementById('d-trash-pct').textContent = `${pct}% du total`;
+  document.getElementById('d-agents').textContent    = c.agents;
+  document.getElementById('d-score').textContent     = c.score + '/100';
+  document.getElementById('d-status').textContent    = c.status === 'ok' ? '● Actif' : '⚠ Alerte';
+  document.getElementById('d-status').style.color    = c.status === 'ok' ? '#ffd23f' : '#ffd23f';
+  document.getElementById('d-status').style.fontSize = '.82rem';
+  document.getElementById('d-plan').textContent      = `${c.plan} · ${c.rev}/mois`;
+
+  const maxPub = Math.max(pub, 1);
+  document.getElementById('d-bar-pub').style.width   = '100%';
+  document.getElementById('d-val-pub').textContent   = pub + ' ✓';
+  document.getElementById('d-bar-wait').style.width  = Math.round(wait/maxPub*100) + '%';
+  document.getElementById('d-val-wait').textContent  = wait;
+  document.getElementById('d-bar-trash').style.width = Math.round(c.trash/maxPub*100) + '%';
+  document.getElementById('d-val-trash').textContent = c.trash + ' 🗑️';
+
+  document.getElementById('d-pipeline').innerHTML = `
+    <div class="pipe-row" style="padding:8px 0"><div class="pipe-name">Pipeline</div>
+    <span class="pipe-status ps-idle">⬜ Actif</span>
+    <div class="pipe-step">Toutes les 3h · ${c.prod} productions ce mois</div></div>`;
+
+  document.getElementById('d-act-1').textContent = `Pipeline terminé · ${c.prod} productions · score moy. ${c.score}/100`;
+  document.getElementById('d-act-2').textContent = `${c.agents} agents actifs · ${Math.round(c.prod/30)} productions/jour en moyenne`;
+  document.getElementById('d-act-3').textContent = `${c.trash} productions mises à la poubelle (${pct}% du total)`;
+
+  go('client-detail');
+  // Charger les agents depuis l'API
+  loadClientDetail(c.slug || c.name.toLowerCase().replace(/\s+/g,'-'));
+}
+
+// ── Navigation ────────────────────────────────────────────────
+function go(id, el) {
+  document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.si').forEach(s => s.classList.remove('on'));
+  const pg = document.getElementById('pg-' + id);
+  if (pg) pg.classList.add('on');
+  if (el) el.classList.add('on');
+}
+
+// ── Horloge ───────────────────────────────────────────────────
+function tick() {
+  const n = new Date();
+  document.getElementById('ck').textContent =
+    n.getHours().toString().padStart(2,'0') + ':' +
+    n.getMinutes().toString().padStart(2,'0');
+}
+tick(); setInterval(tick, 10000);
+</script>
+</body>
+</html>

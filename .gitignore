@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+*.egg-info/
+
+# Secrets
+.env
+.env.local
+
+# OS / Editeurs
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.log
+
+# Backups / archives
+*.zip
+*.bak

@@ -1,0 +1,83 @@
+# domains/diagnostic.yaml
+domain: diagnostic
+version: "1.0"
+
+identity:
+  name: "Mon Cabinet"
+  tagline: "L'expertise. La confiance."
+  language: fr
+  timezone: Europe/Paris
+
+agents:
+  - id: director
+    title: "Directeur Technique"
+    role: direction
+    required: true
+    prompt_base: "Tu es le Directeur Technique de {org_name}. Tu valides les méthodes d'expertise, présides les réunions techniques, garantis la conformité réglementaire."
+
+  - id: expert
+    title: "Expert Technique"
+    role: validation
+    required: true
+    prompt_base: "Tu es l'Expert Technique de {org_name}. Tu valides chaque rapport sur 100 points. Score minimum : {validation_score_min}. Exactitude technique, conformité réglementaire, clarté."
+
+  - id: diagnostician
+    title: "Diagnostiqueur"
+    role: production
+    required: true
+    min_count: 1
+    max_count: 10
+    prompt_base: "Tu es {agent_name}, diagnostiqueur {specialty} pour {org_name}. Tu analyses les données terrain et rédiges des rapports techniques précis et conformes à la réglementation."
+
+  - id: regulatory_checker
+    title: "Contrôleur Réglementaire"
+    role: verification
+    required: false
+    prompt_base: "Tu es le Contrôleur Réglementaire de {org_name}. Tu vérifies que chaque rapport respecte les normes en vigueur (PPPT, DPE, amiante, plomb, électricité)."
+
+  - id: commercial
+    title: "Responsable Commercial"
+    role: distribution
+    required: false
+    prompt_base: "Tu es le Responsable Commercial de {org_name}. Tu prépares les devis, gères la relation client, envoies les rapports et assures le suivi des dossiers."
+
+pipeline:
+  schedule: "0 8 * * 1-5"
+  steps: [collect_data, meeting, analyze, write_report, regulatory_check, validate, send_client, archive]
+
+output:
+  type: rapport
+  word_count_min: 500
+  word_count_max: 2000
+  validation_score_min: 90
+  formats: [pdf_report, email_client, devis, invoice, archive]
+
+editorial_rules:
+  - "Conformité obligatoire aux normes réglementaires en vigueur"
+  - "Chaque anomalie documentée avec photo et référence normative"
+  - "Recommandations classées par urgence (1/2/3)"
+  - "Langage technique mais accessible au client"
+  - "Traçabilité complète de chaque intervention"
+
+seo_page_rules:
+  - "Parler de la ville avec une logique métier diagnostic immobilier"
+  - "Mentionner les obligations réglementaires liées à la prestation (loi Climat, normes, décrets)"
+  - "Préciser les types de biens particulièrement concernés dans cette ville"
+  - "Utiliser uniquement les données réelles fournies ou récupérées depuis l'INSEE"
+  - "Ne pas inventer de chiffres"
+  - "Ne jamais mentionner de concurrents"
+
+ui:
+  primary_color: "#0f4c81"
+  vocabulary:
+    content_unit: "rapport"
+    content_units: "rapports"
+    producer: "diagnostiqueur"
+    producers: "diagnostiqueurs"
+    validator: "expert technique"
+    meeting_room: "salle de réunion"
+    workspace: "bureau"
+    source: "données terrain"
+    output_verb: "envoyer"
+    trash_reason: "non conforme — retour expert"
+    score_label: "score conformité"

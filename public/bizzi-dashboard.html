@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="bizzi-favicon.svg">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>biZzi — Dashboard</title>
+<link rel="stylesheet" href="bizzi-global.css">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Mono:wght@400;500&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#020200;--s1:#080800;--s2:#080800;--card:#0f0e00;
+  --b1:#1a1900;--b2:#222000;--w:#fff8e0;--mid:#5a5030;
+  --accent:#ffd23f;--grn:#ffd23f;--amb:#ffd23f;--blu:#ffd23f;--pur:#e6b800;
+  --D:'Syne',sans-serif;--B:'Outfit',sans-serif;--M:'DM Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--B);background:var(--bg);color:var(--w);display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+.bar{height:54px;background:var(--s1);border-bottom:1px solid var(--b1);display:flex;align-items:center;padding:0 18px;gap:12px;flex-shrink:0}
+.logo{font-family:var(--D);font-size:.95rem;font-weight:900;letter-spacing:-.04em;color:var(--accent)}
+.logo::before{content:'⬡ '}
+.bar-sep{width:1px;height:22px;background:var(--b1)}
+.org-name{font-family:var(--D);font-size:.82rem;font-weight:700}
+.org-domain{font-size:.62rem;color:var(--mid)}
+.bar-r{margin-left:auto;display:flex;align-items:center;gap:10px}
+.pulse{width:7px;height:7px;border-radius:50%;background:#ffd23f;animation:pu 1.5s infinite;display:inline-block}
+@keyframes pu{0%,100%{box-shadow:0 0 0 0 rgba(0,200,150,.5)}70%{box-shadow:0 0 0 5px rgba(0,200,150,0)}}
+.plan-badge{font-size:.6rem;font-weight:700;padding:3px 10px;border-radius:100px;background:rgba(59,130,246,.12);color:#ffd23f;letter-spacing:.08em;text-transform:uppercase}
+.ck{font-family:var(--M);font-size:.68rem;color:var(--mid)}
+.layout{flex:1;display:grid;grid-template-columns:200px 1fr;overflow:hidden}
+.snav{background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;overflow-y:auto}
+.snav-section{padding:12px 8px 4px;font-size:.54rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--mid)}
+.si{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:7px;cursor:pointer;font-size:.74rem;color:var(--mid);transition:all .15s;margin:1px 7px}
+.si:hover{background:var(--s2);color:var(--w)}
+.si.on{background:rgba(214,20,13,.1);color:var(--w);border-left:2px solid var(--accent)}
+.si .ico{width:16px;text-align:center;font-size:.86rem}
+.si .bdg{margin-left:auto;font-size:.56rem;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(214,20,13,.2);color:var(--accent)}
+.si .bdg.g{background:rgba(0,200,150,.15);color:#ffd23f}
+.si .bdg.a{background:rgba(245,158,11,.15);color:#ffd23f}
+.snav-new{font-size:.48rem;color:var(--accent);font-weight:700;letter-spacing:.06em;vertical-align:middle;margin-left:2px}
+.snav-bot{margin-top:auto;padding:10px;border-top:1px solid var(--b1)}
+.urow{display:flex;align-items:center;gap:8px;padding:6px}
+.uav{width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--D);font-size:.62rem;font-weight:800;color:#fff;flex-shrink:0}
+.main{overflow:hidden;display:flex;flex-direction:column}
+.pg{display:none;flex-direction:column;flex:1;overflow:hidden}.pg.on{display:flex}
+.content{flex:1;padding:14px 18px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+.ph{padding:14px 18px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.ph-title{font-family:var(--D);font-size:.92rem;font-weight:800}
+.ph-sub{font-size:.68rem;color:var(--mid);margin-top:2px}
+.card{background:var(--card);border:1px solid var(--b1);border-radius:10px;overflow:hidden}
+.ch{padding:10px 14px;border-bottom:1px solid var(--b1);display:flex;align-items:center;justify-content:space-between;font-family:var(--D);font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mid)}
+.btn{font-family:var(--D);font-size:.67rem;font-weight:700;padding:7px 13px;border-radius:7px;cursor:pointer;border:none;transition:all .15s}
+.br{background:var(--accent);color:#fff}.br:hover{opacity:.85}
+.bg{background:var(--s2);color:var(--mid);border:1px solid var(--b2)}.bg:hover{color:var(--w)}
+.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--b1);border-bottom:1px solid var(--b1);flex-shrink:0}
+.mc{background:var(--s1);padding:11px 13px;position:relative}
+.mc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.mc.g::after{background:#ffd23f}.mc.r::after{background:var(--accent)}
+.mc.a::after{background:#ffd23f}.mc.b::after{background:#ffd23f}.mc.p::after{background:#e6b800}.mc.w::after{background:rgba(255,255,255,.15)}
+.mv{font-family:var(--D);font-size:1.35rem;font-weight:800;line-height:1}
+.ml{font-size:.53rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);margin-top:3px}
+.ms{font-size:.59rem;color:var(--mid);margin-top:2px}
+.mc5 .metrics{grid-template-columns:repeat(5,1fr)}
+.ag{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px}
+.acard{background:var(--s1);border:1px solid var(--b2);border-radius:8px;padding:10px;display:flex;align-items:center;gap:9px;cursor:pointer;transition:all .18s;position:relative}
+.acard:hover{border-color:var(--b1);transform:translateY(-1px)}
+.acard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;background:var(--ac,var(--accent))}
+.aav{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--D);font-size:.7rem;font-weight:800;color:#fff}
+.an{font-size:.73rem;font-weight:600}.ar{font-size:.6rem;color:var(--mid);margin-top:1px}.as{font-size:.57rem;color:var(--mid);margin-top:2px}
+.adot{position:absolute;top:7px;right:7px;width:5px;height:5px;border-radius:50%}
+.don{background:#ffd23f;animation:pu 1.5s infinite}.dbu{background:#ffd23f}.dof{background:var(--mid)}
+.cr{display:flex;align-items:center;gap:9px;padding:9px 14px;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .12s}
+.cr:hover{background:rgba(255,255,255,.02)}.cr:last-child{border:none}
+.cs{font-size:.53rem;font-weight:700;padding:2px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:.05em;flex-shrink:0}
+.ct{font-size:.75rem;line-height:1.4;flex:1}.cm{font-size:.6rem;color:var(--mid);white-space:nowrap}
+.csc{font-family:var(--M);font-size:.61rem;padding:1px 5px;border-radius:3px;flex-shrink:0}
+.shi{background:rgba(0,200,150,.12);color:#ffd23f}.smd{background:rgba(245,158,11,.12);color:#ffd23f}.slo{background:rgba(214,20,13,.12);color:var(--accent)}
+.sig-row{display:flex;gap:9px;align-items:flex-start;padding:9px 13px;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .12s}
+.sig-row:hover{background:rgba(255,255,255,.02)}.sig-row:last-child{border:none}
+.sig-cat{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.sig-body{flex:1}.sig-txt{font-size:.74rem;line-height:1.5;margin-bottom:3px}.sig-meta{font-size:.61rem;color:var(--mid)}
+.urg{font-size:.57rem;font-weight:700;padding:2px 6px;border-radius:3px;flex-shrink:0;text-transform:uppercase;letter-spacing:.04em}
+.urg-h{background:rgba(214,20,13,.12);color:var(--accent)}.urg-n{background:rgba(245,158,11,.1);color:#ffd23f}.urg-b{background:rgba(255,255,255,.06);color:var(--mid)}
+.issue-row{padding:11px 13px;border-bottom:1px solid var(--b1)}.issue-row:last-child{border:none}
+.issue-head{display:flex;align-items:center;gap:7px;margin-bottom:4px;flex-wrap:wrap}
+.issue-id{font-family:var(--M);font-size:.6rem;color:var(--mid)}
+.ilv{font-size:.57rem;font-weight:700;padding:2px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:.04em}
+.ilv-2{background:rgba(59,130,246,.12);color:#ffd23f}.ilv-3{background:rgba(139,92,246,.12);color:#e6b800}
+.ilv-4{background:rgba(245,158,11,.1);color:#ffd23f}.ilv-5{background:rgba(214,20,13,.12);color:var(--accent)}
+.feed-item{padding:8px 13px;border-bottom:1px solid var(--b1);display:flex;gap:8px}.feed-item:last-child{border:none}
+.feed-ico{width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.62rem;background:var(--s2)}
+.feed-txt{font-size:.69rem;line-height:1.5;color:rgba(255,255,255,.72)}
+.feed-tm{font-size:.57rem;color:var(--mid);margin-top:1px}
+.tgl{width:32px;height:18px;border-radius:9px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.tgl.on{background:#ffd23f}.tgl.off{background:var(--b2)}
+.tgl::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:2px;transition:left .2s}
+.tgl.on::after{left:16px}.tgl.off::after{left:2px}
+.tool-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--b1)}.tool-row:last-child{border:none}
+.pl{display:flex;gap:11px;position:relative}
+.pl-con{position:absolute;left:17px;top:36px;width:2px;z-index:0}
+.pl-node{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--D);font-size:.68rem;font-weight:800;color:#fff;z-index:1;border:2px solid}
+.pl-body{flex:1;padding:6px 0 16px}
+.pl-title{font-family:var(--D);font-size:.78rem;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.pl-sub{font-size:.64rem;color:var(--mid);margin-bottom:6px}
+.tbar{height:3px;background:var(--b2);border-radius:2px;overflow:hidden;width:160px}
+.tfill{height:100%;border-radius:2px;transition:width .4s}
+.tlbl{font-size:.57rem;color:var(--mid);margin-top:3px}
+.pl-actions{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
+.sig-chip{font-size:.6rem;padding:3px 7px;border-radius:100px;border:1px solid var(--b2);color:var(--mid);cursor:pointer;transition:all .15s;background:var(--s1)}
+.sig-chip:hover{color:var(--w)}.sig-chip.u{background:rgba(214,20,13,.1);border-color:rgba(214,20,13,.3);color:var(--accent)}
+.iframe-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.iframe-bar{padding:8px 14px;background:var(--s1);border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:8px;flex-shrink:0}
+iframe{flex:1;border:none;background:var(--bg)}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="logo">Bizzi</div>
+  <div class="bar-sep"></div>
+  <div>
+    <div class="org-name">Les Démocrates</div>
+    <div class="org-domain">Parti social-démocrate · 5 agents actifs</div>
+  </div>
+  <div class="bar-r">
+    <span class="plan-badge">Pro</span>
+    <div class="pulse"></div>
+    <span class="ck" id="ck">--:--</span>
+  </div>
+</div>
+
+<div class="layout">
+
+<div class="snav">
+  <div style="height:6px"></div>
+
+  <div class="snav-section">Organisation</div>
+  <div class="si on" onclick="go('overview',this)"><span class="ico">🏠</span> Vue d'ensemble</div>
+  <div class="si" onclick="go('agents',this)"><span class="ico">👥</span> Mon équipe</div>
+  <div class="si" onclick="go('content',this)"><span class="ico">📄</span> <span id="nav-content">Communiqués</span></div>
+  <div class="si" onclick="go('pipeline-agents',this)"><span class="ico">⚙️</span> Pipeline agents</div>
+  <div class="si" onclick="go('meeting',this)"><span class="ico">🏛️</span> Salle de réunion</div>
+
+  <div class="snav-section" style="margin-top:6px">Remontées <span class="snav-new">NOUVEAU</span></div>
+  <div class="si" onclick="go('esc-overview',this)"><span class="ico">🔺</span> Vue pipeline <span class="bdg a">12</span></div>
+  <div class="si" onclick="go('esc-signals',this)"><span class="ico">📥</span> Signalements <span class="bdg">7</span></div>
+  <div class="si" onclick="go('esc-issues',this)"><span class="ico">🔗</span> Problématiques <span class="bdg">3</span></div>
+  <div class="si" onclick="go('esc-projects',this)"><span class="ico">🏆</span> Projets <span class="bdg g">1</span></div>
+  <div class="si" onclick="go('esc-iframe',this)"><span class="ico">↗</span> Plein écran</div>
+
+  <div class="snav-section" style="margin-top:6px">Outils</div>
+  <div class="si" onclick="go('tools',this)"><span class="ico">🧰</span> Mes outils</div>
+  <div class="si" onclick="go('chat',this)"><span class="ico">💬</span> Chat visiteur</div>
+  <div class="si" onclick="go('emails',this)"><span class="ico">📧</span> Emails <span class="bdg">3</span></div>
+  <div class="si" onclick="go('complaints',this)"><span class="ico">⚠️</span> Plaintes <span class="bdg">1</span></div>
+  <div class="si" onclick="go('rgpd',this)"><span class="ico">🔒</span> RGPD</div>
+
+  <div class="snav-section" style="margin-top:6px">Configuration</div>
+  <div class="si" onclick="go('config',this)"><span class="ico">🔧</span> Paramètres</div>
+  <div class="si" onclick="go('billing',this)"><span class="ico">💶</span> Facturation</div>
+
+  <div class="snav-bot">
+    <div class="urow">
+      <div class="uav">P</div>
+      <div>
+        <div style="font-size:.7rem;font-weight:600">Pascal RÉPIR</div>
+        <div style="font-size:.57rem;color:var(--mid)">Président · Direction nationale</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ══ VUE D'ENSEMBLE ══ -->
+<div class="pg on" id="pg-overview">
+  <div class="metrics">
+    <div class="mc g"><div class="mv" style="color:#ffd23f" id="m-content">284</div><div class="ml" id="m-content-lbl">Communiqués</div><div class="ms">↑ +34 ce mois</div></div>
+    <div class="mc b"><div class="mv" style="color:#ffd23f">5</div><div class="ml">Agents actifs</div><div class="ms">sur 6 configurés</div></div>
+    <div class="mc r"><div class="mv" style="color:var(--accent)">47</div><div class="ml">Signalements</div><div class="ms">↑ +12 cette semaine</div></div>
+    <div class="mc a"><div class="mv" style="color:#ffd23f">8</div><div class="ml">Problématiques</div><div class="ms">3 en attente action</div></div>
+    <div class="mc p"><div class="mv" style="color:#e6b800">1</div><div class="ml">Projet national</div><div class="ms">En attente signature</div></div>
+    <div class="mc w"><div class="mv" style="color:var(--w)">87</div><div class="ml" id="m-score-lbl">Score moyen</div><div class="ms">↑ +4 pts ce mois</div></div>
+  </div>
+  <div class="content">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+
+      <!-- Équipe -->
+      <div class="card">
+        <div class="ch">Mon équipe <span style="font-weight:400;color:#ffd23f">5 actifs</span></div>
+        <div style="padding:12px;display:flex;flex-direction:column;align-items:center;gap:0">
+          <div style="font-size:.49rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mid);margin-bottom:5px">Direction</div>
+          <div class="acard" style="--ac:#6a0572;width:190px;justify-content:center">
+            <div class="aav" style="background:#6a0572">P</div>
+            <div><div class="an">Pascal RÉPIR</div><div class="ar">Président</div></div>
+            <div class="adot don"></div>
+          </div>
+          <div style="width:1px;height:12px;background:var(--b2)"></div>
+          <div style="font-size:.49rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mid);margin-bottom:5px">Validation</div>
+          <div class="acard" style="--ac:#374151;width:190px;justify-content:center">
+            <div class="aav" style="background:#374151">K</div>
+            <div><div class="an">Karim BOUCHRA</div><div class="ar">Porte-parole</div></div>
+            <div class="adot don"></div>
+          </div>
+          <div style="width:1px;height:12px;background:var(--b2)"></div>
+          <div style="font-size:.49rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mid);margin-bottom:5px">Production & Terrain</div>
+          <div style="display:flex;gap:5px">
+            <div class="acard" style="--ac:#023e8a;min-width:130px">
+              <div class="aav" style="background:#023e8a;width:24px;height:24px;font-size:.6rem">L</div>
+              <div><div class="an" style="font-size:.68rem">Lucas MARTIN</div><div class="ar">Analyste</div></div>
+              <div class="adot don"></div>
+            </div>
+            <div class="acard" style="--ac:#e91e8c;min-width:130px">
+              <div class="aav" style="background:#e91e8c;width:24px;height:24px;font-size:.6rem">S</div>
+              <div><div class="an" style="font-size:.68rem">Sico DIA</div><div class="ar">Community Mgr</div></div>
+              <div class="adot don"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pipeline remontée résumé -->
+      <div class="card">
+        <div class="ch">Remontées citoyennes <span style="font-weight:400;color:var(--accent)">⚡ Action requise</span></div>
+        <div style="padding:11px;display:flex;flex-direction:column;gap:6px">
+          <!-- 5 niveaux compacts -->
+          <div style="display:flex;align-items:center;gap:7px;padding:6px 9px;background:var(--s1);border-radius:6px;border:1px solid var(--b1)">
+            <div style="width:20px;height:20px;border-radius:50%;background:#374151;display:flex;align-items:center;justify-content:center;font-family:var(--D);font-size:.6rem;font-weight:800;flex-shrink:0">1</div>
+            <div style="flex:1"><div style="font-size:.68rem;font-weight:600">Signalement</div><div style="font-size:.58rem;color:var(--mid)">47 reçus · 5 urgents</div></div>
+            <span style="font-size:.56rem;color:#ffd23f;font-weight:600">● Actif</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px;padding:6px 9px;background:rgba(59,130,246,.06);border-radius:6px;border:1px solid rgba(59,130,246,.2)">
+            <div style="width:20px;height:20px;border-radius:50%;background:#ffd23f;display:flex;align-items:center;justify-content:center;font-family:var(--D);font-size:.6rem;font-weight:800;flex-shrink:0;color:#fff">2</div>
+            <div style="flex:1"><div style="font-size:.68rem;font-weight:600">Section communale</div><div style="font-size:.58rem;color:var(--mid)">Seuil atteint · Évry · Sécurité</div></div>
+            <button class="btn br" style="font-size:.56rem;padding:2px 7px" onclick="go('esc-overview')">Agir</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px;padding:6px 9px;background:var(--s1);border-radius:6px;border:1px solid var(--b1)">
+            <div style="width:20px;height:20px;border-radius:50%;background:#e6b800;display:flex;align-items:center;justify-content:center;font-family:var(--D);font-size:.6rem;font-weight:800;flex-shrink:0;color:#fff">3</div>
+            <div style="flex:1"><div style="font-size:.68rem;font-weight:600">Fédération 91</div><div style="font-size:.58rem;color:var(--mid)">2/3 sections · En cours</div></div>
+            <div style="width:40px;height:3px;background:var(--b2);border-radius:2px;overflow:hidden"><div style="width:66%;height:100%;background:#e6b800;border-radius:2px"></div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px;padding:6px 9px;background:var(--s1);border-radius:6px;border:1px solid var(--b1)">
+            <div style="width:20px;height:20px;border-radius:50%;background:#ffd23f;display:flex;align-items:center;justify-content:center;font-family:var(--D);font-size:.6rem;font-weight:800;flex-shrink:0;color:#fff">4</div>
+            <div style="flex:1"><div style="font-size:.68rem;font-weight:600">Coordination régionale</div><div style="font-size:.58rem;color:var(--mid)">0/3 fédérations</div></div>
+            <div style="width:40px;height:3px;background:var(--b2);border-radius:2px"></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px;padding:6px 9px;background:rgba(214,20,13,.06);border-radius:6px;border:1px solid rgba(214,20,13,.2)">
+            <div style="width:20px;height:20px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--D);font-size:.6rem;font-weight:800;flex-shrink:0;color:#fff">5</div>
+            <div style="flex:1"><div style="font-size:.68rem;font-weight:600">Direction nationale</div><div style="font-size:.58rem;color:#ffd23f">★ 1 projet à signer</div></div>
+            <button class="btn br" style="font-size:.56rem;padding:2px 7px" onclick="go('esc-projects')">Signer</button>
+          </div>
+          <!-- Derniers signalements -->
+          <div style="border-top:1px solid var(--b1);padding-top:7px;display:flex;flex-direction:column;gap:4px">
+            <div style="font-size:.54rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);margin-bottom:3px">Derniers signalements</div>
+            <div style="display:flex;gap:5px;align-items:center"><div style="width:5px;height:5px;border-radius:50%;background:var(--accent);flex-shrink:0"></div><div style="font-size:.66rem;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">Violence rue des Lilas · Évry</div><span class="urg urg-h">Haute</span></div>
+            <div style="display:flex;gap:5px;align-items:center"><div style="width:5px;height:5px;border-radius:50%;background:#ffd23f;flex-shrink:0"></div><div style="font-size:.66rem;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">Loyer abusif · Corbeil-Essonnes</div><span class="urg urg-n">Normale</span></div>
+            <div style="display:flex;gap:5px;align-items:center"><div style="width:5px;height:5px;border-radius:50%;background:#e6b800;flex-shrink:0"></div><div style="font-size:.66rem;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">Désert médical · Ris-Orangis</div><span class="urg urg-h">Haute</span></div>
+          </div>
+          <button class="btn bg" style="width:100%;font-size:.63rem" onclick="go('esc-overview')">→ Pipeline complet</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Communiqués + Activité -->
+    <div style="display:grid;grid-template-columns:1fr 260px;gap:10px">
+      <div class="card">
+        <div class="ch"><span id="content-card-title">Communiqués récents</span></div>
+        <div class="cr"><span class="cs" style="background:rgba(0,200,150,.1);color:#ffd23f">PUBLIÉ</span><div class="ct">Position sur la réforme des retraites 2026</div><span class="csc shi">92</span><div class="cm">Il y a 2h</div></div>
+        <div class="cr"><span class="cs" style="background:rgba(245,158,11,.1);color:#ffd23f">EN ATTENTE</span><div class="ct">Sécurité du quotidien — Tribune nationale</div><span class="csc smd">78</span><div class="cm">Il y a 4h</div></div>
+        <div class="cr"><span class="cs" style="background:rgba(0,200,150,.1);color:#ffd23f">PUBLIÉ</span><div class="ct">Réponse aux déclarations du Premier Ministre</div><span class="csc shi">88</span><div class="cm">Hier</div></div>
+      </div>
+      <div class="card">
+        <div class="ch">Activité <div class="pulse" style="margin-left:4px"></div></div>
+        <div class="feed-item"><div class="feed-ico">🔺</div><div><div class="feed-txt">Seuil Niveau 2 · Sécurité · Évry</div><div class="feed-tm">Il y a 2h</div></div></div>
+        <div class="feed-item"><div class="feed-ico">📥</div><div><div class="feed-txt">Signal · Violence rue des Lilas</div><div class="feed-tm">Il y a 2h</div></div></div>
+        <div class="feed-item"><div class="feed-ico">📄</div><div><div class="feed-txt">Communiqué publié · Retraites 2026</div><div class="feed-tm">Il y a 3h</div></div></div>
+        <div class="feed-item"><div class="feed-ico">★</div><div><div class="feed-txt">Projet national à signer</div><div class="feed-tm">Il y a 2 jours</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ÉQUIPE ══ -->
+<div class="pg" id="pg-agents">
+  <div class="ph"><div><div class="ph-title">Mon équipe</div><div class="ph-sub">6 agents · 5 actifs</div></div></div>
+  <div class="content">
+    <div class="card">
+      <div class="ch">Agents</div>
+      <div class="ag">
+        <div class="acard" style="--ac:#6a0572" onclick="openBureau('Pascal RÉPIR','Président','#6a0572','P')"><div class="aav" style="background:#6a0572">P</div><div><div class="an">Pascal RÉPIR</div><div class="ar">Président</div><div class="as">Direction nationale</div></div><div class="adot don"></div></div>
+        <div class="acard" style="--ac:#374151" onclick="openBureau('Karim BOUCHRA','Porte-parole','#374151','K')"><div class="aav" style="background:#374151">K</div><div><div class="an">Karim BOUCHRA</div><div class="ar">Porte-parole</div><div class="as">Score moy. 87/100</div></div><div class="adot don"></div></div>
+        <div class="acard" style="--ac:#023e8a" onclick="openBureau('Lucas MARTIN','Analyste national','#023e8a','L')"><div class="aav" style="background:#023e8a">L</div><div><div class="an">Lucas MARTIN</div><div class="ar">Analyste national</div><div class="as">142 communiqués</div></div><div class="adot don"></div></div>
+        <div class="acard" style="--ac:#2d6a4f" onclick="openBureau('Alice ROY','Analyste local','#2d6a4f','A')"><div class="aav" style="background:#2d6a4f">A</div><div><div class="an">Alice ROY</div><div class="ar">Analyste local</div><div class="as">Terrain · 91</div></div><div class="adot don"></div></div>
+        <div class="acard" style="--ac:#e91e8c" onclick="openBureau('Sico DIA','Community Manager','#e91e8c','S')"><div class="aav" style="background:#e91e8c">S</div><div><div class="an">Sico DIA</div><div class="ar">Community Manager</div><div class="as">Radar · Réseaux</div></div><div class="adot don"></div></div>
+        <div class="acard" style="--ac:#5a5030;opacity:.6" onclick="openBureau('Émile LEFÈVRE','Juriste','#5a5030','E')"><div class="aav" style="background:#5a5030">E</div><div><div class="an">Émile LEFÈVRE</div><div class="ar">Juriste</div><div class="as">En veille</div></div><div class="adot dof"></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch">Rôle des agents dans les remontées <span style="font-weight:400;color:var(--accent)">Source d'information terrain</span></div>
+      <div style="padding:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div style="padding:9px 11px;background:var(--s1);border-radius:7px;border:1px solid var(--b1)"><div style="font-size:.6rem;font-weight:700;color:#e91e8c;margin-bottom:3px">Sico DIA — Radar</div><div style="font-size:.67rem;color:var(--mid)">Surveille les tendances par catégorie · Publie au nom des sections</div></div>
+        <div style="padding:9px 11px;background:var(--s1);border-radius:7px;border:1px solid var(--b1)"><div style="font-size:.6rem;font-weight:700;color:#ffd23f;margin-bottom:3px">Lucas MARTIN — Analyse</div><div style="font-size:.67rem;color:var(--mid)">Intègre les problématiques dans ses analyses · Rédige les propositions</div></div>
+        <div style="padding:9px 11px;background:var(--s1);border-radius:7px;border:1px solid var(--b1)"><div style="font-size:.6rem;font-weight:700;color:#e6b800;margin-bottom:3px">Karim BOUCHRA — Validation</div><div style="font-size:.67rem;color:var(--mid)">Valide les projets nationaux · Score les prises de position</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ BUREAU AGENT ══ -->
+<div class="pg" id="pg-bureau">
+  <div class="iframe-wrap">
+    <div class="iframe-bar">
+      <div id="bureau-av" style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--D);font-size:.65rem;font-weight:800;color:#fff;flex-shrink:0;background:var(--accent)">?</div>
+      <div>
+        <div id="bureau-name" style="font-size:.75rem;font-weight:600">Agent</div>
+        <div id="bureau-role" style="font-size:.6rem;color:var(--mid)">Rôle</div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <span style="font-size:.62rem;color:#ffd23f">● Actif</span>
+        <button class="btn bg" style="font-size:.62rem;padding:4px 10px" onclick="go('agents')">← Retour équipe</button>
+      </div>
+    </div>
+    <iframe id="bureau-iframe" src="core-bureau.html" title="Bureau agent"></iframe>
+  </div>
+</div>
+
+<!-- ══ COMMUNIQUÉS ══ -->
+<div class="pg" id="pg-content">
+  <div class="ph"><div><div class="ph-title" id="content-title">Communiqués</div><div class="ph-sub">284 ce mois · Score 87/100</div></div></div>
+  <div class="content">
+    <div class="card">
+      <div class="ch" id="content-card-title2">Communiqués récents</div>
+      <div class="cr"><span class="cs" style="background:rgba(0,200,150,.1);color:#ffd23f">PUBLIÉ</span><div class="ct">Position sur la réforme des retraites 2026</div><span class="csc shi">92</span><div class="cm">Il y a 2h</div></div>
+      <div class="cr"><span class="cs" style="background:rgba(245,158,11,.1);color:#ffd23f">EN ATTENTE</span><div class="ct">Sécurité du quotidien — Tribune nationale</div><span class="csc smd">78</span><div class="cm">Il y a 4h</div></div>
+      <div class="cr"><span class="cs" style="background:rgba(0,200,150,.1);color:#ffd23f">PUBLIÉ</span><div class="ct">Réponse aux déclarations du Premier Ministre</div><span class="csc shi">88</span><div class="cm">Hier</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PIPELINE AGENTS ══ -->
+<div class="pg" id="pg-pipeline-agents">
+  <div class="ph"><div><div class="ph-title">Pipeline agents</div><div class="ph-sub">Cycle automatique · toutes les 3h</div></div></div>
+  <div class="content"><div class="card"><div class="ch">Étapes</div><div style="padding:14px;font-size:.75rem;color:var(--mid)">Veille → Réunion → Rédaction → Validation → Publication → Distribution</div></div></div>
+</div>
+
+<!-- ══ PIPELINE REMONTÉE — VUE COMPLÈTE ══ -->
+<div class="pg" id="pg-esc-overview">
+  <div class="metrics">
+    <div class="mc r"><div class="mv" style="color:var(--accent)">47</div><div class="ml">Signalements</div><div class="ms">↑ +12 cette semaine</div></div>
+    <div class="mc b"><div class="mv" style="color:#ffd23f">8</div><div class="ml">Problématiques</div><div class="ms">3 en attente</div></div>
+    <div class="mc p"><div class="mv" style="color:#e6b800">2</div><div class="ml">Projets</div><div class="ms">1 à valider</div></div>
+    <div class="mc a"><div class="mv" style="color:#ffd23f">5</div><div class="ml">Urgents</div><div class="ms">Sous 24h</div></div>
+    <div class="mc g"><div class="mv" style="color:#ffd23f">23</div><div class="ml">Réponses</div><div class="ms">100% cette semaine</div></div>
+    <div class="mc w"><div class="mv" style="color:var(--w)">5</div><div class="ml">Niveaux actifs</div><div class="ms">Pipeline complet</div></div>
+  </div>
+  <div class="content">
+    <div style="display:grid;grid-template-columns:1fr 240px;gap:10px;flex:1">
+      <div class="card">
+        <div class="ch">Pipeline hiérarchique <span style="font-weight:400;color:#ffd23f">5 niveaux</span></div>
+        <div style="padding:14px;display:flex;flex-direction:column;gap:0">
+
+          <div class="pl">
+            <div class="pl-con" style="height:76px;background:var(--b2)"></div>
+            <div class="pl-node" style="background:#374151;border-color:#374151;box-shadow:0 0 0 3px rgba(0,200,150,.15)">1</div>
+            <div class="pl-body">
+              <div class="pl-title">Signalement citoyen <span style="font-size:.56rem;color:#ffd23f;font-weight:600">● Réponse automatique</span></div>
+              <div class="pl-sub">Bizzi reçoit, catégorise, répond · Sico DIA surveille les tendances</div>
+              <div style="display:flex;flex-wrap:wrap;gap:4px">
+                <span class="sig-chip u">⚠ Violence rue des Lilas</span>
+                <span class="sig-chip u">⚠ Trafic nocturne · Évry</span>
+                <span class="sig-chip">Éclairage · Corbeil</span>
+                <span class="sig-chip">+44 autres</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pl">
+            <div class="pl-con" style="height:90px;background:var(--b2)"></div>
+            <div class="pl-node" style="background:#ffd23f;border-color:#ffd23f">2</div>
+            <div class="pl-body">
+              <div class="pl-title">Section communale <span style="font-size:.56rem;color:#ffd23f;font-weight:600">⚡ Seuil atteint · Évry · Sécurité</span></div>
+              <div class="pl-sub">Sico DIA notifié · Publication réseaux en attente de validation</div>
+              <div class="tbar"><div class="tfill" style="width:100%;background:#ffd23f"></div></div>
+              <div class="tlbl">3/3 signalements — seuil atteint ✓</div>
+              <div class="pl-actions">
+                <button class="btn br" style="font-size:.61rem" onclick="publishLevel()">📢 Publier au nom de la section</button>
+                <button class="btn bg" style="font-size:.61rem" onclick="go('esc-signals')">Voir signalements</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="pl">
+            <div class="pl-con" style="height:80px;background:var(--b2)"></div>
+            <div class="pl-node" style="background:#e6b800;border-color:#e6b800">3</div>
+            <div class="pl-body">
+              <div class="pl-title">Fédération départementale <span style="font-size:.56rem;color:var(--mid);font-weight:600">○ 2/3 sections · Essonne 91</span></div>
+              <div class="pl-sub">Lucas MARTIN analyse · 1 section manquante pour déclencher</div>
+              <div class="tbar"><div class="tfill" style="width:66%;background:#e6b800"></div></div>
+              <div class="tlbl">2/3 sections convergentes</div>
+            </div>
+          </div>
+
+          <div class="pl">
+            <div class="pl-con" style="height:72px;background:var(--b2)"></div>
+            <div class="pl-node" style="background:#ffd23f;border-color:#ffd23f">4</div>
+            <div class="pl-body">
+              <div class="pl-title">Coordination régionale <span style="font-size:.56rem;color:var(--mid);font-weight:600">○ 0/3 fédérations · Île-de-France</span></div>
+              <div class="pl-sub">En attente d'agrégation multi-départements</div>
+              <div class="tbar"><div class="tfill" style="width:0%;background:#ffd23f"></div></div>
+              <div class="tlbl">0/3 fédérations</div>
+            </div>
+          </div>
+
+          <div class="pl">
+            <div class="pl-node" style="background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 3px rgba(214,20,13,.2)">5</div>
+            <div class="pl-body">
+              <div class="pl-title">Direction nationale <span style="font-size:.56rem;color:#ffd23f;font-weight:600">★ 1 projet · Karim a validé · Score 88</span></div>
+              <div class="pl-sub">En attente de signature Pascal RÉPIR</div>
+              <div class="pl-actions">
+                <button class="btn br" style="font-size:.61rem" onclick="go('esc-projects')">✓ Voir et signer le projet</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="card">
+          <div class="ch">Par catégorie</div>
+          <div style="padding:4px 0">
+            <div style="display:flex;align-items:center;gap:7px;padding:5px 12px"><div style="width:6px;height:6px;border-radius:50%;background:var(--accent)"></div><span style="font-size:.69rem;flex:1">Sécurité</span><div style="width:44px;height:3px;background:var(--b2);border-radius:2px;overflow:hidden"><div style="width:76%;height:100%;background:var(--accent);border-radius:2px"></div></div><span style="font-family:var(--M);font-size:.62rem;color:var(--mid);width:18px;text-align:right">18</span></div>
+            <div style="display:flex;align-items:center;gap:7px;padding:5px 12px"><div style="width:6px;height:6px;border-radius:50%;background:#ffd23f"></div><span style="font-size:.69rem;flex:1">Logement</span><div style="width:44px;height:3px;background:var(--b2);border-radius:2px;overflow:hidden"><div style="width:51%;height:100%;background:#ffd23f;border-radius:2px"></div></div><span style="font-family:var(--M);font-size:.62rem;color:var(--mid);width:18px;text-align:right">12</span></div>
+            <div style="display:flex;align-items:center;gap:7px;padding:5px 12px"><div style="width:6px;height:6px;border-radius:50%;background:#ffd23f"></div><span style="font-size:.69rem;flex:1">Transport</span><div style="width:44px;height:3px;background:var(--b2);border-radius:2px;overflow:hidden"><div style="width:34%;height:100%;background:#ffd23f;border-radius:2px"></div></div><span style="font-family:var(--M);font-size:.62rem;color:var(--mid);width:18px;text-align:right">8</span></div>
+            <div style="display:flex;align-items:center;gap:7px;padding:5px 12px"><div style="width:6px;height:6px;border-radius:50%;background:#ffd23f"></div><span style="font-size:.69rem;flex:1">Environnement</span><div style="width:44px;height:3px;background:var(--b2);border-radius:2px;overflow:hidden"><div style="width:25%;height:100%;background:#ffd23f;border-radius:2px"></div></div><span style="font-family:var(--M);font-size:.62rem;color:var(--mid);width:18px;text-align:right">6</span></div>
+            <div style="display:flex;align-items:center;gap:7px;padding:5px 12px"><div style="width:6px;height:6px;border-radius:50%;background:#e6b800"></div><span style="font-size:.69rem;flex:1">Services</span><div style="width:44px;height:3px;background:var(--b2);border-radius:2px;overflow:hidden"><div style="width:13%;height:100%;background:#e6b800;border-radius:2px"></div></div><span style="font-family:var(--M);font-size:.62rem;color:var(--mid);width:18px;text-align:right">3</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ch">Activité <div class="pulse" style="margin-left:4px"></div></div>
+          <div class="feed-item"><div class="feed-ico">🔺</div><div><div class="feed-txt">Seuil Niveau 2 · Évry</div><div class="feed-tm">Il y a 2h</div></div></div>
+          <div class="feed-item"><div class="feed-ico">📥</div><div><div class="feed-txt">Signal · Violence rue des Lilas</div><div class="feed-tm">Il y a 2h</div></div></div>
+          <div class="feed-item"><div class="feed-ico">📢</div><div><div class="feed-txt">Publication section · Twitter FB</div><div class="feed-tm">Il y a 3h</div></div></div>
+          <div class="feed-item"><div class="feed-ico">★</div><div><div class="feed-txt">Projet national à signer</div><div class="feed-tm">Il y a 2 jours</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SIGNALEMENTS ══ -->
+<div class="pg" id="pg-esc-signals">
+  <div class="metrics">
+    <div class="mc r"><div class="mv" style="color:var(--accent)">18</div><div class="ml">Sécurité</div></div>
+    <div class="mc b"><div class="mv" style="color:#ffd23f">12</div><div class="ml">Logement</div></div>
+    <div class="mc a"><div class="mv" style="color:#ffd23f">8</div><div class="ml">Transport</div></div>
+    <div class="mc g"><div class="mv" style="color:#ffd23f">6</div><div class="ml">Environnement</div></div>
+    <div class="mc p"><div class="mv" style="color:#e6b800">3</div><div class="ml">Services</div></div>
+    <div class="mc w"><div class="mv" style="color:var(--accent)">5</div><div class="ml">Urgents</div></div>
+  </div>
+  <div class="content">
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn bg" style="font-size:.63rem">Tous (47)</button>
+      <button class="btn bg" style="font-size:.63rem">🔴 Sécurité</button>
+      <button class="btn bg" style="font-size:.63rem">🏠 Logement</button>
+      <button class="btn bg" style="font-size:.63rem">🚌 Transport</button>
+      <button class="btn bg" style="font-size:.63rem">🌿 Environnement</button>
+    </div>
+    <div class="card" style="flex:1">
+      <div class="ch">47 signalements <button class="btn br" style="font-size:.6rem;padding:3px 9px" onclick="go('esc-new')">+ Nouveau</button></div>
+      <div style="overflow-y:auto;max-height:420px">
+        <div class="sig-row"><div class="sig-cat" style="background:var(--accent)"></div><div class="sig-body"><div class="sig-txt">Violence et trafic rue des Lilas la nuit. Quotidien depuis 3 semaines.</div><div class="sig-meta">Marie Dupont · Évry-Courcouronnes · Il y a 2h · SIG-20260419-A1B2C3</div></div><span class="urg urg-h">Haute</span></div>
+        <div class="sig-row"><div class="sig-cat" style="background:var(--accent)"></div><div class="sig-body"><div class="sig-txt">Sentiment d'insécurité place du marché le soir. Les commerçants sont inquiets.</div><div class="sig-meta">Ahmed Benali · Évry-Courcouronnes · Il y a 4h</div></div><span class="urg urg-h">Haute</span></div>
+        <div class="sig-row"><div class="sig-cat" style="background:var(--accent)"></div><div class="sig-body"><div class="sig-txt">Trafic de stupéfiants cité des Pyramides. Pas de réponse des autorités.</div><div class="sig-meta">Anonyme · Évry-Courcouronnes · Il y a 6h</div></div><span class="urg urg-h">Haute</span></div>
+        <div class="sig-row"><div class="sig-cat" style="background:#ffd23f"></div><div class="sig-body"><div class="sig-txt">Loyer augmenté de 15% sans préavis. Le bailleur ne répond pas.</div><div class="sig-meta">Sophie Martin · Corbeil-Essonnes · Hier</div></div><span class="urg urg-n">Normale</span></div>
+        <div class="sig-row"><div class="sig-cat" style="background:#ffd23f"></div><div class="sig-body"><div class="sig-txt">Bus 91-06 supprimé sans information. Comment je vais au travail ?</div><div class="sig-meta">Jean Dupont · Grigny · Hier</div></div><span class="urg urg-n">Normale</span></div>
+        <div class="sig-row"><div class="sig-cat" style="background:#e6b800"></div><div class="sig-body"><div class="sig-txt">Médecin généraliste fermé, plus de remplaçant. Zone médicale désertée.</div><div class="sig-meta">Lucien Bernard · Ris-Orangis · Il y a 3 jours</div></div><span class="urg urg-h">Haute</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PROBLÉMATIQUES ══ -->
+<div class="pg" id="pg-esc-issues">
+  <div class="content">
+    <div class="card">
+      <div class="ch">Problématiques agrégées <span style="font-weight:400;color:#ffd23f">8 actives</span></div>
+      <div class="issue-row">
+        <div class="issue-head"><span class="issue-id">ISS-20260419-A1B2C3</span><span class="ilv ilv-2">Niveau 2 — Section</span><span style="font-size:.57rem;color:var(--accent);margin-left:auto">⚡ Action requise</span></div>
+        <div style="font-family:var(--D);font-size:.8rem;font-weight:700;margin-bottom:4px">Sécurité · Évry-Courcouronnes</div>
+        <div style="font-size:.72rem;color:rgba(238,240,248,.6);line-height:1.55">3 signalements de violence et trafic remontés par les militants d'Évry. Sico DIA recommande une publication immédiate et une interpellation des élus locaux.</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap"><span style="font-size:.6rem;color:var(--mid)">📥 3 signalements · Secrétaire notifié · Il y a 2h</span><button class="btn br" style="font-size:.6rem;padding:3px 9px;margin-left:auto" onclick="publishIssue()">📢 Publier</button></div>
+      </div>
+      <div class="issue-row">
+        <div class="issue-head"><span class="issue-id">ISS-20260418-D4E5F6</span><span class="ilv ilv-2">Niveau 2 — Section</span><span style="font-size:.57rem;color:#ffd23f;margin-left:auto">⏳ En attente</span></div>
+        <div style="font-family:var(--D);font-size:.8rem;font-weight:700;margin-bottom:4px">Logement · Corbeil-Essonnes</div>
+        <div style="font-size:.72rem;color:rgba(238,240,248,.6);line-height:1.55">Plusieurs remontées sur les loyers abusifs. Lucas MARTIN a intégré ces données dans son analyse départementale.</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px"><span style="font-size:.6rem;color:var(--mid)">📥 4 signalements · Il y a 1 jour</span><button class="btn bg" style="font-size:.6rem;padding:3px 9px;margin-left:auto">Voir</button></div>
+      </div>
+      <div class="issue-row">
+        <div class="issue-head"><span class="issue-id">ISS-20260417-G7H8I9</span><span class="ilv ilv-3">Niveau 3 — Fédération 91</span><span style="font-size:.57rem;color:#e6b800;margin-left:auto">🔺 Montée en cours</span></div>
+        <div style="font-family:var(--D);font-size:.8rem;font-weight:700;margin-bottom:4px">Sécurité · Essonne (91)</div>
+        <div style="font-size:.72rem;color:rgba(238,240,248,.6);line-height:1.55">2 sections convergent sur Sécurité dans l'Essonne. 1 section supplémentaire déclenche la proposition départementale. Lucas MARTIN suit le dossier.</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px"><span style="font-size:.6rem;color:var(--mid)">📥 2 sections · 7 signalements · Il y a 2 jours</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PROJETS ══ -->
+<div class="pg" id="pg-esc-projects">
+  <div class="content">
+    <div class="card">
+      <div class="ch">Projets nationaux <span style="font-weight:400;color:#ffd23f">1 en attente de validation</span></div>
+      <div style="padding:16px;border-bottom:1px solid var(--b1)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+          <div style="font-family:var(--D);font-size:.95rem;font-weight:800">Sécurité du quotidien</div>
+          <span style="font-size:.57rem;font-weight:700;padding:3px 8px;border-radius:3px;background:rgba(245,158,11,.12);color:#ffd23f">EN ATTENTE DE SIGNATURE</span>
+        </div>
+        <div style="font-size:.73rem;color:rgba(238,240,248,.65);line-height:1.7;margin-bottom:14px">Ce projet est né de 47 signalements citoyens dans 8 communes de 3 régions. Lucas MARTIN a rédigé, Karim BOUCHRA a validé avec un score de 88/100. Il attend votre signature pour être publié au nom des Démocrates.</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+          <div style="padding:9px 11px;background:var(--s1);border-radius:7px;border:1px solid var(--b1)"><div style="font-size:.54rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);margin-bottom:3px">Signalements</div><div style="font-family:var(--D);font-size:1.3rem;font-weight:800;color:var(--accent)">47</div></div>
+          <div style="padding:9px 11px;background:var(--s1);border-radius:7px;border:1px solid var(--b1)"><div style="font-size:.54rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);margin-bottom:3px">Communes</div><div style="font-family:var(--D);font-size:1.3rem;font-weight:800;color:#ffd23f">8</div></div>
+          <div style="padding:9px 11px;background:var(--s1);border-radius:7px;border:1px solid var(--b1)"><div style="font-size:.54rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);margin-bottom:3px">Régions</div><div style="font-family:var(--D);font-size:1.3rem;font-weight:800;color:#e6b800">3</div></div>
+        </div>
+        <div style="padding:11px 13px;background:rgba(0,200,150,.06);border:1px solid rgba(0,200,150,.2);border-radius:8px;font-size:.71rem;color:rgba(255,255,255,.7);line-height:1.65;margin-bottom:14px">
+          <strong style="color:#ffd23f">Karim BOUCHRA — Score 88/100</strong><br>
+          "Projet solide, ancré dans les remontées terrain. Formulation claire et non-polémique. Je recommande la validation nationale."
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn br" style="flex:1" onclick="validateProject()">✓ Valider et signer — Pascal RÉPIR</button>
+          <button class="btn bg" onclick="rejectProject()">✗ Renvoyer en révision</button>
+        </div>
+      </div>
+      <div style="padding:14px;opacity:.5">
+        <div style="font-family:var(--D);font-size:.82rem;font-weight:700;margin-bottom:3px">Déserts médicaux en Essonne</div>
+        <div style="font-size:.7rem;color:var(--mid)">Validé le 12/04/2026 · Publié · 12 signalements · 4 communes</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ NOUVEAU SIGNAL ══ -->
+<div class="pg" id="pg-esc-new">
+  <div class="content" style="max-width:540px;margin:0 auto;width:100%">
+    <div style="font-family:var(--D);font-size:1rem;font-weight:800;padding:8px 0">Nouveau signalement</div>
+    <div class="card">
+      <div class="ch">Soumettre</div>
+      <div style="padding:16px;display:flex;flex-direction:column;gap:11px">
+        <div><label style="font-size:.57rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);display:block;margin-bottom:5px">Message</label><textarea id="new-content" style="width:100%;min-height:90px;background:var(--s1);border:1px solid var(--b2);border-radius:8px;padding:10px 12px;color:var(--w);font-size:.78rem;font-family:var(--B);outline:none;resize:vertical;line-height:1.6" placeholder="Décrivez le problème..."></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+          <div><label style="font-size:.57rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);display:block;margin-bottom:5px">Ville</label><input id="new-location" type="text" placeholder="Évry-Courcouronnes" style="width:100%;background:var(--s1);border:1px solid var(--b2);border-radius:7px;padding:9px 11px;color:var(--w);font-size:.76rem;outline:none"></div>
+          <div><label style="font-size:.57rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);display:block;margin-bottom:5px">Nom</label><input id="new-author" type="text" placeholder="Prénom NOM" style="width:100%;background:var(--s1);border:1px solid var(--b2);border-radius:7px;padding:9px 11px;color:var(--w);font-size:.76rem;outline:none"></div>
+        </div>
+        <div><label style="font-size:.57rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);display:block;margin-bottom:5px">Email</label><input id="new-contact" type="email" placeholder="votre@email.fr" style="width:100%;background:var(--s1);border:1px solid var(--b2);border-radius:7px;padding:9px 11px;color:var(--w);font-size:.76rem;outline:none"></div>
+        <button class="btn br" onclick="submitSignal()" style="width:100%">📤 Soumettre le signalement</button>
+        <div id="new-result" style="display:none;padding:11px 13px;border-radius:7px;font-size:.73rem;line-height:1.6"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PLEIN ÉCRAN iFrame ══ -->
+<div class="pg" id="pg-esc-iframe">
+  <div class="iframe-wrap">
+    <div class="iframe-bar">
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--accent)"></div>
+      <div style="width:8px;height:8px;border-radius:50%;background:#ffd23f"></div>
+      <div style="width:8px;height:8px;border-radius:50%;background:#ffd23f"></div>
+      <span style="font-size:.68rem;color:var(--mid);margin-left:8px">bureau.bizzi.ai/escalation · Les Démocrates</span>
+      <button class="btn bg" style="font-size:.62rem;padding:4px 10px;margin-left:auto" onclick="go('esc-overview')">← Retour dashboard</button>
+    </div>
+    <iframe src="BIZZI-escalation-dashboard.html" title="Pipeline remontée hiérarchique Bizzi"></iframe>
+  </div>
+</div>
+
+<!-- ══ OUTILS ══ -->
+<div class="pg" id="pg-tools">
+  <div class="ph"><div><div class="ph-title">Mes outils</div><div class="ph-sub">6 disponibles · 4 actifs</div></div></div>
+  <div class="content">
+    <div class="card">
+      <div class="tool-row"><div class="tgl on" onclick="this.classList.toggle('on');this.classList.toggle('off')"></div><div style="flex:1"><div style="font-size:.76rem;font-weight:600">💬 Chat visiteur</div><div style="font-size:.65rem;color:var(--mid)">24 messages aujourd'hui</div></div></div>
+      <div class="tool-row"><div class="tgl on" onclick="this.classList.toggle('on');this.classList.toggle('off')"></div><div style="flex:1"><div style="font-size:.76rem;font-weight:600">📧 Email automatique</div><div style="font-size:.65rem;color:var(--mid)">3 emails en attente</div></div></div>
+      <div class="tool-row"><div class="tgl on" onclick="this.classList.toggle('on');this.classList.toggle('off')"></div><div style="flex:1"><div style="font-size:.76rem;font-weight:600">⚠️ Gestion des plaintes</div><div style="font-size:.65rem;color:var(--mid)">1 plainte priorité haute</div></div></div>
+      <div class="tool-row"><div class="tgl on" onclick="this.classList.toggle('on');this.classList.toggle('off')"></div><div style="flex:1"><div style="font-size:.76rem;font-weight:600">🔺 Pipeline de remontée</div><div style="font-size:.65rem;color:var(--mid)">47 signalements · 5 niveaux · Action requise niveau 2</div></div><button class="btn br" style="font-size:.62rem;padding:4px 10px" onclick="go('esc-overview')">Voir</button></div>
+      <div class="tool-row"><div class="tgl off" onclick="this.classList.toggle('on');this.classList.toggle('off')"></div><div style="flex:1"><div style="font-size:.76rem;font-weight:600">📞 Permanence téléphonique</div><div style="font-size:.65rem;color:var(--mid)">Configurez un numéro Twilio</div></div></div>
+      <div class="tool-row"><div class="tgl off" onclick="this.classList.toggle('on');this.classList.toggle('off')"></div><div style="flex:1"><div style="font-size:.76rem;font-weight:600">🖼️ Génération d'affiches</div><div style="font-size:.65rem;color:var(--mid)">Tracts, affiches, bandeaux réseaux</div></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="pg" id="pg-emails"><div class="ph"><div><div class="ph-title">Emails</div><div class="ph-sub">3 en attente</div></div></div><div class="content"></div></div>
+<div class="pg" id="pg-complaints"><div class="ph"><div><div class="ph-title">Plaintes</div><div class="ph-sub">1 priorité haute</div></div></div><div class="content"></div></div>
+<div class="pg" id="pg-rgpd"><div class="ph"><div><div class="ph-title">RGPD</div><div class="ph-sub">2 demandes ce mois</div></div></div><div class="content"></div></div>
+<div class="pg" id="pg-meeting"><div class="ph"><div><div class="ph-title">Salle de réunion</div></div></div><div class="content"><div class="card"><div class="ch">Prochaine réunion</div><div style="padding:20px;text-align:center;color:var(--mid);font-size:.75rem">Ouvrir la salle de réunion complète →</div></div></div></div>
+<div class="pg" id="pg-chat"><div class="ph"><div><div class="ph-title">Chat visiteur</div></div></div><div class="content"></div></div>
+<div class="pg" id="pg-config"><div class="ph"><div><div class="ph-title">Paramètres</div></div></div><div class="content"></div></div>
+<div class="pg" id="pg-billing"><div class="ph"><div><div class="ph-title">Facturation</div><div class="ph-sub">Plan Pro · 299€/mois</div></div></div><div class="content"></div></div>
+
+</div>
+</div>
+
+<script>
+const DOMAIN_CONFIG = {
+  politics:   { content:'Communiqués', score:'Score politique',  color:'#ffd23f' },
+  media:      { content:'Articles',    score:'Score éditorial',  color:'#ffd23f' },
+  diagnostic: { content:'Rapports',    score:'Score conformité', color:'#e6b800' },
+};
+const domain = 'politics';
+const cfg = DOMAIN_CONFIG[domain];
+document.documentElement.style.setProperty('--accent', cfg.color);
+document.getElementById('nav-content').textContent         = cfg.content;
+document.getElementById('m-content-lbl').textContent       = cfg.content;
+document.getElementById('m-score-lbl').textContent         = cfg.score;
+document.getElementById('content-card-title').textContent  = cfg.content + ' récents';
+document.getElementById('content-title').textContent       = cfg.content;
+document.getElementById('content-card-title2').textContent = cfg.content + ' récents';
+
+function openBureau(name, role, color, initials) {
+  document.getElementById('bureau-name').textContent    = name;
+  document.getElementById('bureau-role').textContent    = role;
+  document.getElementById('bureau-av').textContent      = initials;
+  document.getElementById('bureau-av').style.background = color;
+  go('bureau');
+}
+
+function go(id, el) {
+  document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.si').forEach(s => s.classList.remove('on'));
+  const pg = document.getElementById('pg-' + id);
+  if (pg) pg.classList.add('on');
+  if (el) el.classList.add('on');
+}
+
+async function submitSignal() {
+  const content  = document.getElementById('new-content')?.value.trim();
+  const location = document.getElementById('new-location')?.value.trim();
+  const author   = document.getElementById('new-author')?.value.trim();
+  const result   = document.getElementById('new-result');
+  if (!content || !location || !author) { alert('Remplissez tous les champs'); return; }
+  result.style.display = 'block';
+  result.style.background = 'rgba(59,130,246,.08)';
+  result.style.border = '1px solid rgba(59,130,246,.2)';
+  result.style.color = '#ffd23f';
+  result.textContent = '⟳ Analyse en cours...';
+  await new Promise(r => setTimeout(r, 1500));
+  const cats = ['Sécurité','Logement','Transport','Environnement','Services publics'];
+  const cat  = cats[Math.floor(Math.random() * cats.length)];
+  result.style.background = 'rgba(0,200,150,.08)';
+  result.style.border = '1px solid rgba(0,200,150,.2)';
+  result.style.color = '#ffd23f';
+  result.innerHTML = `✓ Signalement enregistré (SIG-${Date.now().toString().slice(-6)})<br>
+    Catégorie : <strong>${cat}</strong> · Urgence : normale<br><br>
+    <em>Bonjour ${author}, votre signalement a bien été enregistré. Notre équipe vous répond sous 48h. — Les Démocrates</em>`;
+  ['new-content','new-location','new-author'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+}
+
+function publishLevel() {
+  alert('Publication au nom de la section d\'Évry-Courcouronnes :\n\n"Les militants d\'Évry remontent une hausse des incidents de sécurité rue des Lilas. La section interpelle les élus locaux."\n\n→ Twitter ✓\n→ Facebook ✓\n→ LinkedIn ✓');
+}
+function publishIssue() {
+  alert('Problématique "Sécurité · Évry" publiée sur Twitter, Facebook et LinkedIn.');
+}
+function validateProject() {
+  if (confirm('Valider et signer "Sécurité du quotidien" ?\n\nCe projet sera publié au nom des Démocrates sur tous les canaux.')) {
+    alert('✓ Projet signé par Pascal RÉPIR\n\n→ Site lesdemocrates.org\n→ Twitter / X · Facebook · LinkedIn\n→ Communiqué presse envoyé aux médias\n→ Visible par tous les échelons');
+  }
+}
+function rejectProject() { alert('Projet renvoyé en révision. Karim BOUCHRA est notifié.'); }
+
+function ck() {
+  const n = new Date();
+  document.getElementById('ck').textContent = n.getHours().toString().padStart(2,'0') + ':' + n.getMinutes().toString().padStart(2,'0');
+}
+ck(); setInterval(ck, 10000);
+</script>
+</body>
+</html>

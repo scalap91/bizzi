@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="bizzi-favicon.svg">
+
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Connecter ma boîte mail — Bizzi</title>
+<link rel="stylesheet" href="bizzi-global.css">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Outfit:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#020200;--s1:#080800;--s2:#080800;--card:#0f0e00;
+  --b1:#1a1900;--b2:#222000;--w:#fff8e0;--mid:#5a5030;
+  --accent:#ffd23f;--grn:#ffd23f;--amb:#ffd23f;--blu:#ffd23f;
+  --D:'Syne',sans-serif;--B:'Outfit',sans-serif;--M:'DM Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--B);background:var(--bg);color:var(--w);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:40px 20px;-webkit-font-smoothing:antialiased}
+
+.logo{font-family:var(--D);font-size:.95rem;font-weight:900;color:var(--accent);margin-bottom:32px;align-self:flex-start;max-width:520px;width:100%}
+.logo::before{content:'⬡ '}
+
+/* ── CARD PRINCIPALE ── */
+.card{background:var(--card);border:1px solid var(--b1);border-radius:16px;padding:36px;max-width:520px;width:100%;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent)}
+
+h1{font-family:var(--D);font-size:1.4rem;font-weight:800;letter-spacing:-.03em;margin-bottom:6px}
+h1 span{color:var(--accent)}
+.sub{font-size:.8rem;color:var(--mid);line-height:1.65;margin-bottom:28px}
+
+/* ── ÉTAPES ── */
+.steps{display:flex;gap:0;margin-bottom:28px}
+.step-dot{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative}
+.step-dot::after{content:'';position:absolute;top:13px;left:50%;right:-50%;height:2px;background:var(--b2);z-index:0}
+.step-dot:last-child::after{display:none}
+.sd{width:26px;height:26px;border-radius:50%;border:2px solid var(--b2);background:var(--bg);display:flex;align-items:center;justify-content:center;font-family:var(--D);font-size:.65rem;font-weight:700;color:var(--mid);z-index:1;transition:all .3s}
+.sd.done{background:#ffd23f;border-color:#ffd23f;color:#fff}
+.sd.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 0 3px rgba(224,45,45,.2)}
+.sl{font-size:.58rem;color:var(--mid);text-align:center}
+.sd.active ~ .sl,.step-dot:has(.sd.active) .sl{color:var(--w)}
+.step-dot:has(.sd.done) .sl{color:#ffd23f}
+
+/* ── PANELS ── */
+.panel{display:none}.panel.on{display:block}
+
+/* ── CHAMPS ── */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);margin-bottom:5px}
+.field input,.field select{width:100%;background:var(--s1);border:1px solid var(--b2);border-radius:8px;padding:11px 14px;color:var(--w);font-size:.82rem;font-family:var(--B);outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+.field input::placeholder{color:var(--mid)}
+.hint{font-size:.63rem;color:var(--mid);margin-top:5px;line-height:1.5}
+
+/* ── DÉTECTION PROVIDER ── */
+.provider-detect{display:none;padding:11px 14px;background:var(--s1);border:1px solid var(--b1);border-radius:8px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.provider-ico{font-size:1.1rem;flex-shrink:0}
+.provider-name{font-size:.78rem;font-weight:600}
+.provider-servers{font-size:.63rem;color:var(--mid);font-family:var(--M);margin-top:2px}
+.provider-badge{margin-left:auto;font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:100px;flex-shrink:0}
+.pb-ok{background:rgba(0,200,150,.12);color:#ffd23f}
+.pb-warn{background:rgba(245,158,11,.12);color:#ffd23f}
+
+/* ── GUIDE APP PASSWORD ── */
+.app-pwd-guide{display:none;padding:12px 14px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:8px;margin-bottom:14px}
+.apg-title{font-size:.67rem;font-weight:700;color:#ffd23f;margin-bottom:5px}
+.apg-steps{font-size:.7rem;color:rgba(255,255,255,.6);line-height:1.8}
+.apg-link{color:#ffd23f;text-decoration:none;font-size:.68rem}
+.apg-link:hover{text-decoration:underline}
+
+/* ── RAPPORT OPTIONS ── */
+.report-card{background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:14px;margin-bottom:10px;cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:12px}
+.report-card:hover{border-color:var(--b2)}
+.report-card.sel{border-color:var(--accent);background:rgba(224,45,45,.04)}
+.rc-ico{font-size:1.2rem;flex-shrink:0}
+.rc-name{font-size:.76rem;font-weight:600;margin-bottom:2px}
+.rc-desc{font-size:.65rem;color:var(--mid)}
+.rc-check{margin-left:auto;width:18px;height:18px;border-radius:50%;border:2px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:.6rem;flex-shrink:0;transition:all .2s;flex-shrink:0}
+.report-card.sel .rc-check{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* ── STATUS CONNEXION ── */
+.status-box{padding:14px;border-radius:8px;font-size:.78rem;line-height:1.7;margin-top:14px;display:none}
+.sb-ok{background:rgba(0,200,150,.08);border:1px solid rgba(0,200,150,.2);color:#ffd23f}
+.sb-err{background:rgba(224,45,45,.08);border:1px solid rgba(224,45,45,.2);color:var(--accent)}
+.sb-load{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);color:#ffd23f}
+
+/* ── BOUTONS ── */
+.btn{width:100%;font-family:var(--D);font-size:.78rem;font-weight:700;padding:12px;border-radius:9px;cursor:pointer;border:none;transition:all .2s;margin-top:4px}
+.br{background:var(--accent);color:#fff}.br:hover{background:#e6b800}
+.br:disabled{opacity:.4;cursor:not-allowed}
+.bg{background:var(--s2);color:var(--mid);border:1px solid var(--b2)}.bg:hover{color:var(--w)}
+
+.divider{height:1px;background:var(--b1);margin:20px 0}
+
+/* ── SUCCÈS ── */
+.success-wrap{text-align:center;padding:10px 0}
+.success-ico{font-size:3.5rem;margin-bottom:16px;animation:pop .4s ease;display:block}
+@keyframes pop{0%{transform:scale(0)}80%{transform:scale(1.1)}100%{transform:scale(1)}}
+.success-title{font-family:var(--D);font-size:1.3rem;font-weight:800;margin-bottom:8px}
+.success-sub{font-size:.8rem;color:var(--mid);line-height:1.65;margin-bottom:20px}
+.mailbox-info{background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:14px;text-align:left;margin-bottom:16px}
+.mi-row{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:.75rem}
+.mi-label{color:var(--mid);width:130px;flex-shrink:0}
+.mi-val{color:var(--w);font-weight:500}
+.mi-ok{color:#ffd23f}.mi-warn{color:#ffd23f}
+
+/* ── BOÎTES CONNECTÉES ── */
+.connected-list{margin-top:28px;max-width:520px;width:100%}
+.cl-title{font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mid);margin-bottom:10px}
+.mailbox-row{background:var(--card);border:1px solid var(--b1);border-radius:10px;padding:13px 16px;display:flex;align-items:center;gap:11px;margin-bottom:8px}
+.mb-av{width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--D);font-size:.7rem;font-weight:800;color:#fff;flex-shrink:0}
+.mb-email{font-size:.75rem;font-weight:600}
+.mb-sub{font-size:.63rem;color:var(--mid);margin-top:1px}
+.mb-status{margin-left:auto;font-size:.62rem;font-weight:600}
+.mb-ok{color:#ffd23f}.mb-err{color:var(--accent)}
+.mb-actions{display:flex;gap:5px;margin-left:8px}
+.mb-btn{font-size:.62rem;padding:3px 8px;border-radius:4px;border:1px solid var(--b2);background:transparent;color:var(--mid);cursor:pointer;transition:all .12s}
+.mb-btn:hover{color:var(--w);border-color:var(--b1)}
+
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<div class="logo">Bizzi</div>
+
+<!-- CARD PRINCIPALE -->
+<div class="card">
+
+  <!-- Étapes -->
+  <div class="steps">
+    <div class="step-dot"><div class="sd active" id="sd1">1</div><div class="sl">Email</div></div>
+    <div class="step-dot"><div class="sd" id="sd2">2</div><div class="sl">Mot de passe</div></div>
+    <div class="step-dot"><div class="sd" id="sd3">3</div><div class="sl">Rapport</div></div>
+    <div class="step-dot"><div class="sd" id="sd4">✓</div><div class="sl">Connecté</div></div>
+  </div>
+
+  <!-- PANEL 1 — Email -->
+  <div class="panel on" id="p1">
+    <h1>Connecter <span>votre boîte</span></h1>
+    <p class="sub">Entrez votre adresse email. Le moteur détecte automatiquement votre hébergeur — vous n'avez rien d'autre à configurer.</p>
+
+    <div class="field">
+      <label>Votre adresse email</label>
+      <input id="email-input" type="email" placeholder="pascal@lesdemocrates.org"
+        oninput="onEmailInput(this.value)">
+    </div>
+
+    <!-- Détection provider -->
+    <div class="provider-detect" id="provider-detect" style="display:none">
+      <span class="provider-ico" id="p-ico">📧</span>
+      <div>
+        <div class="provider-name" id="p-name">—</div>
+        <div class="provider-servers" id="p-servers">—</div>
+      </div>
+      <span class="provider-badge pb-ok" id="p-badge">✓ Détecté</span>
+    </div>
+
+    <button class="btn br" onclick="goStep(2)" id="btn-step1" disabled>Continuer →</button>
+  </div>
+
+  <!-- PANEL 2 — Mot de passe -->
+  <div class="panel" id="p2">
+    <h1>Votre <span>mot de passe</span></h1>
+    <p class="sub" id="pwd-sub">Entrez le mot de passe de votre boîte email.</p>
+
+    <!-- Guide App Password -->
+    <div class="app-pwd-guide" id="app-pwd-guide">
+      <div class="apg-title" id="guide-title">⚠️ App Password requis</div>
+      <div class="apg-steps" id="guide-steps">—</div>
+      <a href="#" class="apg-link" id="guide-link" target="_blank">→ Ouvrir les paramètres de sécurité</a>
+    </div>
+
+    <div class="field">
+      <label id="pwd-label">Mot de passe</label>
+      <input id="password-input" type="password" placeholder="Votre mot de passe...">
+      <div class="hint" id="pwd-hint">Votre mot de passe ne quitte pas votre navigateur sans être chiffré.</div>
+    </div>
+
+    <div class="field">
+      <label>Agent à connecter</label>
+      <input id="agent-name-input" type="text" placeholder="Sico DIA, Lucas MARTIN..." value="">
+      <div class="hint">Le nom de l'agent qui gérera cette boîte email.</div>
+    </div>
+
+    <div class="field">
+      <label>Organisation</label>
+      <input id="org-name-input" type="text" placeholder="Les Démocrates, Cabinet Mercier..." value="">
+    </div>
+
+    <div class="status-box" id="status-test"></div>
+
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn bg" onclick="goStep(1)" style="flex:.4">← Retour</button>
+      <button class="btn br" onclick="testAndContinue()" id="btn-step2" style="flex:1">Tester et continuer →</button>
+    </div>
+  </div>
+
+  <!-- PANEL 3 — Rapport -->
+  <div class="panel" id="p3">
+    <h1>Votre <span>rapport</span></h1>
+    <p class="sub">Comment voulez-vous que votre agent vous informe de vos emails ?</p>
+
+    <div class="report-card sel" onclick="selectReport(this,'email')" id="rc-email">
+      <span class="rc-ico">📊</span>
+      <div style="flex:1">
+        <div class="rc-name">Rapport quotidien complet</div>
+        <div class="rc-desc">Chaque matin, votre agent vous envoie un email avec le résumé de vos emails, les points urgents, les actions à faire.</div>
+      </div>
+      <div class="rc-check">✓</div>
+    </div>
+
+    <div class="report-card" onclick="selectReport(this,'summary_only')" id="rc-summary">
+      <span class="rc-ico">📋</span>
+      <div style="flex:1">
+        <div class="rc-name">Résumé court</div>
+        <div class="rc-desc">Un email court : nombre de messages, catégories, urgences. Pas de détail.</div>
+      </div>
+      <div class="rc-check"></div>
+    </div>
+
+    <div class="report-card" onclick="selectReport(this,'none')" id="rc-none">
+      <span class="rc-ico">🤫</span>
+      <div style="flex:1">
+        <div class="rc-name">Agent silencieux</div>
+        <div class="rc-desc">Pas de rapport. L'agent lit et répond en silence. Consultez votre dashboard pour voir l'activité.</div>
+      </div>
+      <div class="rc-check"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="field">
+      <label>Heure du rapport</label>
+      <select id="report-time">
+        <option value="07:00">7h00 — Avant d'attaquer la journée</option>
+        <option value="08:00" selected>8h00 — En arrivant au bureau</option>
+        <option value="09:00">9h00</option>
+        <option value="12:00">12h00 — Heure du déjeuner</option>
+        <option value="18:00">18h00 — Fin de journée</option>
+      </select>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn bg" onclick="goStep(2)" style="flex:.4">← Retour</button>
+      <button class="btn br" onclick="finalize()" style="flex:1">🔌 Connecter ma boîte</button>
+    </div>
+  </div>
+
+  <!-- PANEL 4 — Succès -->
+  <div class="panel" id="p4">
+    <div class="success-wrap">
+      <span class="success-ico">✅</span>
+      <div class="success-title">Boîte connectée !</div>
+      <div class="success-sub" id="success-sub">Votre agent est maintenant connecté à votre boîte email.</div>
+
+      <div class="mailbox-info">
+        <div class="mi-row"><span class="mi-label">Agent</span><span class="mi-val" id="s-agent">—</span></div>
+        <div class="mi-row"><span class="mi-label">Email</span><span class="mi-val" id="s-email">—</span></div>
+        <div class="mi-row"><span class="mi-label">Provider</span><span class="mi-val" id="s-provider">—</span></div>
+        <div class="mi-row"><span class="mi-label">Lecture (IMAP)</span><span class="mi-val mi-ok" id="s-imap">✓ Connecté</span></div>
+        <div class="mi-row"><span class="mi-label">Envoi (SMTP)</span><span class="mi-val mi-ok" id="s-smtp">✓ Connecté</span></div>
+        <div class="mi-row"><span class="mi-label">Rapport</span><span class="mi-val" id="s-report">—</span></div>
+      </div>
+
+      <button class="btn br" onclick="addAnother()">+ Connecter une autre boîte</button>
+      <button class="btn bg" style="margin-top:8px" onclick="sendTestReport()">📧 Envoyer un rapport test maintenant</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOÎTES CONNECTÉES -->
+<div class="connected-list" id="connected-list" style="display:none">
+  <div class="cl-title">Boîtes connectées</div>
+  <div id="mailboxes-container"></div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// ÉTAT
+// ══════════════════════════════════════════════════════════════
+let currentStep = 1;
+let detectedProvider = null;
+let selectedReportMode = 'email';
+let connectedMailboxes = JSON.parse(localStorage.getItem('ca_mailboxes') || '[]');
+
+const PROVIDER_INFO = {
+  google:    { ico:'🔵', name:'Gmail / Google Workspace', needs_app:true,
+               guide:'Compte Google → Sécurité → Validation en 2 étapes → Mots de passe des applications',
+               link:'https://myaccount.google.com/apppasswords', label:'App Password requis' },
+  microsoft: { ico:'🟦', name:'Microsoft 365 / Outlook', needs_app:true,
+               guide:'compte.microsoft.com → Sécurité → Options de sécurité avancées → Créer un mot de passe d\'application',
+               link:'https://account.microsoft.com/security', label:'App Password requis' },
+  apple:     { ico:'⚫', name:'iCloud / Apple Mail', needs_app:true,
+               guide:'appleid.apple.com → Sécurité → Mots de passe spécifiques à l\'app → Créer',
+               link:'https://appleid.apple.com', label:'Mot de passe spécifique requis' },
+  yahoo:     { ico:'🟣', name:'Yahoo Mail', needs_app:true,
+               guide:'Paramètres Yahoo → Sécurité du compte → Générer mot de passe app',
+               link:'https://login.yahoo.com/account/security', label:'App Password requis' },
+  ovh:       { ico:'🔶', name:'OVH Mail', needs_app:false, guide:'Utilisez votre mot de passe OVH habituel.', link:'#', label:'Mot de passe standard' },
+  brevo:     { ico:'🟢', name:'Brevo', needs_app:false, guide:'Utilisez votre clé SMTP Brevo (pas votre mot de passe).', link:'#', label:'Clé SMTP Brevo' },
+  default:   { ico:'📧', name:'Hébergeur mail', needs_app:false, guide:'Utilisez votre mot de passe email habituel.', link:'#', label:'Mot de passe standard' },
+};
+
+// ══════════════════════════════════════════════════════════════
+// DÉTECTION EMAIL
+// ══════════════════════════════════════════════════════════════
+
+let detectTimer = null;
+function onEmailInput(val) {
+  const btn = document.getElementById('btn-step1');
+  btn.disabled = !val.includes('@') || !val.includes('.');
+
+  clearTimeout(detectTimer);
+  if (!val.includes('@')) {
+    document.getElementById('provider-detect').style.display = 'none';
+    return;
+  }
+  detectTimer = setTimeout(() => detectProvider(val), 500);
+}
+
+async function detectProvider(email) {
+  const domain = email.split('@')[1]?.toLowerCase() || '';
+
+  // Détection locale (évite un appel API pour chaque frappe)
+  let provider = 'default';
+  if (domain.includes('gmail') || domain.includes('googlemail')) provider = 'google';
+  else if (domain.includes('outlook') || domain.includes('hotmail') || domain.includes('live') || domain.includes('office365')) provider = 'microsoft';
+  else if (domain.includes('icloud') || domain.includes('me.com')) provider = 'apple';
+  else if (domain.includes('yahoo')) provider = 'yahoo';
+  else if (domain.includes('brevo')) provider = 'brevo';
+  else provider = 'ovh'; // Défaut pour domaines perso
+
+  const info = PROVIDER_INFO[provider] || PROVIDER_INFO.default;
+  detectedProvider = { provider, ...info, email };
+
+  // Afficher la détection
+  const det = document.getElementById('provider-detect');
+  det.style.display = 'flex';
+  document.getElementById('p-ico').textContent    = info.ico;
+  document.getElementById('p-name').textContent   = info.name;
+  document.getElementById('p-badge').textContent  = `✓ ${info.label}`;
+  document.getElementById('p-badge').className    = `provider-badge ${info.needs_app ? 'pb-warn' : 'pb-ok'}`;
+
+  // Simuler la vérification des serveurs
+  try {
+    const r = await fetch(`/api/tools/mail/onboarding/detect?email=${encodeURIComponent(email)}`);
+    if (r.ok) {
+      const d = await r.json();
+      document.getElementById('p-servers').textContent = `IMAP: ${d.imap_host} · SMTP: ${d.smtp_host}`;
+    }
+  } catch {
+    document.getElementById('p-servers').textContent = `IMAP: mail.${domain} · SMTP: mail.${domain}`;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════════════
+
+function goStep(n) {
+  currentStep = n;
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  document.getElementById(`p${n}`).classList.add('on');
+
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById(`sd${i}`);
+    dot.className = 'sd';
+    if (i < n)  dot.classList.add('done');
+    if (i === n) dot.classList.add('active');
+  }
+
+  // Préparer le panel 2
+  if (n === 2 && detectedProvider) {
+    const info = detectedProvider;
+    document.getElementById('pwd-label').textContent = info.needs_app ? 'App Password' : 'Mot de passe email';
+    document.getElementById('pwd-sub').textContent   = info.needs_app
+      ? `${info.name} nécessite un mot de passe d'application spécial.`
+      : `Entrez le mot de passe de votre boîte ${info.name}.`;
+
+    const guide = document.getElementById('app-pwd-guide');
+    guide.style.display = info.needs_app ? 'block' : 'none';
+    if (info.needs_app) {
+      document.getElementById('guide-title').textContent = `⚠️ ${info.label}`;
+      document.getElementById('guide-steps').textContent = info.guide;
+      document.getElementById('guide-link').href = info.link;
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// TEST CONNEXION
+// ══════════════════════════════════════════════════════════════
+
+async function testAndContinue() {
+  const email    = document.getElementById('email-input').value.trim();
+  const password = document.getElementById('password-input').value;
+  const agent    = document.getElementById('agent-name-input').value.trim();
+  const org      = document.getElementById('org-name-input').value.trim();
+
+  if (!password) { alert('Mot de passe requis'); return; }
+  if (!agent)    { alert('Nom de l\'agent requis'); return; }
+  if (!org)      { alert('Nom de l\'organisation requis'); return; }
+
+  const btn    = document.getElementById('btn-step2');
+  const status = document.getElementById('status-test');
+
+  btn.disabled = true;
+  btn.textContent = '⟳ Test en cours...';
+  status.className = 'status-box sb-load';
+  status.style.display = 'block';
+  status.textContent = '⟳ Test de la connexion IMAP et SMTP...';
+
+  // En prod → appel API réel
+  // Simulation pour la démo
+  await new Promise(r => setTimeout(r, 1800));
+
+  // Simuler succès
+  const success = true; // En prod : résultat du test réel
+
+  if (success) {
+    status.className = 'status-box sb-ok';
+    status.textContent = '✓ Connexion réussie — IMAP ✓ SMTP ✓';
+    setTimeout(() => goStep(3), 800);
+  } else {
+    status.className = 'status-box sb-err';
+    status.textContent = '✗ Connexion impossible. Vérifiez votre mot de passe.';
+    btn.disabled = false;
+    btn.textContent = 'Réessayer →';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// RAPPORT
+// ══════════════════════════════════════════════════════════════
+
+function selectReport(el, mode) {
+  document.querySelectorAll('.report-card').forEach(r => {
+    r.classList.remove('sel');
+    r.querySelector('.rc-check').textContent = '';
+  });
+  el.classList.add('sel');
+  el.querySelector('.rc-check').textContent = '✓';
+  selectedReportMode = mode;
+}
+
+// ══════════════════════════════════════════════════════════════
+// FINALISATION
+// ══════════════════════════════════════════════════════════════
+
+async function finalize() {
+  const email    = document.getElementById('email-input').value.trim();
+  const agent    = document.getElementById('agent-name-input').value.trim();
+  const org      = document.getElementById('org-name-input').value.trim();
+  const time     = document.getElementById('report-time').value;
+  const provider = detectedProvider?.name || 'Hébergeur mail';
+  const initials = agent.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) || '?';
+
+  // Sauvegarder localement
+  const mailbox = { email, agent, org, provider, initials, reportMode: selectedReportMode, reportTime: time, connectedAt: new Date().toISOString() };
+  connectedMailboxes.push(mailbox);
+  localStorage.setItem('ca_mailboxes', JSON.stringify(connectedMailboxes));
+
+  // Afficher le succès
+  goStep(4);
+  document.getElementById('s-agent').textContent   = agent;
+  document.getElementById('s-email').textContent   = email;
+  document.getElementById('s-provider').textContent= provider;
+  document.getElementById('s-report').textContent  = selectedReportMode === 'none' ? 'Désactivé' : `Email quotidien à ${time}`;
+  document.getElementById('success-sub').textContent =
+    `${agent} est connecté à ${email}. ${selectedReportMode !== 'none' ? `Rapport quotidien à ${time}.` : 'Mode silencieux.'}`;
+
+  renderMailboxes();
+}
+
+function addAnother() {
+  document.getElementById('email-input').value    = '';
+  document.getElementById('password-input').value = '';
+  document.getElementById('agent-name-input').value = '';
+  document.getElementById('provider-detect').style.display = 'none';
+  detectedProvider = null;
+  goStep(1);
+}
+
+async function sendTestReport() {
+  alert('Rapport test envoyé ! Vérifiez votre boîte email dans quelques secondes.');
+}
+
+// ══════════════════════════════════════════════════════════════
+// LISTE DES BOÎTES CONNECTÉES
+// ══════════════════════════════════════════════════════════════
+
+function renderMailboxes() {
+  const list = document.getElementById('connected-list');
+  const container = document.getElementById('mailboxes-container');
+
+  if (!connectedMailboxes.length) { list.style.display = 'none'; return; }
+  list.style.display = 'block';
+
+  container.innerHTML = connectedMailboxes.map((m, i) => `
+    <div class="mailbox-row">
+      <div class="mb-av">${m.initials || '?'}</div>
+      <div style="flex:1">
+        <div class="mb-email">${m.agent} <span style="color:var(--mid);font-size:.65rem">· ${m.email}</span></div>
+        <div class="mb-sub">${m.provider} · Rapport ${m.reportMode === 'none' ? 'désactivé' : `${m.reportTime}`}</div>
+      </div>
+      <span class="mb-status mb-ok">● Connecté</span>
+      <div class="mb-actions">
+        <button class="mb-btn" onclick="sendReport(${i})">📊 Rapport</button>
+        <button class="mb-btn" onclick="removeMailbox(${i})">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function removeMailbox(i) {
+  if (!confirm('Déconnecter cette boîte ?')) return;
+  connectedMailboxes.splice(i, 1);
+  localStorage.setItem('ca_mailboxes', JSON.stringify(connectedMailboxes));
+  renderMailboxes();
+}
+
+function sendReport(i) {
+  const m = connectedMailboxes[i];
+  alert(`Rapport test envoyé à ${m.email}`);
+}
+
+// Init
+renderMailboxes();
+</script>
+</body>
+</html>

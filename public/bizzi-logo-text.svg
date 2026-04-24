@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 110" width="420" height="110" role="img">
+<!--
+  ══════════════════════════════════════════
+  BIZZI — Texte logo standalone
+  Fichier : bizzi-logo-text.svg
+  Usage   : <img src="bizzi-logo-text.svg">
+  ══════════════════════════════════════════
+  MODIFIER :
+  fill="#f0f2ff"  → couleur de "bi" et "zi"
+  fill="#ffd23f"  → couleur du "Z" majuscule
+  font-size="100" → taille du texte
+-->
+<title>biZzi</title>
+<text
+  text-anchor="middle"
+  x="210"
+  y="95"
+  font-family="'Syne','Arial Black',sans-serif"
+  font-weight="900"
+  font-size="100"
+  letter-spacing="-2"
+><tspan fill="#f0f2ff">bi</tspan><tspan fill="#ffd23f">Z</tspan><tspan fill="#f0f2ff">zi</tspan></text>
+</svg>

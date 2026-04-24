@@ -1,0 +1,75 @@
+# domains/politics.yaml
+domain: politics
+version: "1.0"
+
+identity:
+  name: "Mon Mouvement"
+  tagline: "Agir ensemble."
+  language: fr
+  timezone: Europe/Paris
+
+agents:
+  - id: president
+    title: "Président"
+    role: direction
+    required: true
+    prompt_base: "Tu es le Président de {org_name}. Tu définis les positions politiques, présides les réunions, valides chaque prise de position publique."
+
+  - id: spokesperson
+    title: "Porte-parole"
+    role: validation
+    required: true
+    prompt_base: "Tu es le Porte-parole de {org_name}. Tu valides chaque communiqué sur 100 points. Score minimum : {validation_score_min}. Clarté, cohérence politique, impact."
+
+  - id: analyst
+    title: "Analyste Politique"
+    role: production
+    required: true
+    min_count: 1
+    max_count: 5
+    prompt_base: "Tu es {agent_name}, analyste {specialty} pour {org_name}. Tu analyses l'actualité politique, rédiges des positions et communiqués argumentés."
+
+  - id: legal_advisor
+    title: "Conseiller Juridique"
+    role: verification
+    required: false
+    prompt_base: "Tu es le Conseiller Juridique de {org_name}. Tu vérifies que chaque communiqué respecte le cadre légal. Aucune déclaration diffamatoire."
+
+  - id: community_manager
+    title: "Community Manager"
+    role: distribution
+    required: false
+    prompt_base: "Tu es le Community Manager de {org_name}. Tu surveilles l'actualité politique, adaptes les messages aux réseaux sociaux et à la presse."
+
+pipeline:
+  schedule: "0 */3 * * *"
+  steps: [monitor_news, meeting, analyze, write_statement, legal_check, validate, publish_press, distribute]
+
+output:
+  type: communique
+  word_count_min: 200
+  word_count_max: 600
+  validation_score_min: 80
+  formats: [press_release, twitter_thread, linkedin_post, facebook_post, newsletter, speech]
+
+editorial_rules:
+  - "Aucune déclaration diffamatoire"
+  - "Toujours citer les sources des chiffres"
+  - "Respecter la présomption d'innocence"
+  - "Positions cohérentes avec la ligne du mouvement"
+  - "Ton respectueux même dans l'opposition"
+
+ui:
+  primary_color: "#1e3a8a"
+  vocabulary:
+    content_unit: "communiqué"
+    content_units: "communiqués"
+    producer: "analyste"
+    producers: "analystes"
+    validator: "porte-parole"
+    meeting_room: "salle de réunion"
+    workspace: "bureau"
+    source: "veille politique"
+    output_verb: "diffuser"
+    trash_reason: "rejeté par le porte-parole"
+    score_label: "score politique"

@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="bizzi-favicon.svg">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>biZzi — Moteur d'agents IA pour votre métier</title>
+<link rel="stylesheet" href="bizzi-global.css">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=Outfit:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --noir:#020200;
+  --noir2:#080800;
+  --noir3:#0f0e00;
+  --noir4:#161500;
+  --jaune:#ffd23f;
+  --jaune2:#e6b800;
+  --jaune3:#fff3a0;
+  --jaune-dim:rgba(255,210,63,.12);
+  --jaune-glow:rgba(255,210,63,.25);
+  --w:#fff8e0;
+  --mid:#6b5f20;
+  --D:'Syne',sans-serif;
+  --B:'Outfit',sans-serif;
+  --M:'DM Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--B);background:var(--noir);color:var(--w);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+/* ── TRAME ALVÉOLES — haut de page avec dégradé ── */
+.honeycomb-bg{
+  position:absolute;top:0;left:0;right:0;height:100vh;
+  z-index:0;pointer-events:none;overflow:hidden;
+}
+body{position:relative;}
+.honeycomb-bg svg{width:100%;height:100%;min-height:100vh}
+
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:16px 48px;display:flex;align-items:center;gap:16px;
+  background:rgba(2,2,0,.88);
+  border-bottom:1px solid rgba(255,210,63,.12);
+  backdrop-filter:blur(16px);
+}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nav-logo svg{width:32px;height:32px}
+.nav-logo-text{font-family:var(--D);font-size:1.3rem;font-weight:900;letter-spacing:-.04em;color:var(--w)}
+.nav-logo-text .z{color:var(--jaune)}
+.nav-links{display:flex;gap:28px;margin-left:auto}
+.nav-links a{font-size:.8rem;font-weight:500;color:rgba(255,248,224,.55);text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--jaune)}
+.nav-cta{
+  font-family:var(--D);font-size:.72rem;font-weight:700;
+  padding:10px 22px;border-radius:8px;
+  background:var(--jaune);color:var(--noir);
+  border:none;cursor:pointer;transition:all .2s;letter-spacing:.03em;
+}
+.nav-cta:hover{background:var(--jaune3);transform:translateY(-1px)}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;padding:120px 24px 80px;
+  position:relative;z-index:3;
+}
+
+/* Logo hero — abeille + texte */
+.hero-logo{margin-bottom:40px;animation:fadeUp .7s ease both}
+.hero-logo svg{width:420px;max-width:90vw}
+
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:7px 18px;border-radius:100px;
+  background:rgba(255,210,63,.1);
+  border:1px solid rgba(255,210,63,.25);
+  font-size:.72rem;font-weight:600;color:rgba(255,248,224,.7);
+  margin-bottom:28px;animation:fadeUp .7s .05s ease both;
+}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--jaune);animation:blink 1.8s infinite}
+@keyframes blink{0%,100%{box-shadow:0 0 0 0 rgba(255,210,63,.6)}70%{box-shadow:0 0 0 7px rgba(255,210,63,0)}}
+
+.hero-title{
+  font-family:var(--D);
+  font-size:clamp(2.2rem,5.5vw,4.2rem);
+  font-weight:900;line-height:1.08;
+  letter-spacing:-.04em;
+  margin-bottom:20px;
+  animation:fadeUp .7s .1s ease both;
+}
+.hero-title .accent{color:var(--jaune);display:block}
+
+.hero-sub{
+  font-size:clamp(.9rem,1.8vw,1.1rem);
+  color:rgba(255,248,224,.6);
+  max-width:520px;line-height:1.75;
+  margin-bottom:44px;font-weight:400;
+  animation:fadeUp .7s .15s ease both;
+}
+
+.hero-actions{
+  display:flex;gap:12px;flex-wrap:wrap;
+  justify-content:center;
+  animation:fadeUp .7s .2s ease both;
+}
+.btn-primary{
+  font-family:var(--D);font-size:.82rem;font-weight:700;
+  padding:14px 34px;border-radius:10px;
+  background:var(--jaune);color:var(--noir);
+  border:none;cursor:pointer;transition:all .25s;letter-spacing:.03em;
+}
+.btn-primary:hover{background:var(--jaune3);transform:translateY(-2px);box-shadow:0 8px 30px rgba(255,210,63,.3)}
+.btn-secondary{
+  font-family:var(--D);font-size:.82rem;font-weight:700;
+  padding:14px 34px;border-radius:10px;
+  background:transparent;color:var(--jaune);
+  border:1px solid rgba(255,210,63,.35);
+  cursor:pointer;transition:all .25s;
+}
+.btn-secondary:hover{background:rgba(255,210,63,.08);border-color:var(--jaune)}
+
+.hero-stats{
+  display:flex;gap:48px;margin-top:72px;
+  animation:fadeUp .7s .25s ease both;
+}
+.stat-num{font-family:var(--D);font-size:2rem;font-weight:900;color:var(--jaune)}
+.stat-lbl{font-size:.65rem;color:var(--mid);margin-top:3px;letter-spacing:.1em;text-transform:uppercase}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── SÉPARATEUR RAYONS DE MIEL ── */
+.separator{
+  width:100%;padding:20px 0;display:flex;justify-content:center;
+  position:relative;z-index:1;
+}
+.sep-line{
+  width:80%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,210,63,.3),transparent);
+}
+
+/* ── MARKETPLACE ── */
+.marketplace{padding:80px 48px 100px;max-width:1200px;margin:0 auto;position:relative;z-index:3}
+
+.section-label{
+  font-size:.62rem;font-weight:700;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--jaune2);margin-bottom:10px;
+}
+.section-title{
+  font-family:var(--D);font-size:clamp(1.8rem,4vw,2.8rem);
+  font-weight:900;letter-spacing:-.03em;margin-bottom:8px;
+  line-height:1.1;color:var(--w);
+}
+.section-title span{color:var(--jaune)}
+.section-sub{font-size:.9rem;color:rgba(255,248,224,.5);margin-bottom:48px;line-height:1.7}
+
+/* Filtres */
+.cat-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:36px}
+.cat-filter{
+  font-size:.7rem;font-weight:600;padding:8px 18px;border-radius:100px;
+  border:1px solid rgba(255,210,63,.15);background:transparent;
+  color:rgba(255,248,224,.45);cursor:pointer;transition:all .2s;
+}
+.cat-filter:hover{color:var(--jaune);border-color:rgba(255,210,63,.4)}
+.cat-filter.active{
+  background:rgba(255,210,63,.12);
+  border-color:var(--jaune);color:var(--jaune);
+}
+
+/* Grille métiers */
+.metiers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+
+.metier-card{
+  display:none;
+  background:var(--noir2);
+  border:1px solid rgba(255,210,63,.1);
+  border-radius:14px;padding:22px;
+  cursor:pointer;transition:all .28s;
+  position:relative;overflow:hidden;
+}
+.metier-card.visible{display:block;animation:cardIn .3s ease both}
+@keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* Alvéoles en fond de carte */
+.metier-card::before{
+  content:'';position:absolute;right:-20px;bottom:-20px;
+  width:120px;height:120px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23ffd23f' stroke-width='1' opacity='0.12'%3E%3Cpolygon points='30,0 60,17 60,51 30,68 0,51 0,17'/%3E%3Cpolygon points='90,0 120,17 120,51 90,68 60,51 60,17'/%3E%3Cpolygon points='60,52 90,69 90,103 60,120 30,103 30,69'/%3E%3C/g%3E%3C/svg%3E") no-repeat;
+  pointer-events:none;transition:opacity .3s;opacity:.6;
+}
+.metier-card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(255,210,63,.35);
+  box-shadow:0 8px 32px rgba(255,210,63,.08);
+}
+.metier-card:hover::before{opacity:1}
+
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.card-ico{
+  width:44px;height:44px;border-radius:10px;
+  background:rgba(255,210,63,.08);border:1px solid rgba(255,210,63,.15);
+  display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;
+}
+.card-cat{
+  font-size:.56rem;font-weight:700;padding:3px 8px;border-radius:100px;
+  letter-spacing:.1em;text-transform:uppercase;
+  background:rgba(255,210,63,.1);color:var(--jaune2);
+  border:1px solid rgba(255,210,63,.2);
+}
+.card-arrow{font-size:.85rem;color:var(--mid);transition:transform .2s}
+.metier-card:hover .card-arrow{transform:translateX(4px);color:var(--jaune)}
+
+.card-title{font-family:var(--D);font-size:.95rem;font-weight:800;margin-bottom:6px;letter-spacing:-.02em;color:var(--w)}
+.card-desc{font-size:.72rem;color:rgba(255,248,224,.5);line-height:1.6;margin-bottom:14px}
+
+.card-agents{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px}
+.agent-chip{
+  font-size:.58rem;padding:2px 7px;border-radius:4px;
+  background:rgba(255,210,63,.06);color:rgba(255,248,224,.5);
+  border:1px solid rgba(255,210,63,.1);
+}
+
+.card-footer{
+  display:flex;align-items:center;justify-content:space-between;
+  padding-top:12px;border-top:1px solid rgba(255,210,63,.08);
+}
+.card-price{font-family:var(--M);font-size:.75rem;color:var(--jaune2)}
+.card-cta{
+  font-family:var(--D);font-size:.62rem;font-weight:700;
+  padding:6px 14px;border-radius:6px;border:none;cursor:pointer;
+  background:var(--jaune);color:var(--noir);transition:all .2s;
+}
+.card-cta:hover{background:var(--jaune3)}
+
+/* ── COMMENT ÇA MARCHE ── */
+.how{
+  padding:80px 48px;
+  background:linear-gradient(180deg,transparent,var(--noir2) 15%,var(--noir2) 85%,transparent);
+  position:relative;z-index:3;
+}
+.how-inner{max-width:960px;margin:0 auto;text-align:center}
+.steps-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:rgba(255,210,63,.1);
+  border-radius:14px;overflow:hidden;margin-top:48px;
+}
+@media(max-width:768px){
+  .steps-grid{grid-template-columns:1fr 1fr;}
+  .step-arrow{display:none;}
+  .marketplace{padding:40px 16px 60px;}
+  .how{padding:40px 16px;}
+  .cta-section{padding:60px 16px;}
+  .cta-box{padding:36px 20px;}
+  .hero{padding:90px 16px 60px;}
+  .hero-logo svg{width:280px;}
+  .hero-stats{gap:24px;flex-wrap:wrap;justify-content:center;}
+  .cat-filters{gap:6px;}
+  .cat-filter{font-size:.65rem;padding:6px 12px;}
+  .metiers-grid{grid-template-columns:1fr;}
+  nav{padding:12px 16px;}
+  .nav-links{display:none;}
+}
+@media(max-width:480px){
+  .steps-grid{grid-template-columns:1fr;}
+  .hero-stats{gap:20px;}
+  .stat-num{font-size:1.5rem;}
+}
+.step-item{background:var(--noir2);padding:28px 18px;position:relative}
+.step-num{font-family:var(--D);font-size:2.5rem;font-weight:900;color:var(--jaune);opacity:.15;margin-bottom:10px;line-height:1}
+.step-ico{font-size:1.4rem;margin-bottom:10px}
+.step-title{font-family:var(--D);font-size:.82rem;font-weight:700;margin-bottom:6px;color:var(--w)}
+.step-desc{font-size:.7rem;color:rgba(255,248,224,.45);line-height:1.65}
+.step-arrow{position:absolute;right:-10px;top:50%;transform:translateY(-50%);color:var(--jaune);opacity:.4;font-size:.9rem;z-index:2}
+
+/* ── CTA ── */
+.cta-section{padding:100px 48px;text-align:center;position:relative;z-index:3}
+.cta-box{
+  max-width:600px;margin:0 auto;
+  background:var(--noir2);
+  border:1px solid rgba(255,210,63,.2);
+  border-radius:20px;padding:56px 40px;
+  position:relative;overflow:hidden;
+}
+.cta-box::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,rgba(255,210,63,.06) 0%,transparent 70%);
+  pointer-events:none;
+}
+/* Alvéoles dans la CTA box */
+.cta-box::after{
+  content:'';position:absolute;right:-30px;top:-30px;
+  width:200px;height:200px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg fill='none' stroke='%23ffd23f' stroke-width='1' opacity='0.12'%3E%3Cpolygon points='50,0 100,29 100,86 50,115 0,86 0,29'/%3E%3Cpolygon points='150,0 200,29 200,86 150,115 100,86 100,29'/%3E%3Cpolygon points='100,87 150,116 150,173 100,202 50,173 50,116'/%3E%3C/g%3E%3C/svg%3E") no-repeat;
+  pointer-events:none;
+}
+.cta-title{font-family:var(--D);font-size:clamp(1.6rem,4vw,2.3rem);font-weight:900;letter-spacing:-.03em;margin-bottom:14px;color:var(--w);position:relative}
+.cta-title span{color:var(--jaune)}
+.cta-sub{font-size:.88rem;color:rgba(255,248,224,.5);line-height:1.75;margin-bottom:30px;position:relative}
+.cta-box .btn-primary{font-size:.85rem;padding:15px 40px;position:relative}
+
+/* ── FOOTER ── */
+footer{
+  padding:28px 48px;
+  border-top:1px solid rgba(255,210,63,.1);
+  display:flex;align-items:center;justify-content:space-between;
+  position:relative;z-index:1;
+}
+.footer-logo{font-family:var(--D);font-size:.9rem;font-weight:900;letter-spacing:-.04em;color:rgba(255,248,224,.3)}
+.footer-logo span{color:rgba(255,210,63,.4)}
+.footer-links{display:flex;gap:22px}
+.footer-links a{font-size:.7rem;color:rgba(255,248,224,.25);text-decoration:none;transition:color .2s}
+.footer-links a:hover{color:var(--jaune)}
+
+/* ── MODAL ── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.85);z-index:200;
+  backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;padding:24px;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--noir2);
+  border:1px solid rgba(255,210,63,.2);
+  border-radius:18px;max-width:520px;width:100%;
+  max-height:88vh;overflow-y:auto;
+  animation:modalIn .28s ease;
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(16px)}to{opacity:1;transform:none}}
+.modal-header{padding:22px 22px 0;display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.modal-ico{width:48px;height:48px;border-radius:12px;background:rgba(255,210,63,.08);border:1px solid rgba(255,210,63,.15);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+.modal-title{font-family:var(--D);font-size:1.1rem;font-weight:800;color:var(--w)}
+.modal-cat{font-size:.58rem;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(255,210,63,.1);color:var(--jaune2);border:1px solid rgba(255,210,63,.2);margin-top:3px;display:inline-block;text-transform:uppercase;letter-spacing:.08em}
+.modal-close{margin-left:auto;background:transparent;border:none;color:var(--mid);cursor:pointer;font-size:1rem;padding:4px;transition:color .15s}
+.modal-close:hover{color:var(--jaune)}
+.modal-body{padding:0 22px 22px;display:flex;flex-direction:column;gap:16px}
+.modal-section{font-size:.56rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mid);margin-bottom:7px}
+.modal-desc{font-size:.74rem;color:rgba(255,248,224,.55);line-height:1.7}
+.modal-agents-list{display:flex;flex-direction:column;gap:5px}
+.modal-agent{display:flex;align-items:center;gap:9px;padding:8px 11px;background:var(--noir3);border-radius:7px;border:1px solid rgba(255,210,63,.08)}
+.modal-agent-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--D);font-size:.6rem;font-weight:800;color:var(--noir);background:var(--jaune);flex-shrink:0}
+.modal-agent-name{font-size:.73rem;font-weight:600;color:var(--w)}
+.modal-agent-role{font-size:.6rem;color:var(--mid)}
+.modal-tools{display:flex;flex-wrap:wrap;gap:5px}
+.modal-tool{font-size:.65rem;padding:4px 10px;border-radius:6px;background:rgba(255,210,63,.07);border:1px solid rgba(255,210,63,.15);color:var(--jaune2)}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.modal-info{padding:10px 12px;background:var(--noir3);border-radius:7px;border:1px solid rgba(255,210,63,.08)}
+.modal-info-label{font-size:.54rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);margin-bottom:4px}
+.modal-info-val{font-size:.8rem;color:var(--w)}
+.modal-info-val.price{font-family:var(--D);font-size:1rem;font-weight:800;color:var(--jaune)}
+.modal-footer{padding:0 22px 22px}
+.modal-btn{
+  width:100%;font-family:var(--D);font-size:.78rem;font-weight:700;
+  padding:13px;border-radius:9px;border:none;cursor:pointer;
+  background:var(--jaune);color:var(--noir);transition:all .2s;letter-spacing:.03em;
+}
+.modal-btn:hover{background:var(--jaune3);transform:translateY(-1px)}
+
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,210,63,.2);border-radius:2px}
+
+/* ── ABEILLES ANIMÉES — vol organique ── */
+.bee {
+  position: fixed;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  will-change: transform;
+  filter: drop-shadow(0 2px 6px rgba(255,210,63,.15));
+}
+.bee img { width: 100%; display: block; }
+
+/* Battement d'ailes — oscillation verticale rapide sur l'image */
+.bee img {
+  animation: wingsFlap 0.18s ease-in-out infinite alternate;
+}
+@keyframes wingsFlap {
+  0%   { transform: scaleY(1) scaleX(1); }
+  100% { transform: scaleY(0.94) scaleX(1.03); }
+}
+
+/* Abeille 1 — grande, traverse lentement en diagonale douce */
+.bee-1 {
+  width: 58px;
+  animation: beeFly1 22s ease-in-out infinite;
+  animation-delay: 0s;
+}
+/* Abeille 2 — moyenne, vol plus bas près des cartes */
+.bee-2 {
+  width: 44px;
+  animation: beeFly2 28s ease-in-out infinite;
+  animation-delay: -9s;
+}
+/* Abeille 3 — petite, voltige rapide */
+.bee-3 {
+  width: 36px;
+  animation: beeFly3 18s ease-in-out infinite;
+  animation-delay: -5s;
+}
+/* Abeille 4 — moyenne, vol profond dans la page */
+.bee-4 {
+  width: 48px;
+  animation: beeFly4 32s ease-in-out infinite;
+  animation-delay: -16s;
+}
+
+/* Trajectoires organiques — ease-in-out sur chaque étape = courbes naturelles */
+@keyframes beeFly1 {
+  0%   { opacity:0;    transform: translate(8vw,  25vh) rotate(-8deg)  scaleX(1); }
+  4%   { opacity:0.85; }
+  12%  { transform: translate(22vw, 18vh) rotate(-4deg)  scaleX(1); }
+  25%  { transform: translate(45vw, 32vh) rotate(6deg)   scaleX(1); }
+  38%  { transform: translate(68vw, 22vh) rotate(3deg)   scaleX(-1); }
+  50%  { transform: translate(55vw, 42vh) rotate(-10deg) scaleX(-1); }
+  63%  { transform: translate(32vw, 55vh) rotate(8deg)   scaleX(-1); }
+  75%  { transform: translate(18vw, 38vh) rotate(-5deg)  scaleX(1); }
+  88%  { transform: translate(12vw, 28vh) rotate(-8deg)  scaleX(1); }
+  96%  { opacity:0.85; }
+  100% { opacity:0;    transform: translate(8vw,  25vh) rotate(-8deg)  scaleX(1); }
+}
+
+@keyframes beeFly2 {
+  0%   { opacity:0;    transform: translate(82vw, 55vh) rotate(5deg)   scaleX(-1); }
+  4%   { opacity:0.75; }
+  10%  { transform: translate(72vw, 62vh) rotate(-3deg)  scaleX(-1); }
+  22%  { transform: translate(50vw, 72vh) rotate(12deg)  scaleX(-1); }
+  35%  { transform: translate(28vw, 65vh) rotate(-8deg)  scaleX(1); }
+  48%  { transform: translate(15vw, 80vh) rotate(5deg)   scaleX(1); }
+  62%  { transform: translate(38vw, 88vh) rotate(-12deg) scaleX(1); }
+  75%  { transform: translate(62vw, 78vh) rotate(8deg)   scaleX(-1); }
+  88%  { transform: translate(80vw, 62vh) rotate(4deg)   scaleX(-1); }
+  96%  { opacity:0.75; }
+  100% { opacity:0;    transform: translate(82vw, 55vh) rotate(5deg)   scaleX(-1); }
+}
+
+@keyframes beeFly3 {
+  0%   { opacity:0;    transform: translate(55vw, 20vh) rotate(12deg)  scaleX(1); }
+  5%   { opacity:0.8; }
+  15%  { transform: translate(75vw, 28vh) rotate(-6deg)  scaleX(-1); }
+  30%  { transform: translate(88vw, 15vh) rotate(4deg)   scaleX(-1); }
+  45%  { transform: translate(70vw, 35vh) rotate(-14deg) scaleX(-1); }
+  58%  { transform: translate(48vw, 25vh) rotate(10deg)  scaleX(1); }
+  72%  { transform: translate(30vw, 15vh) rotate(-4deg)  scaleX(1); }
+  85%  { transform: translate(48vw, 22vh) rotate(8deg)   scaleX(1); }
+  95%  { opacity:0.8; }
+  100% { opacity:0;    transform: translate(55vw, 20vh) rotate(12deg)  scaleX(1); }
+}
+
+@keyframes beeFly4 {
+  0%   { opacity:0;    transform: translate(20vw, 100vh) rotate(-6deg) scaleX(1); }
+  4%   { opacity:0.7; }
+  10%  { transform: translate(35vw, 110vh) rotate(8deg)   scaleX(1); }
+  22%  { transform: translate(58vw, 95vh)  rotate(-10deg) scaleX(-1); }
+  35%  { transform: translate(75vw, 115vh) rotate(5deg)   scaleX(-1); }
+  48%  { transform: translate(88vw, 100vh) rotate(-8deg)  scaleX(-1); }
+  60%  { transform: translate(70vw, 120vh) rotate(12deg)  scaleX(-1); }
+  72%  { transform: translate(45vw, 108vh) rotate(-5deg)  scaleX(1); }
+  85%  { transform: translate(25vw, 118vh) rotate(8deg)   scaleX(1); }
+  95%  { opacity:0.7; }
+  100% { opacity:0;    transform: translate(20vw, 100vh) rotate(-6deg) scaleX(1); }
+}
+
+/* Abeille footer — flottement doux avec rotation */
+.bee-footer {
+  display: inline-block;
+  width: 38px;
+  vertical-align: middle;
+  margin-right: 8px;
+  animation: beeFooterFloat 2.8s ease-in-out infinite;
+  transform-origin: center;
+}
+@keyframes beeFooterFloat {
+  0%   { transform: translateY(0)   rotate(-6deg); }
+  30%  { transform: translateY(-5px) rotate(2deg); }
+  60%  { transform: translateY(-8px) rotate(6deg); }
+  100% { transform: translateY(0)   rotate(-6deg); }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ══ TRAME ALVÉOLES GLOBALE ══ -->
+<div class="honeycomb-bg">
+<object data="bizzi-honeycomb.svg" type="image/svg+xml" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none" aria-hidden="true"></object>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Mini abeille SVG -->
+      <ellipse cx="18" cy="16" rx="9" ry="6" fill="#ffd23f"/>
+      <rect x="10" y="13.5" width="4" height="4" fill="#111" rx="0.5"/>
+      <rect x="16" y="13" width="4" height="5" fill="#111" rx="0.5"/>
+      <circle cx="9" cy="16" r="4" fill="#ffd23f"/>
+      <circle cx="7.5" cy="15" r="1.2" fill="#111"/>
+      <circle cx="10.5" cy="14.5" r="1" fill="#111"/>
+      <path d="M13,10 Q12,4 16,5 Q18,6 16,10" fill="rgba(200,230,255,0.35)" stroke="rgba(200,230,255,0.6)" stroke-width="0.5"/>
+      <path d="M19,10 Q20,4 24,5 Q26,6 24,10" fill="rgba(200,230,255,0.35)" stroke="rgba(200,230,255,0.6)" stroke-width="0.5"/>
+      <path d="M25,15 Q28,16 25,17" fill="#e6b800"/>
+      <line x1="8" y1="12" x2="6" y2="7" stroke="#e6b800" stroke-width="1" stroke-linecap="round"/>
+      <circle cx="6" cy="6.5" r="1.2" fill="#ffd23f"/>
+      <line x1="10" y1="11" x2="10" y2="7" stroke="#e6b800" stroke-width="1" stroke-linecap="round"/>
+      <circle cx="10" cy="6.5" r="1.2" fill="#ffd23f"/>
+    </svg>
+    <span class="nav-logo-text">bi<span class="z">Z</span>zi</span>
+  </a>
+  <div class="nav-links">
+    <a href="#marketplace">Métiers</a>
+    <a href="#how">Comment ça marche</a>
+    <a href="#">Tarifs</a>
+    <a href="#">Docs</a>
+  </div>
+  <button class="nav-cta" onclick="document.getElementById('marketplace').scrollIntoView({behavior:'smooth'})">Démarrer gratuitement</button>
+</nav>
+
+
+<!-- ══ ABEILLES ANIMÉES ══ -->
+<div style="position:fixed;inset:0;pointer-events:none;z-index:2;overflow:hidden">
+  <div class="bee bee-1"><img src="bizzi-bee.svg" alt=""></div>
+  <div class="bee bee-2"><img src="bizzi-bee.svg" alt=""></div>
+  <div class="bee bee-3"><img src="bizzi-bee.svg" alt=""></div>
+  <div class="bee bee-4"><img src="bizzi-bee.svg" alt=""></div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+
+  <!-- Logo principal avec abeille -->
+  <div class="hero-logo">
+    <svg viewBox="0 0 500 160" xmlns="http://www.w3.org/2000/svg" width="500">
+      <defs>
+        <radialGradient id="bg" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#ffe566"/><stop offset="100%" stop-color="#f5a800"/></radialGradient>
+        <radialGradient id="hg" cx="40%" cy="35%" r="60%"><stop offset="0%" stop-color="#ffe566"/><stop offset="100%" stop-color="#e09500"/></radialGradient>
+        <radialGradient id="wg" cx="30%" cy="20%" r="70%"><stop offset="0%" stop-color="rgba(220,240,255,0.45)"/><stop offset="100%" stop-color="rgba(180,210,255,0.08)"/></radialGradient>
+      </defs>
+
+      <!-- Abeille centrée sur le Z -->
+      <g transform="translate(268, 38)">
+        <path d="M-70,7 Q-55,-8 -40,1 Q-27,10 -14,2" fill="none" stroke="#ffd23f" stroke-width="1" stroke-dasharray="3,3" opacity="0.35" stroke-linecap="round"/>
+        <path d="M-12,-7 Q-15,-32 -2,-28 Q8,-24 5,-7" fill="url(#wg)" stroke="rgba(200,230,255,0.5)" stroke-width="0.7"/>
+        <path d="M8,-7 Q12,-32 24,-28 Q34,-24 30,-7" fill="url(#wg)" stroke="rgba(200,230,255,0.5)" stroke-width="0.7"/>
+        <path d="M-3,-8 Q-1,-22 3,-20" fill="none" stroke="rgba(180,220,255,0.3)" stroke-width="0.5"/>
+        <path d="M17,-8 Q19,-22 22,-20" fill="none" stroke="rgba(180,220,255,0.3)" stroke-width="0.5"/>
+        <path d="M-9,5 Q-14,21 -2,19 Q7,17 7,5" fill="url(#wg)" stroke="rgba(200,230,255,0.4)" stroke-width="0.7" opacity="0.8"/>
+        <path d="M12,5 Q17,21 28,18 Q33,14 30,5" fill="url(#wg)" stroke="rgba(200,230,255,0.4)" stroke-width="0.7" opacity="0.8"/>
+        <ellipse cx="9" cy="3" rx="22" ry="13" fill="url(#bg)"/>
+        <path d="M-3,-8 Q-5,3 -3,13 Q0,15 3,13 Q5,3 3,-8 Q1,-10 -3,-8" fill="#1a1200" opacity="0.75"/>
+        <path d="M10,-9 Q8,3 10,13 Q13,15 16,13 Q18,3 16,-9 Q13,-11 10,-9" fill="#1a1200" opacity="0.75"/>
+        <ellipse cx="28" cy="3" rx="5" ry="7" fill="#c97d00"/>
+        <path d="M31,-1 Q36,3 31,7 Q29,5 29,3 Q29,1 31,-1" fill="#8a5c00"/>
+        <ellipse cx="-12" cy="2" rx="10" ry="9" fill="#c97d00"/>
+        <circle cx="-24" cy="2" r="10" fill="url(#hg)"/>
+        <ellipse cx="-28" cy="0" rx="3.5" ry="4.5" fill="#1a0a00"/>
+        <ellipse cx="-20" cy="-1" rx="3" ry="4" fill="#1a0a00"/>
+        <ellipse cx="-29" cy="-1" rx="1.3" ry="1.8" fill="rgba(255,255,255,0.3)"/>
+        <ellipse cx="-21" cy="-2" rx="1" ry="1.5" fill="rgba(255,255,255,0.3)"/>
+        <path d="M-30,-9 Q-35,-21 -33,-30" fill="none" stroke="#c97d00" stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="-33" cy="-31" r="3" fill="#ffd23f"/>
+        <circle cx="-33" cy="-31" r="1.2" fill="#c97d00"/>
+        <path d="M-22,-10 Q-19,-21 -20,-30" fill="none" stroke="#c97d00" stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="-20" cy="-31" r="3" fill="#ffd23f"/>
+        <circle cx="-20" cy="-31" r="1.2" fill="#c97d00"/>
+        <path d="M-18,10 Q-20,19 -23,24" fill="none" stroke="#c97d00" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M-10,11 Q-8,20 -6,25" fill="none" stroke="#c97d00" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M6,11 Q9,20 11,25" fill="none" stroke="#c97d00" stroke-width="1.3" stroke-linecap="round"/>
+        <ellipse cx="-23" cy="24" rx="2.5" ry="4" fill="#f5a800" stroke="#c97d00" stroke-width="0.4"/>
+        <ellipse cx="11" cy="25" rx="2.5" ry="4" fill="#f5a800" stroke="#c97d00" stroke-width="0.4"/>
+      </g>
+
+      <!-- Texte biZzi attaché -->
+      <text text-anchor="middle" x="250" y="135" font-family="'Syne','Arial Black',sans-serif" font-weight="900" font-size="110"><tspan fill="#fff8e0">bi</tspan><tspan fill="#ffd23f">Z</tspan><tspan fill="#fff8e0">zi</tspan></text>
+    </svg>
+  </div>
+
+  <div class="hero-badge">
+    <div class="badge-dot"></div>
+    Moteur d'agents IA · Prêt en 5 minutes
+  </div>
+
+  <h1 class="hero-title">
+    Votre équipe IA<br>
+    <span class="accent">configurée pour votre métier</span>
+  </h1>
+
+  <p class="hero-sub">Choisissez votre domaine. biZzi configure automatiquement vos agents, vos outils et votre pipeline. Opérationnel en 5 minutes.</p>
+
+  <div class="hero-actions">
+    <button class="btn-primary" onclick="document.getElementById('marketplace').scrollIntoView({behavior:'smooth'})">Explorer les métiers →</button>
+    <button class="btn-secondary">Voir une démo</button>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat-item"><div class="stat-num">50+</div><div class="stat-lbl">Métiers configurés</div></div>
+    <div class="stat-item"><div class="stat-num">5 min</div><div class="stat-lbl">Pour démarrer</div></div>
+    <div class="stat-item"><div class="stat-num">24/7</div><div class="stat-lbl">Agents actifs</div></div>
+    <div class="stat-item"><div class="stat-num">100%</div><div class="stat-lbl">Données chiffrées</div></div>
+  </div>
+</section>
+
+<!-- MARKETPLACE -->
+<section class="marketplace" id="marketplace">
+  <div class="section-label">Marketplace</div>
+  <h2 class="section-title">Trouvez <span>votre configuration</span></h2>
+  <p class="section-sub">Chaque configuration est précalibrée pour votre métier — agents, outils, pipeline et vocabulaire.</p>
+
+  <div class="cat-filters">
+    <button class="cat-filter active" onclick="filterCat('all',this)">⬡ Tous les métiers</button>
+    <button class="cat-filter" onclick="filterCat('media',this)">📰 Médias</button>
+    <button class="cat-filter" onclick="filterCat('politique',this)">🏛️ Politique</button>
+    <button class="cat-filter" onclick="filterCat('expertise',this)">🔍 Expertise</button>
+    <button class="cat-filter" onclick="filterCat('sante',this)">🏥 Santé</button>
+    <button class="cat-filter" onclick="filterCat('commerce',this)">🏢 Commerce</button>
+    <button class="cat-filter" onclick="filterCat('asso',this)">🤝 Association</button>
+  </div>
+
+  <div class="metiers-grid" id="metiers-grid"></div>
+</section>
+
+<!-- COMMENT ÇA MARCHE -->
+<section class="how" id="how">
+  <div class="how-inner">
+    <div class="section-label" style="text-align:center">Simple</div>
+    <h2 class="section-title" style="text-align:center">Opérationnel en <span style="color:var(--jaune)">4 étapes</span></h2>
+    <div class="steps-grid">
+      <div class="step-item"><div class="step-num">01</div><div class="step-ico">🎯</div><div class="step-title">Choisissez votre métier</div><div class="step-desc">50+ configurations précalibrées pour votre secteur.</div><div class="step-arrow">→</div></div>
+      <div class="step-item"><div class="step-num">02</div><div class="step-ico">⚙️</div><div class="step-title">Personnalisez</div><div class="step-desc">Nommez vos agents, ajustez les règles, activez les outils.</div><div class="step-arrow">→</div></div>
+      <div class="step-item"><div class="step-num">03</div><div class="step-ico">🚀</div><div class="step-title">Déployez</div><div class="step-desc">1 ligne de code sur votre site. Agents opérationnels immédiatement.</div><div class="step-arrow">→</div></div>
+      <div class="step-item"><div class="step-num">04</div><div class="step-ico">📊</div><div class="step-title">Pilotez</div><div class="step-desc">Suivez productions, scores qualité et activité depuis votre dashboard.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-box">
+    <h2 class="cta-title">Prêt à démarrer ?</h2>
+    <p class="cta-sub">14 jours gratuits. Aucune carte bancaire. Votre organisation opérationnelle en 5 minutes.</p>
+    <button class="btn-primary">Choisir mon métier →</button>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo"><img src="bizzi-bee.svg" class="bee-footer" alt=""> bi<span>Z</span>zi</div>
+  <div class="footer-links">
+    <a href="#">Confidentialité</a>
+    <a href="#">Mentions légales</a>
+    <a href="#">Contact</a>
+    <a href="#">API</a>
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-ico" id="modal-ico"></div>
+      <div><div class="modal-title" id="modal-title"></div><span class="modal-cat" id="modal-cat"></span></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div><div class="modal-section">Description</div><p class="modal-desc" id="modal-desc"></p></div>
+      <div><div class="modal-section">Agents inclus</div><div class="modal-agents-list" id="modal-agents"></div></div>
+      <div><div class="modal-section">Outils activés</div><div class="modal-tools" id="modal-tools"></div></div>
+      <div class="modal-grid">
+        <div class="modal-info"><div class="modal-info-label">Pipeline</div><div class="modal-info-val" id="modal-pipeline"></div></div>
+        <div class="modal-info"><div class="modal-info-label">À partir de</div><div class="modal-info-val price" id="modal-price"></div></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="modal-btn">Configurer ce métier →</button></div>
+  </div>
+</div>
+
+<script>
+const METIERS = [
+  {id:'journal',       cat:'media',     ico:'📰', title:'Journal local',           desc:'Pipeline éditorial complet. Surveillance des tendances, rédaction automatique, fact-checking et distribution sur tous les réseaux.',agents:[{n:'Directeur éditorial'},{n:'Rédacteur en chef'},{n:'Journaliste'},{n:'Fact-Checker'},{n:'Community Manager'}],tools:['💬 Chat','📧 Email','⚠️ Plaintes','🔒 RGPD'],pipeline:'Toutes les 2h',price:'299€/mois'},
+  {id:'magazine',      cat:'media',     ico:'✨', title:'Magazine en ligne',        desc:'Contenus longs formats, dossiers thématiques, interviews et newsletters. Ligne éditoriale forte.',agents:[{n:'Rédacteur en chef'},{n:'Journaliste senior'},{n:'Photographe IA'},{n:'Community Manager'}],tools:['💬 Chat','📧 Email','🖼️ Affiches','🔒 RGPD'],pipeline:'Quotidien 8h',price:'299€/mois'},
+  {id:'agence-com',    cat:'media',     ico:'📣', title:'Agence de communication',  desc:'Production de contenus clients, gestion des réseaux sociaux, rédaction de communiqués et création de visuels.',agents:[{n:'Directeur artistique'},{n:'Rédacteur créatif'},{n:'Social Media Manager'},{n:'Gestionnaire clients'}],tools:['💬 Chat','📧 Email','🖼️ Affiches','🔒 RGPD'],pipeline:'Sur demande',price:'299€/mois'},
+  {id:'parti',         cat:'politique', ico:'🏛️', title:'Parti politique',          desc:'Communiqués automatiques, veille politique permanente, militants et pipeline de remontée citoyenne multi-niveaux.',agents:[{n:'Président'},{n:'Porte-parole'},{n:'Analyste politique'},{n:'Conseiller juridique'},{n:'Community Manager'}],tools:['💬 Chat','📧 Email','📞 Téléphone','🔺 Remontées','🔒 RGPD'],pipeline:'Toutes les 3h',price:'299€/mois'},
+  {id:'mairie',        cat:'politique', ico:'🏘️', title:'Mairie & Collectivité',    desc:'Accueil citoyen 24h/24, gestion des signalements, communication officielle et traitement automatique des demandes.',agents:[{n:'Directeur'},{n:'Secrétaire général'},{n:'Chargé communication'},{n:'Agent accueil'}],tools:['💬 Chat','📧 Email','📞 Téléphone','🔺 Remontées','🔒 RGPD'],pipeline:'Jours ouvrés 8h',price:'299€/mois'},
+  {id:'mouvement',     cat:'politique', ico:'✊', title:'Mouvement citoyen',        desc:'Mobilisation, communication terrain, gestion des adhérents et remontée des problèmes du quotidien.',agents:[{n:'Coordinateur'},{n:'Porte-parole'},{n:'Animateur terrain'},{n:'Community Manager'}],tools:['💬 Chat','📧 Email','🔺 Remontées','🔒 RGPD'],pipeline:'Toutes les 6h',price:'99€/mois'},
+  {id:'diagnostic',    cat:'expertise', ico:'🔍', title:'Diagnostic immobilier',   desc:'Rapports techniques automatisés, conformité réglementaire vérifiée, relation client et pages SEO localisées.',agents:[{n:'Directeur technique'},{n:'Expert validateur'},{n:'Diagnostiqueur'},{n:'Contrôleur réglementaire'},{n:'Commercial'}],tools:['💬 Chat','📧 Email','⚠️ Plaintes','🔒 RGPD'],pipeline:'Jours ouvrés 8h',price:'99€/mois'},
+  {id:'comptable',     cat:'expertise', ico:'📊', title:'Cabinet comptable',        desc:'Gestion des demandes clients, rapports financiers, alertes de conformité et communication automatisée.',agents:[{n:'Expert-comptable'},{n:'Collaborateur'},{n:'Assistant client'}],tools:['💬 Chat','📧 Email','🔒 RGPD'],pipeline:'Jours ouvrés 9h',price:'99€/mois'},
+  {id:'juridique',     cat:'expertise', ico:'⚖️', title:'Cabinet juridique',        desc:'Gestion des dossiers, rédaction de documents, veille réglementaire et communication clients.',agents:[{n:'Avocat associé'},{n:'Juriste'},{n:'Secrétaire'}],tools:['💬 Chat','📧 Email','⚠️ Plaintes','🔒 RGPD'],pipeline:'Jours ouvrés 9h',price:'99€/mois'},
+  {id:'immo',          cat:'expertise', ico:'🏠', title:'Agence immobilière',       desc:'Qualification des leads, communication client, génération de fiches biens et suivi des transactions.',agents:[{n:'Directeur agence'},{n:'Négociateur'},{n:'Assistant commercial'}],tools:['💬 Chat','📧 Email','📞 Téléphone','🔒 RGPD'],pipeline:'Continue',price:'99€/mois'},
+  {id:'medical',       cat:'sante',     ico:'🩺', title:'Cabinet médical',         desc:'Accueil patients 24h/24, gestion des rendez-vous, informations médicales générales et orientation.',agents:[{n:'Médecin référent'},{n:'Infirmier'},{n:'Secrétaire'}],tools:['💬 Chat','📧 Email','📞 Téléphone','🔒 RGPD'],pipeline:'Continue',price:'99€/mois'},
+  {id:'pharmacie',     cat:'sante',     ico:'💊', title:'Pharmacie',               desc:'Conseils médicaments, gestion des demandes clients, communication promotionnelle.',agents:[{n:'Pharmacien'},{n:'Préparateur'},{n:'Agent accueil'}],tools:['💬 Chat','📧 Email','📞 Téléphone','🔒 RGPD'],pipeline:'Heures ouverture',price:'99€/mois'},
+  {id:'clinique',      cat:'sante',     ico:'🏥', title:'Clinique & Hôpital',      desc:'Gestion des admissions, communication patients/familles, signalements qualité et conformité sanitaire.',agents:[{n:'Directeur médical'},{n:'Coordinateur soins'},{n:'Agent administratif'},{n:'Accueil patient'}],tools:['💬 Chat','📧 Email','📞 Téléphone','🔺 Remontées','🔒 RGPD'],pipeline:'Continue 24/7',price:'699€/mois'},
+  {id:'pme',           cat:'commerce',  ico:'🏢', title:'PME & TPE',               desc:'Support client automatisé, communication commerciale, gestion des réclamations et emails entrants.',agents:[{n:'Dirigeant'},{n:'Commercial'},{n:'Service client'}],tools:['💬 Chat','📧 Email','📞 Téléphone','⚠️ Plaintes','🔒 RGPD'],pipeline:'Heures ouverture',price:'99€/mois'},
+  {id:'franchise',     cat:'commerce',  ico:'🔗', title:'Réseau franchise',        desc:'Communication réseau, remontées franchisés, alertes qualité et coordination siège / points de vente.',agents:[{n:'Directeur réseau'},{n:'Animateur réseau'},{n:'Support franchisé'},{n:'Community Manager'}],tools:['💬 Chat','📧 Email','🔺 Remontées','🔒 RGPD'],pipeline:'Continue',price:'299€/mois'},
+  {id:'ecommerce',     cat:'commerce',  ico:'🛒', title:'E-commerce',              desc:'Support client automatisé, gestion des réclamations, suivi commandes et communication promotionnelle.',agents:[{n:'Responsable boutique'},{n:'Service client'},{n:'Community Manager'}],tools:['💬 Chat','📧 Email','⚠️ Plaintes','🔒 RGPD'],pipeline:'Continue 24/7',price:'99€/mois'},
+  {id:'asso',          cat:'asso',      ico:'🤝', title:'Association locale',      desc:'Communication adhérents, gestion des événements, collecte de fonds et suivi des bénévoles.',agents:[{n:'Président'},{n:'Secrétaire'},{n:'Chargé communication'},{n:'Community Manager'}],tools:['💬 Chat','📧 Email','⚠️ Plaintes','🔒 RGPD'],pipeline:'Toutes les 6h',price:'99€/mois'},
+  {id:'ong',           cat:'asso',      ico:'🌍', title:'ONG & Fondation',         desc:'Communication internationale, collecte de dons, rapports d\'impact et gestion des bénévoles.',agents:[{n:'Directeur général'},{n:'Responsable projets'},{n:'Chargé plaidoyer'},{n:'Responsable dons'}],tools:['💬 Chat','📧 Email','📞 Téléphone','⚠️ Plaintes','🔒 RGPD'],pipeline:'Quotidien',price:'99€/mois'},
+  {id:'syndicat',      cat:'asso',      ico:'⚡', title:'Syndicat professionnel',  desc:'Communication membres, défense des intérêts, veille sociale et remontée des problèmes terrain.',agents:[{n:'Secrétaire général'},{n:'Délégué'},{n:'Community Manager'}],tools:['💬 Chat','📧 Email','🔺 Remontées','🔒 RGPD'],pipeline:'Continue',price:'99€/mois'},
+];
+
+const CAT_LABELS = {media:'Médias',politique:'Politique',expertise:'Expertise',sante:'Santé',commerce:'Commerce',asso:'Association'};
+
+function renderCards(filter) {
+  const grid = document.getElementById('metiers-grid');
+  grid.innerHTML = '';
+  METIERS.forEach((m,i) => {
+    if (filter !== 'all' && m.cat !== filter) return;
+    const card = document.createElement('div');
+    card.className = 'metier-card visible';
+    card.style.animationDelay = (i * 0.035) + 's';
+    card.innerHTML = `
+      <div class="card-top">
+        <div class="card-ico">${m.ico}</div>
+        <span class="card-cat">${CAT_LABELS[m.cat]}</span>
+        <span class="card-arrow">→</span>
+      </div>
+      <div class="card-title">${m.title}</div>
+      <div class="card-desc">${m.desc}</div>
+      <div class="card-agents">
+        ${m.agents.slice(0,3).map(a=>`<span class="agent-chip">${a.n}</span>`).join('')}
+        ${m.agents.length>3?`<span class="agent-chip">+${m.agents.length-3}</span>`:''}
+      </div>
+      <div class="card-footer">
+        <span class="card-price">${m.price}</span>
+        <button class="card-cta" onclick="openModal('${m.id}',event)">Configurer →</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function filterCat(cat, el) {
+  document.querySelectorAll('.cat-filter').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderCards(cat);
+}
+
+function openModal(id, e) {
+  if(e) e.stopPropagation();
+  const m = METIERS.find(x=>x.id===id);
+  if(!m) return;
+  document.getElementById('modal-ico').textContent = m.ico;
+  document.getElementById('modal-title').textContent = m.title;
+  document.getElementById('modal-cat').textContent = CAT_LABELS[m.cat];
+  document.getElementById('modal-desc').textContent = m.desc;
+  document.getElementById('modal-agents').innerHTML = m.agents.map(a=>`
+    <div class="modal-agent">
+      <div class="modal-agent-av">${a.n[0]}</div>
+      <div><div class="modal-agent-name">${a.n}</div></div>
+    </div>`).join('');
+  document.getElementById('modal-tools').innerHTML = m.tools.map(t=>`<span class="modal-tool">${t}</span>`).join('');
+  document.getElementById('modal-pipeline').textContent = m.pipeline;
+  document.getElementById('modal-price').textContent = m.price;
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if(e && e.target !== document.getElementById('modal')) return;
+  document.getElementById('modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+renderCards('all');
+</script>
+</body>
+</html>

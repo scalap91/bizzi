@@ -1,0 +1,218 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="280" viewBox="0 0 680 280" role="img">
+<title>Logo biZzi</title>
+<desc>Logo biZzi avec abeille stylisée et trame hexagonale ruche</desc>
+
+<!--
+  ══════════════════════════════════════════════
+  BIZZI — LOGO OFFICIEL
+  Fichier : bizzi-logo.svg
+  Version : 1.0
+  ══════════════════════════════════════════════
+
+  VARIABLES À MODIFIER :
+  - Couleur fond         : #04050c  (rect fill)
+  - Couleur texte bi/zi  : #f0f2ff
+  - Couleur Z majuscule  : #ffd23f
+  - Couleur trame ruche  : #ffd23f  (stroke des polygones)
+  - Tagline              : "MOTEUR D'AGENTS IA"
+  - Police               : Syne 900 (Google Fonts)
+  ══════════════════════════════════════════════
+-->
+
+<defs>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@900&amp;display=swap');
+  </style>
+
+  <!-- Dégradé corps abeille -->
+  <radialGradient id="bodyGrad" cx="50%" cy="40%" r="60%">
+    <stop offset="0%" stop-color="#ffe566"/>
+    <stop offset="100%" stop-color="#f5a800"/>
+  </radialGradient>
+
+  <!-- Dégradé tête abeille -->
+  <radialGradient id="headGrad" cx="40%" cy="35%" r="60%">
+    <stop offset="0%" stop-color="#ffe566"/>
+    <stop offset="100%" stop-color="#e09500"/>
+  </radialGradient>
+
+  <!-- Dégradé ailes -->
+  <radialGradient id="wingGrad" cx="30%" cy="20%" r="70%">
+    <stop offset="0%" stop-color="rgba(220,240,255,0.5)"/>
+    <stop offset="100%" stop-color="rgba(180,210,255,0.12)"/>
+  </radialGradient>
+</defs>
+
+<!-- ── FOND ── -->
+<rect width="680" height="280" fill="#04050c" rx="20"/>
+
+<!-- ══ TRAME HEXAGONALE RUCHE ══ -->
+<g fill="none" stroke="#ffd23f" stroke-width="0.6">
+  <g opacity="0.08">
+    <polygon points="19,0 38,11 38,33 19,44 0,33 0,11"/>
+    <polygon points="57,0 76,11 76,33 57,44 38,33 38,11"/>
+    <polygon points="95,0 114,11 114,33 95,44 76,33 76,11"/>
+    <polygon points="133,0 152,11 152,33 133,44 114,33 114,11"/>
+    <polygon points="171,0 190,11 190,33 171,44 152,33 152,11"/>
+    <polygon points="209,0 228,11 228,33 209,44 190,33 190,11"/>
+    <polygon points="247,0 266,11 266,33 247,44 228,33 228,11"/>
+    <polygon points="285,0 304,11 304,33 285,44 266,33 266,11"/>
+    <polygon points="323,0 342,11 342,33 323,44 304,33 304,11"/>
+    <polygon points="361,0 380,11 380,33 361,44 342,33 342,11"/>
+    <polygon points="399,0 418,11 418,33 399,44 380,33 380,11"/>
+    <polygon points="437,0 456,11 456,33 437,44 418,33 418,11"/>
+    <polygon points="475,0 494,11 494,33 475,44 456,33 456,11"/>
+    <polygon points="513,0 532,11 532,33 513,44 494,33 494,11"/>
+    <polygon points="551,0 570,11 570,33 551,44 532,33 532,11"/>
+    <polygon points="589,0 608,11 608,33 589,44 570,33 570,11"/>
+    <polygon points="627,0 646,11 646,33 627,44 608,33 608,11"/>
+  </g>
+  <g opacity="0.06">
+    <polygon points="38,33 57,44 57,66 38,77 19,66 19,44"/>
+    <polygon points="76,33 95,44 95,66 76,77 57,66 57,44"/>
+    <polygon points="114,33 133,44 133,66 114,77 95,66 95,44"/>
+    <polygon points="152,33 171,44 171,66 152,77 133,66 133,44"/>
+    <polygon points="190,33 209,44 209,66 190,77 171,66 171,44"/>
+    <polygon points="228,33 247,44 247,66 228,77 209,66 209,44"/>
+    <polygon points="266,33 285,44 285,66 266,77 247,66 247,44"/>
+    <polygon points="304,33 323,44 323,66 304,77 285,66 285,44"/>
+    <polygon points="342,33 361,44 361,66 342,77 323,66 323,44"/>
+    <polygon points="380,33 399,44 399,66 380,77 361,66 361,44"/>
+    <polygon points="418,33 437,44 437,66 418,77 399,66 399,44"/>
+    <polygon points="456,33 475,44 475,66 456,77 437,66 437,44"/>
+    <polygon points="494,33 513,44 513,66 494,77 475,66 475,44"/>
+    <polygon points="532,33 551,44 551,66 532,77 513,66 513,44"/>
+    <polygon points="570,33 589,44 589,66 570,77 551,66 551,44"/>
+    <polygon points="608,33 627,44 627,66 608,77 589,66 589,44"/>
+  </g>
+  <g opacity="0.04">
+    <polygon points="19,66 38,77 38,99 19,110 0,99 0,77"/>
+    <polygon points="57,66 76,77 76,99 57,110 38,99 38,77"/>
+    <polygon points="95,66 114,77 114,99 95,110 76,99 76,77"/>
+    <polygon points="133,66 152,77 152,99 133,110 114,99 114,77"/>
+    <polygon points="171,66 190,77 190,99 171,110 152,99 152,77"/>
+    <polygon points="209,66 228,77 228,99 209,110 190,99 190,77"/>
+    <polygon points="247,66 266,77 266,99 247,110 228,99 228,77"/>
+    <polygon points="285,66 304,77 304,99 285,110 266,99 266,77"/>
+    <polygon points="323,66 342,77 342,99 323,110 304,99 304,77"/>
+    <polygon points="361,66 380,77 380,99 361,110 342,99 342,77"/>
+    <polygon points="399,66 418,77 418,99 399,110 380,99 380,77"/>
+    <polygon points="437,66 456,77 456,99 437,110 418,99 418,77"/>
+    <polygon points="475,66 494,77 494,99 475,110 456,99 456,77"/>
+    <polygon points="513,66 532,77 532,99 513,110 494,99 494,77"/>
+    <polygon points="551,66 570,77 570,99 551,110 532,99 532,77"/>
+    <polygon points="589,66 608,77 608,99 589,110 570,99 570,77"/>
+  </g>
+  <g opacity="0.025">
+    <polygon points="38,99 57,110 57,132 38,143 19,132 19,110"/>
+    <polygon points="76,99 95,110 95,132 76,143 57,132 57,110"/>
+    <polygon points="114,99 133,110 133,132 114,143 95,132 95,110"/>
+    <polygon points="152,99 171,110 171,132 152,143 133,132 133,110"/>
+    <polygon points="190,99 209,110 209,132 190,143 171,132 171,110"/>
+    <polygon points="228,99 247,110 247,132 228,143 209,132 209,110"/>
+    <polygon points="266,99 285,110 285,132 266,143 247,132 247,110"/>
+    <polygon points="304,99 323,110 323,132 304,143 285,132 285,110"/>
+    <polygon points="342,99 361,110 361,132 342,143 323,132 323,110"/>
+    <polygon points="380,99 399,110 399,132 380,143 361,132 361,110"/>
+    <polygon points="418,99 437,110 437,132 418,143 399,132 399,110"/>
+    <polygon points="456,99 475,110 475,132 456,143 437,132 437,110"/>
+    <polygon points="494,99 513,110 513,132 494,143 475,132 475,110"/>
+    <polygon points="532,99 551,110 551,132 532,143 513,132 513,110"/>
+    <polygon points="570,99 589,110 589,132 570,143 551,132 551,110"/>
+  </g>
+  <g opacity="0.015">
+    <polygon points="19,132 38,143 38,165 19,176 0,165 0,143"/>
+    <polygon points="57,132 76,143 76,165 57,176 38,165 38,143"/>
+    <polygon points="95,132 114,143 114,165 95,176 76,165 76,143"/>
+    <polygon points="133,132 152,143 152,165 133,176 114,165 114,143"/>
+    <polygon points="171,132 190,143 190,165 171,176 152,165 152,143"/>
+    <polygon points="209,132 228,143 228,165 209,176 190,165 190,143"/>
+    <polygon points="247,132 266,143 266,165 247,176 228,165 228,143"/>
+    <polygon points="285,132 304,143 304,165 285,176 266,165 266,143"/>
+    <polygon points="323,132 342,143 342,165 323,176 304,165 304,143"/>
+    <polygon points="361,132 380,143 380,165 361,176 342,165 342,143"/>
+    <polygon points="399,132 418,143 418,165 399,176 380,165 380,143"/>
+    <polygon points="437,132 456,143 456,165 437,176 418,165 418,143"/>
+    <polygon points="475,132 494,143 494,165 475,176 456,165 456,143"/>
+    <polygon points="513,132 532,143 532,165 513,176 494,165 494,143"/>
+    <polygon points="551,132 570,143 570,165 551,176 532,165 532,143"/>
+  </g>
+</g>
+
+<!-- ══ ABEILLE ══ -->
+<g transform="translate(340, 86)">
+
+  <!-- Trajet de vol pointillé -->
+  <path d="M-80,8 Q-62,-10 -44,2 Q-28,12 -12,0" fill="none" stroke="#ffd23f" stroke-width="1.2" stroke-dasharray="3,4" opacity="0.3" stroke-linecap="round"/>
+
+  <!-- Ailes supérieures -->
+  <path d="M-14,-8 Q-18,-38 -2,-34 Q10,-30 6,-8" fill="url(#wingGrad)" stroke="rgba(200,230,255,0.5)" stroke-width="0.8"/>
+  <path d="M10,-8 Q14,-38 28,-34 Q40,-30 36,-8" fill="url(#wingGrad)" stroke="rgba(200,230,255,0.5)" stroke-width="0.8"/>
+  <!-- Nervures -->
+  <path d="M-4,-10 Q-2,-28 4,-26" fill="none" stroke="rgba(180,220,255,0.35)" stroke-width="0.6"/>
+  <path d="M20,-10 Q22,-28 26,-26" fill="none" stroke="rgba(180,220,255,0.35)" stroke-width="0.6"/>
+
+  <!-- Ailes inférieures -->
+  <path d="M-10,6 Q-16,26 -2,24 Q8,22 8,6" fill="url(#wingGrad)" stroke="rgba(200,230,255,0.4)" stroke-width="0.8" opacity="0.85"/>
+  <path d="M14,6 Q20,26 34,22 Q40,18 36,6" fill="url(#wingGrad)" stroke="rgba(200,230,255,0.4)" stroke-width="0.8" opacity="0.85"/>
+
+  <!-- Abdomen -->
+  <ellipse cx="10" cy="4" rx="26" ry="16" fill="url(#bodyGrad)"/>
+  <!-- Raies noires -->
+  <path d="M-4,-10 Q-6,4 -4,16 Q0,18 4,16 Q6,4 4,-10 Q2,-12 -4,-10" fill="#1a1200" opacity="0.75"/>
+  <path d="M12,-11 Q10,4 12,16 Q16,18 20,16 Q22,4 20,-11 Q16,-13 12,-11" fill="#1a1200" opacity="0.75"/>
+  <!-- Extrémité -->
+  <ellipse cx="34" cy="4" rx="6" ry="9" fill="#c97d00"/>
+  <!-- Dard -->
+  <path d="M38,-1 Q44,4 38,9 Q36,6 36,4 Q36,2 38,-1" fill="#8a5c00"/>
+
+  <!-- Thorax -->
+  <ellipse cx="-14" cy="2" rx="12" ry="11" fill="#c97d00"/>
+  <path d="M-22,-6 Q-26,-2 -22,2" fill="none" stroke="#e8a800" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
+  <path d="M-24,0 Q-28,4 -24,8" fill="none" stroke="#e8a800" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
+
+  <!-- Tête -->
+  <circle cx="-28" cy="3" r="12" fill="url(#headGrad)"/>
+  <!-- Yeux composés -->
+  <ellipse cx="-33" cy="0" rx="4" ry="5" fill="#1a0a00"/>
+  <ellipse cx="-23" cy="-1" rx="3.5" ry="4.5" fill="#1a0a00"/>
+  <!-- Reflets yeux -->
+  <ellipse cx="-34" cy="-1" rx="1.5" ry="2" fill="rgba(255,255,255,0.3)"/>
+  <ellipse cx="-24" cy="-2" rx="1.2" ry="1.8" fill="rgba(255,255,255,0.3)"/>
+  <!-- Mandibules -->
+  <path d="M-36,8 Q-38,12 -34,13" fill="none" stroke="#a06000" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M-26,8 Q-24,12 -26,14" fill="none" stroke="#a06000" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Antennes -->
+  <path d="M-34,-11 Q-40,-26 -38,-36" fill="none" stroke="#c97d00" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="-38" cy="-37" r="3.5" fill="#ffd23f"/>
+  <circle cx="-38" cy="-37" r="1.5" fill="#c97d00"/>
+  <path d="M-26,-12 Q-22,-26 -24,-36" fill="none" stroke="#c97d00" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="-24" cy="-37" r="3.5" fill="#ffd23f"/>
+  <circle cx="-24" cy="-37" r="1.5" fill="#c97d00"/>
+
+  <!-- Pattes -->
+  <path d="M-20,12 Q-22,22 -26,28" fill="none" stroke="#c97d00" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M-12,14 Q-10,24 -8,30" fill="none" stroke="#c97d00" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M8,14 Q12,24 14,30" fill="none" stroke="#c97d00" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Corbeilles à pollen -->
+  <ellipse cx="-26" cy="28" rx="3" ry="5" fill="#f5a800" stroke="#c97d00" stroke-width="0.5"/>
+  <ellipse cx="14" cy="30" rx="3" ry="5" fill="#f5a800" stroke="#c97d00" stroke-width="0.5"/>
+
+</g>
+
+<!-- ══ TEXTE biZzi ══ -->
+<text text-anchor="middle" x="340" y="202"
+  font-family="'Syne','Arial Black',sans-serif"
+  font-weight="900"
+  font-size="100"><tspan fill="#f0f2ff">bi</tspan><tspan fill="#ffd23f">Z</tspan><tspan fill="#f0f2ff">zi</tspan></text>
+
+<!-- ══ TAGLINE ══ -->
+<text x="340" y="245"
+  font-family="'Outfit',sans-serif"
+  font-size="12"
+  fill="rgba(240,242,255,0.28)"
+  text-anchor="middle"
+  letter-spacing="5">MOTEUR D'AGENTS IA</text>
+
+</svg>

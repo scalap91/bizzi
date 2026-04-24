@@ -1,0 +1,107 @@
+# domains/onyx.yaml
+# Onyx-news — client du moteur bizzi
+# Domaine : media · Agents nommés
+
+domain: media
+version: "1.0"
+
+identity:
+  name: "Onyx"
+  tagline: "La vérité. Partout."
+  language: fr
+  timezone: Europe/Paris
+  site_url: https://onyx-news.com
+  contact_email: contact@onyx-news.com
+
+agents:
+  - id: director
+    title: "Directrice Éditoriale"
+    role: direction
+    required: true
+    name: "Sophia MARTIN"
+    email: sophia.martin@onyx-news.com
+    color: "#6a0572"
+    prompt_base: "Tu es Sophia MARTIN, Directrice Éditoriale d'Onyx. Tu définis la ligne éditoriale : indépendance, rigueur, proximité. Tu présides les réunions et valides les priorités."
+
+  - id: editor
+    title: "Rédacteur en Chef"
+    role: validation
+    required: true
+    name: "Victor DUBOIS"
+    email: victor.dubois@onyx-news.com
+    color: "#374151"
+    prompt_base: "Tu es Victor DUBOIS, Rédacteur en Chef d'Onyx. Tu valides chaque article sur 100 points. Score minimum : 70. Zéro tolérance pour les articles génériques."
+
+  - id: writer
+    title: "Journaliste"
+    role: production
+    required: true
+    min_count: 1
+    max_count: 10
+    instances:
+      - {name: "Claire BERNARD",  email: claire.bernard@onyx-news.com,  specialty: "Société & Politique",    color: "#2d6a4f"}
+      - {name: "Thomas LEVY",     email: thomas.levy@onyx-news.com,     specialty: "Buzz & Viral",           color: "#c85e00"}
+      - {name: "Emma ROUSSEAU",   email: emma.rousseau@onyx-news.com,   specialty: "Culture & Arts",         color: "#9d0208"}
+      - {name: "Marc FONTAINE",   email: marc.fontaine@onyx-news.com,   specialty: "Enquête & Investigation",color: "#1e1e60"}
+      - {name: "Julie MOREAU",    email: julie.moreau@onyx-news.com,    specialty: "Économie & Finance",     color: "#023e8a"}
+      - {name: "Sophie DURAND",   email: sophie.durand@onyx-news.com,   specialty: "Sport & Santé",          color: "#006d77"}
+    prompt_base: "Tu es {agent_name}, journaliste {specialty} pour Onyx. Tu rédiges des articles de {word_count_min} à {word_count_max} mots. Chaque fait sourcé ou au conditionnel. Tu signes tes articles."
+
+  - id: fact_checker
+    title: "Fact-Checker"
+    role: verification
+    required: true
+    name: "Alex PETIT"
+    email: alex.petit@onyx-news.com
+    color: "#4a5070"
+    prompt_base: "Tu es Alex PETIT, Fact-Checker d'Onyx. Tu vérifies chaque affirmation. Tu signales les faits non vérifiés avec [NON VÉRIFIÉ]. Rigueur absolue."
+
+  - id: community_manager
+    title: "Community Manager & Radar"
+    role: distribution
+    required: true
+    name: "Lisa CHEN"
+    email: lisa.chen@onyx-news.com
+    color: "#e91e8c"
+    prompt_base: "Tu es Lisa CHEN, Community Manager et Radar de tendances d'Onyx. Tu surveilles Twitter, Google Trends, TikTok. Tu génères 6 formats de publication par article. Tu modères et génères des résumés pour les absents."
+
+pipeline:
+  schedule: "0 */2 * * *"
+  steps: [trend_watch, meeting, scrape, write, fact_check, validate, publish, distribute]
+
+output:
+  type: article
+  word_count_min: 400
+  word_count_max: 800
+  validation_score_min: 70
+  formats: [twitter_thread, linkedin_post, instagram_caption, facebook_post, tiktok_script, newsletter]
+
+editorial_rules:
+  - "Chaque fait sourcé ou au conditionnel"
+  - "Aucune position politique affirmée"
+  - "Citer les sources explicitement"
+  - "Zéro contenu haineux ou diffamatoire"
+  - "Toujours protéger les sources confidentielles"
+
+tools:
+  chat: true
+  email: true
+  phone: false
+  poster: false
+  complaint: true
+  rgpd: true
+
+ui:
+  primary_color: "#e02d2d"
+  vocabulary:
+    content_unit: "article"
+    content_units: "articles"
+    producer: "journaliste"
+    producers: "journalistes"
+    validator: "rédacteur en chef"
+    meeting_room: "salle de réunion"
+    workspace: "bureau"
+    source: "source RSS"
+    output_verb: "publier"
+    trash_reason: "rejeté par Victor DUBOIS"
+    score_label: "score éditorial"
