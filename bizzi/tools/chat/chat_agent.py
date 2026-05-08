@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import re
 import time
 from datetime import datetime, timezone
 from typing import Any
@@ -33,6 +34,105 @@ DEFAULT_SYSTEM_PROMPT = (
     "Tu peux interroger la base via les tools fournis pour répondre précisément.\n"
     "Réponds en français, concis (3-5 phrases max), professionnel."
 )
+
+# ─── Métacognition Phase 1 — score de confiance ──────────────────────────
+FACTUAL_KEYWORDS = (
+    "combien", "quand", "qui", "où", "ou ", "vol", "réservation", "reservation",
+    "prix", "tarif", "horaire", "date", "numéro", "numero", "billet",
+)
+FUZZY_PHRASES = (
+    "je ne sais pas", "je ne suis pas sûr", "je ne suis pas sur",
+    "peut-être", "peut etre", "il me semble", "je pense que", "probablement",
+)
+SELF_EVAL_MODEL = "claude-haiku-4-5"
+SELF_EVAL_MAX_TOKENS = 10
+SELF_EVAL_TOKEN_BUDGET_THRESHOLD = 500  # ne fait l'auto-eval que si budget restant > 500
+
+
+def _compute_heuristic_confidence(
+    question: str,
+    response: str,
+    tools_called: list[str],
+    tool_failures: int,
+) -> tuple[int, list[str]]:
+    """Calcule un score 0-100 + reasons.
+
+    Base = 70.
+    +10 si tools used et tous succès (-20 si un échec).
+    -10 si question factuelle et 0 tool used.
+    -15 si réponse contient termes flous.
+    -10 si réponse très courte.
+    """
+    score = 70
+    reasons: list[str] = []
+
+    # Tools usage
+    if tools_called and tool_failures == 0:
+        score += 10
+        reasons.append(f"tools={len(tools_called)} OK")
+    elif tools_called and tool_failures > 0:
+        score -= 20
+        reasons.append(f"tools={len(tools_called)} avec {tool_failures} échec(s)")
+    elif not tools_called:
+        ql = question.lower()
+        if any(k in ql for k in FACTUAL_KEYWORDS):
+            score -= 10
+            reasons.append("question factuelle sans tool")
+
+    # Mots flous
+    rl = response.lower()
+    if any(p in rl for p in FUZZY_PHRASES):
+        score -= 15
+        reasons.append("formulation floue")
+
+    # Réponse courte
+    response_clean = re.sub(r"[^\wÀ-ÿ]+", "", response)
+    if len(response_clean) < 30:
+        score -= 10
+        reasons.append("réponse courte")
+
+    score = max(0, min(100, score))
+    return score, reasons
+
+
+async def _self_eval_confidence(
+    client: "anthropic.Anthropic",
+    question: str,
+    response: str,
+) -> int | None:
+    """2ème call Claude pour s'auto-évaluer. None si parsing fail."""
+    if not response or not question:
+        return None
+    prompt = (
+        f'Voici la question du visiteur : "{question[:500]}"\n'
+        f'Voici la réponse que tu as donnée : "{response[:1500]}"\n\n'
+        "Évalue ta confiance dans cette réponse de 0 à 100 :\n"
+        "- 90-100 : information vérifiée par tools, cohérente\n"
+        "- 70-89 : raisonnement solide mais pas vérifié\n"
+        "- 50-69 : incertain, mention de doutes\n"
+        "- 0-49 : probablement faux ou trop vague\n\n"
+        "Réponds UNIQUEMENT par un nombre entier entre 0 et 100."
+    )
+    try:
+        resp = await asyncio.to_thread(
+            client.messages.create,
+            model=SELF_EVAL_MODEL,
+            max_tokens=SELF_EVAL_MAX_TOKENS,
+            temperature=0.0,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        text = ""
+        for block in resp.content:
+            if getattr(block, "type", None) == "text":
+                text += block.text
+        m = re.search(r"\d{1,3}", text)
+        if not m:
+            return None
+        n = int(m.group(0))
+        return max(0, min(100, n))
+    except Exception as e:
+        logger.warning(f"self_eval_confidence failed: {e}")
+        return None
 
 
 def _infer_type(param_name: str) -> dict[str, Any]:
@@ -136,6 +236,7 @@ class ChatAgent:
         tools = self._build_tools()
 
         tools_called: list[str] = []
+        tool_failures = 0
         in_tokens = 0
         out_tokens = 0
         cache_creation = 0
@@ -183,8 +284,11 @@ class ChatAgent:
                         tools_called.append(tname)
                         try:
                             result = self.tenant.execute(tname, tinput)
+                            if isinstance(result, dict) and result.get("error"):
+                                tool_failures += 1
                         except Exception as e:
                             result = {"error": f"tool_exec_failed: {type(e).__name__}: {e}"}
+                            tool_failures += 1
                         tool_results.append({
                             "type": "tool_result",
                             "tool_use_id": block.id,
@@ -205,6 +309,31 @@ class ChatAgent:
         duration_ms = int((time.perf_counter() - t0) * 1000)
         cost = in_tokens * PRICE_INPUT_PER_TOKEN + out_tokens * PRICE_OUTPUT_PER_TOKEN
 
+        # ─── Métacognition Phase 1 — confidence ─────────────────────────
+        heuristic_score, reasons = _compute_heuristic_confidence(
+            question=message,
+            response=text_response,
+            tools_called=tools_called,
+            tool_failures=tool_failures,
+        )
+
+        # auto-eval seulement si tokens budget restant > seuil
+        rl = self.tenant.config.rate_limit
+        tokens_remaining = max(0, rl.max_tokens_per_day - self._rl["tokens"] - in_tokens - out_tokens)
+        self_eval_score: int | None = None
+        if tokens_remaining > SELF_EVAL_TOKEN_BUDGET_THRESHOLD and text_response:
+            try:
+                self_eval_score = await _self_eval_confidence(client, message, text_response)
+            except Exception as e:
+                logger.warning(f"self_eval wrapper failed: {e}")
+
+        if self_eval_score is not None:
+            confidence = int(round(0.6 * heuristic_score + 0.4 * self_eval_score))
+        else:
+            confidence = heuristic_score
+
+        confidence_reason = " / ".join(reasons) if reasons else "base 70"
+
         self._rl["count"] += 1
         self._rl["tokens"] += in_tokens + out_tokens
 
@@ -219,7 +348,12 @@ class ChatAgent:
             "cache_read_input_tokens": cache_read,
             "cost_estimated": round(cost, 6),
             "tools_called": tools_called,
+            "tool_failures": tool_failures,
             "duration_ms": duration_ms,
+            "confidence": confidence,
+            "confidence_heuristic": heuristic_score,
+            "confidence_self_eval": self_eval_score,
+            "confidence_reason": confidence_reason,
         }
         _log_json(log_entry)
 
@@ -231,6 +365,12 @@ class ChatAgent:
             "tokens": {"in": in_tokens, "out": out_tokens},
             "cost_estimated": round(cost, 6),
             "model": llm.model,
+            "confidence": confidence,
+            "confidence_reason": confidence_reason,
+            "confidence_breakdown": {
+                "heuristic": heuristic_score,
+                "self_eval": self_eval_score,
+            },
         }
 
 
