@@ -1,0 +1,40 @@
+# Exemple section `comms.mail` à coller dans domains/<tenant>.yaml
+# (DOC uniquement — pas d'auto-loading. Validation Pascal requise pour activer.)
+comms:
+  mail:
+    enabled: true
+    provider: brevo                # brevo | sendgrid (mailgun | ses = Phase 2)
+    shadow_mode: true              # true = chaque envoi attend approbation Pascal
+    monthly_budget_eur: 30
+    from_email: "noreply@lesdemocrates.org"
+    from_name: "Les Démocrates"
+    reply_to: "contact@lesdemocrates.org"
+    track_opens: true
+    track_clicks: true
+
+    # Credentials (préférer env vars, mais yaml override possible)
+    # brevo_api_key: env:BREVO_API_KEY
+    # sendgrid_api_key: env:SENDGRID_API_KEY
+
+    rate_limit:
+      per_tenant_per_hour: 1000
+      per_email_per_day: 5
+
+    templates:
+      welcome:
+        subject: "Bienvenue {{ first_name }} !"
+        html: |
+          <h1>Bienvenue {{ first_name }}</h1>
+          <p>Merci d'avoir rejoint {{ org }}.</p>
+          <p>Votre tableau de bord : <a href="{{ dashboard_url }}">{{ dashboard_url }}</a></p>
+        text: |
+          Bienvenue {{ first_name }},
+          Merci d'avoir rejoint {{ org }}.
+          Votre tableau de bord : {{ dashboard_url }}
+      facture:
+        subject: "Votre facture {{ invoice_number }} — {{ org }}"
+        html: "<p>Bonjour {{ first_name }}, votre facture <strong>{{ invoice_number }}</strong> est en pièce jointe.</p>"
+        text: "Bonjour {{ first_name }}, votre facture {{ invoice_number }} est en pièce jointe."
+      rdv_confirm:
+        subject: "Confirmation RDV — {{ date }} à {{ time }}"
+        text: "Votre RDV avec {{ org }} est confirmé pour le {{ date }} à {{ time }}. Lieu : {{ location }}."

@@ -1,0 +1,40 @@
+# Exemple section `comms.inbound` à coller dans domains/<tenant>.yaml
+# (DOC uniquement — pas d'auto-loading. Validation Pascal requise pour activer.)
+comms:
+  inbound:
+    enabled: true
+    provider: vapi                 # vapi | twilio
+
+    # Numéro tenant (E.164) sur lequel les appels arrivent — sert au routage tenant
+    to_phone: "+33186123456"
+
+    # Vapi (assistant inbound dédié — peut être différent de l'outbound)
+    vapi_assistant_id_inbound: "..."
+    vapi_phone_number_id: "..."
+
+    # Twilio Voice (mode TwiML basique : voicemail | forward)
+    twilio_mode: voicemail
+    twilio_voice: "Polly.Lea"
+    record_callback_url: "https://bizzi.fr/api/comms/inbound/twilio/status"
+
+    # IVR — texte d'accueil
+    greeting: "Bonjour, vous appelez Les Démocrates. Veuillez laisser votre message après le bip ou patienter pour parler à un conseiller."
+    language: fr-FR
+    record_max_length: 180
+
+    # Routing post-appel
+    transfer_to: "+33611111111"    # numéro humain (Phase 2 = transfer Vapi)
+    auto_sms_confirm: true         # envoie un SMS au caller après qualification
+    auto_mail_summary: true        # envoie un summary à l'admin
+    admin_email: "admin@lesdemocrates.org"
+
+    # Template SMS de suivi (optionnel — fallback texte fixe sinon).
+    # Ce template doit exister dans comms.sms.templates :
+    sms_template_id: post_call_confirm
+
+    # Qualifier (LLM Ollama)
+    qualifier:
+      enabled: true
+      model: "mistral:7b"
+      ollama_url: "http://localhost:11434"
+      timeout_sec: 30

@@ -1,0 +1,37 @@
+# Exemple section `comms.calendar` à coller dans domains/<tenant>.yaml
+# (DOC uniquement — pas d'auto-loading. Validation Pascal requise pour activer.)
+comms:
+  calendar:
+    enabled: true
+    provider: google                  # google | outlook | doctolib (doctolib = stub Phase 1)
+    shadow_mode: true                 # true = chaque RDV attend approbation Pascal
+    organizer_email: "rdv@lesdemocrates.org"
+    calendar_id: "rdv@lesdemocrates.org"   # email Google ou ID calendrier
+    timezone: "Europe/Paris"
+
+    default_duration_minutes: 30
+    default_reminders_minutes: [1440, 60]  # J-1 + H-1
+    reminder_channels: [mail]              # mail | sms (ou les deux)
+
+    # Credentials (préférer env vars, mais yaml override possible)
+    # google_access_token: env:GOOGLE_CALENDAR_ACCESS_TOKEN
+    # microsoft_graph_access_token: env:MICROSOFT_GRAPH_ACCESS_TOKEN
+
+    templates:
+      consultation:
+        title: "Consultation — {{ patient_name }}"
+        description: "Type : {{ type }}. Notes : {{ notes }}."
+        location: "Cabinet {{ cabinet }}"
+        duration_minutes: 30
+        reminders_minutes: [1440, 60]
+      reunion_militants:
+        title: "Réunion {{ section }} — {{ subject }}"
+        description: "Ordre du jour :\n{{ agenda }}"
+        location: "Permanence {{ section }}"
+        duration_minutes: 90
+        reminders_minutes: [2880, 60]      # J-2 + H-1
+      rdv_donateur:
+        title: "Échange donateur — {{ donor_name }}"
+        description: "Préparation : {{ prep_notes }}"
+        duration_minutes: 45
+        reminders_minutes: [1440]

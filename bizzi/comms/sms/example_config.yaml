@@ -1,0 +1,27 @@
+# Exemple section `comms.sms` à coller dans domains/<tenant>.yaml
+# (DOC uniquement — pas d'auto-loading. Validation Pascal requise pour activer.)
+comms:
+  sms:
+    enabled: true
+    provider: brevo                # brevo | twilio | ovh (ovh = stub Phase 1)
+    shadow_mode: true              # true = chaque envoi attend approbation Pascal
+    monthly_budget_eur: 30
+    sender_id: "Democrates"        # alphanum max 11 chars (Brevo) ou MSISDN (Twilio)
+
+    # Credentials (préférer env vars, mais yaml override possible)
+    # brevo_api_key: env:BREVO_API_KEY
+    # twilio_account_sid: env:TWILIO_ACCOUNT_SID
+    # twilio_auth_token: env:TWILIO_AUTH_TOKEN
+    # status_callback: "https://bizzi.fr/api/comms/sms/webhook/twilio"
+
+    rate_limit:
+      per_tenant_per_hour: 200
+      per_phone_per_day: 3
+
+    templates:
+      rdv_reminder:
+        body: "Bonjour {{ first_name }}, RDV demain {{ time }} chez {{ org }}. À demain !"
+      confirm_inscription:
+        body: "Merci {{ first_name }} ! Inscription confirmée. Bienvenue chez {{ org }}."
+      member_call_followup:
+        body: "Bonjour {{ first_name }}, suite à notre échange, plus d'infos sur {{ link }}."
