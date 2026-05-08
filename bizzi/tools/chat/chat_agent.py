@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import re
 import time
 from datetime import datetime, timezone
@@ -19,6 +20,19 @@ from typing import Any
 import anthropic
 
 from tenant_db import load_tenant, TenantDBProvider
+
+# Module anonymizer + intent (Phase 11 chat_logs).
+try:
+    from tools.anonymizer import anonymize, hash_user_id, classify_message
+    _ANONYMIZER_AVAILABLE = True
+except Exception as _e:  # pragma: no cover — dégradé silencieux
+    logging.getLogger("tools.chat").warning(
+        f"anonymizer module unavailable, chat_logs DB insert disabled: {_e}"
+    )
+    anonymize = None  # type: ignore
+    hash_user_id = None  # type: ignore
+    classify_message = None  # type: ignore
+    _ANONYMIZER_AVAILABLE = False
 
 logger = logging.getLogger("tools.chat")
 
@@ -357,6 +371,22 @@ class ChatAgent:
         }
         _log_json(log_entry)
 
+        # ─── Phase 11 — insert chat_logs (data-resale-ready, non-bloquant) ───
+        try:
+            self._persist_chat_log(
+                message_user=message,
+                message_agent=text_response,
+                tools_called=tools_called,
+                tokens_in=in_tokens,
+                tokens_out=out_tokens,
+                cost=cost,
+                confidence=confidence,
+                duration_ms=duration_ms,
+                model_used=llm.model,
+            )
+        except Exception as e:
+            logger.warning(f"chat_logs persist wrapper failed (non-bloquant): {e}")
+
         return {
             "session_id": self.session_id,
             "tenant": self.tenant_id,
@@ -372,6 +402,102 @@ class ChatAgent:
                 "self_eval": self_eval_score,
             },
         }
+
+
+    # ─── Phase 11 — persistance chat_logs ─────────────────────────────────
+
+    def _persist_chat_log(
+        self,
+        *,
+        message_user: str,
+        message_agent: str,
+        tools_called: list[str],
+        tokens_in: int,
+        tokens_out: int,
+        cost: float,
+        confidence: int,
+        duration_ms: int,
+        model_used: str,
+    ) -> None:
+        """Insert un row dans chat_logs (DB bizzi).
+
+        Garde le log fichier en parallèle (sécurité transition). En cas d'erreur
+        DB / module manquant : log warning, ne casse PAS la réponse au visiteur.
+        """
+        if not _ANONYMIZER_AVAILABLE:
+            return
+
+        # Métadonnées tenant (industry / size_bucket / region).
+        md = self.tenant.config.metadata or {}
+        tenant_industry = (md.get("industry") or md.get("domain") or "other")
+        tenant_size_bucket = md.get("size_bucket", "sme")
+        tenant_region = md.get("region", "fr-fr")
+
+        # Anonymisation user + agent.
+        msg_user_anon, pii_user = anonymize(message_user)
+        msg_agent_anon, pii_agent = anonymize(message_agent or "")
+        pii_detected = bool(pii_user or pii_agent)
+
+        # user_anon_id : hash sha256[:16] de l'email du message si présent.
+        user_anon_id: str | None = None
+        email_match = re.search(r"[\w.+-]+@[\w.-]+\.\w+", message_user or "")
+        if email_match:
+            user_anon_id = hash_user_id(email_match.group())
+
+        # Intent + topic_tags via Claude Haiku (avec cache 1h).
+        intent_result = classify_message(message_user, tenant_industry)
+        intent = intent_result.get("intent", "other")
+        topic_tags = intent_result.get("topic_tags", []) or []
+
+        # Lazy imports — ne plombe pas l'import du module si psycopg2 absent.
+        try:
+            import psycopg2
+            from dotenv import load_dotenv as _ld
+        except Exception as e:
+            logger.warning(f"chat_logs: psycopg2/dotenv import failed: {e}")
+            return
+
+        _ld("/opt/bizzi/bizzi/.env")
+        db_url = os.getenv("DATABASE_URL")
+        if not db_url:
+            logger.warning("chat_logs: DATABASE_URL missing, skip insert")
+            return
+
+        try:
+            with psycopg2.connect(db_url) as _c:
+                with _c.cursor() as _cur:
+                    _cur.execute(
+                        """
+                        INSERT INTO chat_logs (
+                          tenant, tenant_industry, tenant_size_bucket, tenant_region,
+                          session_id, user_anon_id,
+                          message_user, message_agent, message_user_anon, message_agent_anon,
+                          intent, topic_tags, pii_detected,
+                          agent_slug, model, tools_called,
+                          tokens_in, tokens_out, cost_usd, confidence, duration_ms,
+                          cgu_version
+                        ) VALUES (
+                          %s, %s, %s, %s,
+                          %s, %s,
+                          %s, %s, %s, %s,
+                          %s, %s::jsonb, %s,
+                          %s, %s, %s::jsonb,
+                          %s, %s, %s, %s, %s,
+                          %s
+                        )
+                        """,
+                        (
+                            self.tenant_id, tenant_industry, tenant_size_bucket, tenant_region,
+                            self.session_id, user_anon_id,
+                            message_user, message_agent, msg_user_anon, msg_agent_anon,
+                            intent, json.dumps(topic_tags, ensure_ascii=False), pii_detected,
+                            "support", model_used, json.dumps(tools_called, ensure_ascii=False),
+                            tokens_in, tokens_out, round(cost, 6), confidence, duration_ms,
+                            "v1.0",
+                        ),
+                    )
+        except Exception as e:
+            logger.warning(f"chat_logs insert failed (non-bloquant): {e}")
 
 
 # ─── Sessions globales ────────────────────────────────────────────────────

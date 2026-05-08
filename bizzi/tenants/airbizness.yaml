@@ -6,6 +6,9 @@ tenant: airbizness
 metadata:
   name: AirBizness
   domain: travel
+  industry: travel
+  size_bucket: sme
+  region: fr-fr
   description: "Site de réservation de vols (deals, alertes prix, bookings)"
   agent_persona: "Conseiller voyage AirBizness — courtois, factuel, professionnel"
   system_prompt: |

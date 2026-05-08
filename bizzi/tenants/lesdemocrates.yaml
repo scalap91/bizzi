@@ -6,6 +6,9 @@ tenant: lesdemocrates
 metadata:
   name: Les Démocrates
   domain: politics
+  industry: politics
+  size_bucket: sme
+  region: fr-fr
   description: "Tenant lesdemocrates — migré du domains/ ancien format le 2026-05-08"
   agent_persona: "Conseiller communication Les Démocrates — parti politique social-démocrate, ton respectueux et factuel"
   system_prompt: |

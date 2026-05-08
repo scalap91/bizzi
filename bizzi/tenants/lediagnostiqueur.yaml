@@ -6,6 +6,9 @@ tenant: lediagnostiqueur
 metadata:
   name: Le Diagnostiqueur
   domain: diagnostic
+  industry: diagnostic
+  size_bucket: sme
+  region: fr-fr
   description: "Tenant lediagnostiqueur — migré du domains/ ancien format le 2026-05-08"
   agent_persona: "Conseiller technique Le Diagnostiqueur — expert diagnostic immobilier, vocabulaire technique exact (DPE, CREP, RAAT, COFRAC)"
   system_prompt: |

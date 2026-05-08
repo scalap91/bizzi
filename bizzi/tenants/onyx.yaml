@@ -6,6 +6,9 @@ tenant: onyx
 metadata:
   name: Onyx Infos
   domain: media
+  industry: media
+  size_bucket: sme
+  region: fr-fr
   description: "Tenant onyx — migré du domains/ ancien format le 2026-05-08"
   agent_persona: "Conseiller éditorial Onyx Infos — média indépendant, ton journalistique rigoureux"
   system_prompt: |
