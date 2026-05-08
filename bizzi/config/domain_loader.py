@@ -175,7 +175,7 @@ class DomainLoader:
                     min_count   = a.get('min_count', 1),
                     max_count   = a.get('max_count', 1),
                 )
-                for a in data.get('agents', [])
+                for a in (data.get('metiers') or data.get('agents', []))
             ],
 
             pipeline = PipelineConfig(
@@ -188,14 +188,26 @@ class DomainLoader:
                 word_count_min       = data['output']['word_count_min'],
                 word_count_max       = data['output']['word_count_max'],
                 validation_score_min = data['output']['validation_score_min'],
-                formats              = data['output']['formats'],
+                formats              = data['output'].get('formats', []),
             ),
 
             editorial_rules = data.get('editorial_rules', []),
 
             ui = UIConfig(
-                primary_color = data['ui']['primary_color'],
-                vocabulary    = VocabularyConfig(**data['ui']['vocabulary']),
+                primary_color = data.get('ui', {}).get('primary_color', '#000000'),
+                vocabulary    = VocabularyConfig(**(data.get('ui', {}).get('vocabulary') or {
+                    "content_unit":  "article",
+                    "content_units": "articles",
+                    "producer":      "rédacteur",
+                    "producers":     "rédacteurs",
+                    "validator":     "rédacteur en chef",
+                    "meeting_room":  "salle de réunion",
+                    "workspace":     "bureau",
+                    "source":        "source",
+                    "output_verb":   "publier",
+                    "trash_reason":  "rejeté",
+                    "score_label":   "score qualité",
+                })),
             ),
         )
 

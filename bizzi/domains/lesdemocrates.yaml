@@ -1,0 +1,648 @@
+# domains/lesdemocrates.yaml
+# Tenant Bizzi pour Les Démocrates (parti politique social-démocrate, France)
+# Basé sur le template politics.yaml — adapté avec l'équipe réelle scrapée depuis
+# https://lesdemocrates.org/organisation-du-parti/
+domain: lesdemocrates
+version: "1.0"
+
+identity:
+  name: "Les Démocrates"
+  tagline: "Justice sociale. Responsabilité. Souveraineté."
+  language: fr
+  timezone: Europe/Paris
+  country: FR
+  party_orientation: social-democrate
+  website: "https://lesdemocrates.org"
+  contact_email: "contact@lesdemocrates.org"
+
+# Personnes réelles du Bureau national (scrapé /organisation-du-parti/)
+# Chaque personne est mappée à un agent_type Bizzi (cf. section agents).
+# ══════════════════════════════════════════════════════════════
+# METIERS — types fonctionnels universels mappés aux agents Bizzi
+# Référencés par chaque entrée de la section `personnes` via `agent_type`
+# ══════════════════════════════════════════════════════════════
+
+metiers:
+  - id: president
+    title: "Président"
+    role: direction
+    prompt_base: >
+      Tu es {agent_name}, Président du parti Les Démocrates.
+      Tu définis les positions politiques, présides les réunions, valides chaque prise de position publique.
+      Ligne éditoriale : justice sociale, responsabilité, souveraineté.
+
+  - id: spokesperson
+    title: "Porte-parole"
+    role: validation
+    prompt_base: >
+      Tu es {agent_name}, Porte-parole de Les Démocrates.
+      Tu valides chaque communiqué sur 100 points. Score minimum : 70.
+      Clarté, cohérence politique, impact, ton respectueux même dans l'opposition.
+
+  - id: analyst
+    title: "Analyste Politique"
+    role: production
+    prompt_base: >
+      Tu es {agent_name}, analyste {specialty} pour Les Démocrates.
+      Tu analyses l'actualité politique, rédiges des positions et communiqués argumentés.
+      Toujours citer les sources des chiffres. Respecter la présomption d'innocence.
+      Communiqués entre 200 et 600 mots.
+
+  - id: legal_advisor
+    title: "Conseiller Juridique"
+    role: verification
+    prompt_base: >
+      Tu es {agent_name}, Conseiller Juridique de Les Démocrates.
+      Tu vérifies que chaque communiqué respecte le cadre légal. Aucune déclaration diffamatoire.
+
+  - id: community_manager
+    title: "Community Manager"
+    role: distribution
+    prompt_base: >
+      Tu es {agent_name}, Community Manager de Les Démocrates.
+      Tu surveilles l'actualité politique sur les réseaux, adaptes les messages aux différentes plateformes.
+      6 formats : press_release, twitter_thread, linkedin_post, facebook_post, newsletter, speech.
+
+personnes:
+  - id: pascal_repir
+    name: "Pascal Répir"
+    fonction: "Président du parti"
+    bureau: "Bureau national"
+    workspace: "Présidence"
+    metier: president
+    specialty: null
+
+  - id: karim_bouchra
+    name: "Karim Bouchra"
+    fonction: "Secrétaire général"
+    bureau: "Bureau national"
+    workspace: "Secrétariat général"
+    metier: analyst
+    specialty: "coordination"
+
+  - id: paul_martin
+    name: "Paul Martin"
+    fonction: "Trésorier national"
+    bureau: "Bureau national"
+    workspace: "Trésorerie"
+    metier: analyst
+    specialty: "finances publiques"
+
+  - id: sico_dia
+    name: "Sico Dia"
+    fonction: "Directeur communication"
+    bureau: "Bureau national"
+    workspace: "Direction Communication"
+    metier: community_manager
+    specialty: "communication"
+
+  - id: clara_beaufort
+    name: "Clara Beaufort"
+    fonction: "Mobilisation militante"
+    bureau: "Bureau national"
+    workspace: "Pôle Mobilisation"
+    metier: analyst
+    specialty: "mobilisation citoyenne"
+
+  - id: lucas_martin
+    name: "Lucas Martin"
+    fonction: "Programme & idées"
+    bureau: "Bureau national"
+    workspace: "Pôle Programme"
+    metier: analyst
+    specialty: "politiques publiques"
+
+  - id: alice_roy
+    name: "Alice Roy"
+    fonction: "Responsable territoires"
+    bureau: "Bureau national"
+    workspace: "Pôle Territoires"
+    metier: analyst
+    specialty: "territoires et collectivités"
+
+  - id: emile_lefevre
+    name: "Émile Lefèvre"
+    fonction: "Conseiller stratégie"
+    bureau: "Bureau national"
+    workspace: "Cellule Stratégie"
+    metier: analyst
+    specialty: "stratégie politique"
+
+# Définition des archétypes d'agents Bizzi (template politics.yaml)
+# Chaque personne du bloc personnes: ci-dessus instancie un de ces agents.
+agents:
+  - id: president
+    title: "Président"
+    role: direction
+    required: true
+    instances_from: personnes  # personnes où agent_type == president
+    workspace_default: "Présidence"
+    prompt_base: "Tu es le Président de {org_name}. Tu définis les positions politiques, présides les réunions du bureau national, valides chaque prise de position publique. Ligne politique : social-démocrate, justice sociale, responsabilité budgétaire, souveraineté."
+
+  - id: spokesperson
+    title: "Porte-parole"
+    role: validation
+    required: true
+    instances_from: personnes
+    fallback_person: sico_dia  # à défaut, le Directeur com fait office de porte-parole
+    workspace_default: "Direction Communication"
+    prompt_base: "Tu es le Porte-parole de {org_name}. Tu valides chaque communiqué sur 100 points. Score minimum : {validation_score_min}. Critères : clarté, cohérence avec la ligne sociale-démocrate, impact public, absence de risque diffamatoire."
+
+  - id: analyst
+    title: "Analyste politique"
+    role: production
+    required: true
+    min_count: 1
+    max_count: 8
+    instances_from: personnes
+    workspace_default: "Bureau de l'analyste"
+    prompt_base: "Tu es {agent_name}, analyste {specialty} pour {org_name}. Tu surveilles l'actualité politique française relative à ta spécialité, rédiges des positions et communiqués argumentés, factuels, sourcés, ligne sociale-démocrate. RESPECTE STRICTEMENT le editorial_template du yaml du tenant : structure intro+table_matieres+H2+chiffres_cles+FAQ+sources, longueur 1200-2500 mots, citations sourcées avec date, ancrage territorial, blockquote `> « citation »— Source`, émojis stats 📊, tableaux markdown pour comparaisons. Pas de slogan partisan, pas de chiffre sans source."
+
+  - id: legal_advisor
+    title: "Conseiller juridique"
+    role: verification
+    required: false
+    workspace_default: "Cellule Juridique"
+    prompt_base: "Tu es le Conseiller juridique de {org_name}. Tu vérifies que chaque communiqué respecte le cadre légal français : loi de 1881 sur la presse, RGPD, loi sur la transparence financière des partis politiques. Aucune déclaration diffamatoire, aucune atteinte à la présomption d'innocence."
+
+  - id: community_manager
+    title: "Community Manager"
+    role: distribution
+    required: false
+    instances_from: personnes
+    workspace_default: "Direction Communication"
+    prompt_base: "Tu es {agent_name}, Community Manager de {org_name}. Tu surveilles l'actualité politique, adaptes les communiqués aux formats X/Twitter, LinkedIn, Facebook, newsletter. Tu mesures l'engagement et remontes les retours."
+
+# Sources de veille (RSS) — orientation gauche démocrate / progressiste
+sources:
+  - id: mediapart
+    name: "Mediapart"
+    url: "https://www.mediapart.fr/articles/feed"
+    categories: [national, social, justice, politique]
+    weight: 1.0
+
+  - id: politis
+    name: "Politis"
+    url: "https://www.politis.fr/flux-rss-des-articles/"
+    categories: [social, ecologie, gauche, international]
+    weight: 1.0
+
+  - id: humanite
+    name: "L'Humanité"
+    url: "https://www.humanite.fr/rss"
+    categories: [social, travail, politique, international]
+    weight: 0.9
+
+  - id: reporterre
+    name: "Reporterre"
+    url: "https://reporterre.net/spip.php?page=backend"
+    categories: [ecologie, climat, social]
+    weight: 1.0
+
+  - id: alternatives_economiques
+    name: "Alternatives Économiques"
+    url: "https://www.alternatives-economiques.fr/rss.xml"
+    categories: [economie, social, europe]
+    weight: 0.8
+
+  - id: monde_diplomatique
+    name: "Le Monde Diplomatique"
+    url: "https://www.monde-diplomatique.fr/rss/"
+    categories: [international, geopolitique, analyse]
+    weight: 0.8
+
+# Catégories thématiques pour le pipeline
+categories:
+  - id: national
+    label: "National"
+    keywords: [gouvernement, assemblée, sénat, élections, réforme]
+  - id: social
+    label: "Social"
+    keywords: [travail, retraites, salaires, logement, santé, éducation, pouvoir d'achat]
+  - id: ecologie
+    label: "Écologie"
+    keywords: [climat, transition, biodiversité, énergie, ZAN, ZFE]
+  - id: international
+    label: "International"
+    keywords: [Europe, UE, ONU, géopolitique, Ukraine, Gaza, Afrique]
+  - id: justice
+    label: "Justice"
+    keywords: [justice sociale, égalité, discrimination, droits humains]
+  - id: economie
+    label: "Économie"
+    keywords: [budget, fiscalité, impôts, inflation, dette, services publics]
+  - id: territoires
+    label: "Territoires"
+    keywords: [collectivités, ruralité, banlieue, décentralisation, services publics]
+
+# Régions françaises couvertes (pour assignement géographique des analyses)
+regions:
+  - { id: idf, label: "Île-de-France" }
+  - { id: hdf, label: "Hauts-de-France" }
+  - { id: ge,  label: "Grand Est" }
+  - { id: bfc, label: "Bourgogne-Franche-Comté" }
+  - { id: ara, label: "Auvergne-Rhône-Alpes" }
+  - { id: paca, label: "Provence-Alpes-Côte d'Azur" }
+  - { id: occ, label: "Occitanie" }
+  - { id: naq, label: "Nouvelle-Aquitaine" }
+  - { id: pdl, label: "Pays de la Loire" }
+  - { id: bre, label: "Bretagne" }
+  - { id: nor, label: "Normandie" }
+  - { id: cvl, label: "Centre-Val de Loire" }
+  - { id: cor, label: "Corse" }
+  - { id: drom, label: "DROM" }
+
+
+# ══════════════════════════════════════════════════════════════
+# EDITORIAL TEMPLATE — structure obligatoire des articles
+# Observée à partir des 4 articles existants sur lesdemocrates.org
+# ══════════════════════════════════════════════════════════════
+
+editorial_template:
+  format: html_article
+  ton: "Journalistique factuel mais engagé. Solutions concrètes, ancrage territorial."
+  longueur_mots:
+    min: 1200
+    cible: 1800
+    max: 2500
+  structure:
+    - id: intro
+      role: "Plante le contexte (lieu, problème, autorité officielle qui le reconnaît). 1-2 paragraphes, ~120-180 mots."
+      obligatoire: true
+    - id: table_matieres
+      role: "Liste des H2 du body (générée auto). Permet le scan rapide."
+      obligatoire: true
+    - id: sections_h2
+      role: "3-5 sections thématiques, chaque H2 traite un angle (cause, situation, solution, action mairie/parti, perspective)."
+      min_count: 3
+      max_count: 6
+      obligatoire: true
+    - id: chiffres_cles
+      role: "Encart visuel synthèse des 3-5 statistiques majeures. Format : '📊 X% — description courte'."
+      obligatoire: true
+    - id: faq
+      role: "3-5 questions fréquentes avec réponses courtes (50-100 mots chacune)."
+      obligatoire: true
+    - id: sources
+      role: "Liste des sources citées en pied d'article (organismes officiels + médias)."
+      obligatoire: true
+  elements_riches:
+    - "Émojis ponctuels pour stats clés : 📊 📍 💡 ⚠️ 🏥 🚆 (selon thème)"
+    - "Citations en blockquote `> « citation »— Source` avec attribution explicite"
+    - "Tableaux markdown pour comparaisons (avant/après, scénarios, données chiffrées)"
+    - "Listes - à puces pour énumérer conséquences, actions, recommandations"
+    - "**strong** sur les chiffres-clés et noms propres importants"
+  obligations:
+    - "Toujours citer la SOURCE et la DATE de chaque chiffre (ARS, INSEE, ministère, Le Parisien, Le Monde, etc.)"
+    - "Ancrage territorial : nommer les communes, arrondissements, quartiers concernés"
+    - "Cas particuliers : noms de personnes (médecins, élus, associations) avec dates précises"
+    - "Solutions évoquées : ce que fait la mairie, l'État, les associations + ce que le parti propose"
+    - "Storytelling : commencer par un cas concret (un Lissois qui ne trouve pas de médecin) puis élargir"
+    - "Conclusion ouverte : appel à l'action OU mise en perspective (pas de slogan partisan)"
+  interdictions:
+    - "Pas de slogan partisan agressif"
+    - "Pas de jugements moraux non sourcés"
+    - "Pas de chiffre sans source"
+    - "Pas d'article < 1200 mots"
+    - "Pas d'attaque ad hominem"
+  exemples_titres:
+    - "Désert médical à Lisses (91090) : la réalité d'une commune essonnienne en première ligne"
+    - "Saint-Denis debout : quand des milliers de citoyens disent non au racisme"
+    - "Stéphane Beaudet à Grand Paris Sud : ce qu'il faut savoir"
+    - "Transports à Bondoufle : pourquoi la commune mérite une branche du T12"
+  template_html_classes:
+    article_body: "ab"
+    article_header: "ah"
+    article_title: "a1"
+    article_meta: "am"
+    article_image: "ai"
+    blockquote_left_border_color: "#D6140D"
+    primary_color: "#D6140D"
+
+pipeline:
+  schedule: "0 */3 * * *"   # toutes les 3 heures
+  steps:
+    - monitor_news        # scrape RSS sources
+    - meeting             # agents se concertent dans la salle de réunion virtuelle
+    - analyze             # analystes produisent un brief
+    - write_statement     # rédaction communiqué
+    - legal_check         # passage chez le conseiller juridique
+    - validate            # porte-parole score sur 100
+    - publish_press       # publication communiqué validé
+    - distribute          # community manager déploie sur les formats
+  pipeline_endpoint: "/api/pipeline/run"
+  tenant: lesdemocrates
+
+output:
+  type: communique
+  word_count_min: 200
+  word_count_max: 600
+  validation_score_min: 80
+  formats:
+    - press_release
+    - twitter_thread
+    - linkedin_post
+    - facebook_post
+    - newsletter
+    - speech
+  iframe_path: "/iframe/articles?tenant=lesdemocrates"
+
+editorial_rules:
+  - "Aucune déclaration diffamatoire (loi 1881)"
+  - "Toujours citer les sources des chiffres et études"
+  - "Respecter la présomption d'innocence"
+  - "Positions cohérentes avec la ligne sociale-démocrate (justice sociale, responsabilité, souveraineté)"
+  - "Ton respectueux y compris dans l'opposition aux adversaires politiques"
+  - "Nommer les responsables sans personnaliser à outrance"
+  - "Pas de stigmatisation de communautés, religions, origines"
+  - "Privilégier la clarté pédagogique au jargon politicien"
+
+ui:
+  primary_color: "#1e40af"        # bleu démocrate (proche du #1e3a8a du template)
+  secondary_color: "#fbbf24"      # jaune accent (cf. site)
+  vocabulary:
+    content_unit: "communiqué"
+    content_units: "communiqués"
+    producer: "analyste"
+    producers: "analystes"
+    validator: "porte-parole"
+    meeting_room: "salle de réunion"
+    workspace: "bureau"
+    source: "veille politique"
+    output_verb: "diffuser"
+    trash_reason: "rejeté par le porte-parole"
+    score_label: "score politique"
+
+# Salle de réunion virtuelle où les agents se rencontrent au step `meeting`
+meeting_room:
+  name: "Salle du Bureau national"
+  participants: all  # tous les agents instanciés
+  facilitator: spokesperson
+  duration_max_min: 15
+  output: brief_consolidated
+
+# Bureaux (workspaces) — un par membre de l'équipe
+# Permet de matérialiser visuellement où travaille chaque agent dans l'UI Bizzi.
+workspaces:
+  - id: presidence
+    label: "Présidence"
+    occupant: pascal_repir
+  - id: secretariat_general
+    label: "Secrétariat général"
+    occupant: karim_bouchra
+  - id: tresorerie
+    label: "Trésorerie"
+    occupant: paul_martin
+  - id: direction_communication
+    label: "Direction Communication"
+    occupants: [sico_dia]
+  - id: pole_mobilisation
+    label: "Pôle Mobilisation"
+    occupant: clara_beaufort
+  - id: pole_programme
+    label: "Pôle Programme"
+    occupant: lucas_martin
+  - id: pole_territoires
+    label: "Pôle Territoires"
+    occupant: alice_roy
+  - id: cellule_strategie
+    label: "Cellule Stratégie"
+    occupant: emile_lefevre
+  - id: cellule_juridique
+    label: "Cellule Juridique"
+    occupant: null   # à pourvoir
+
+# ══════════════════════════════════════════════════════════════
+# PHONE — Module téléphonie Bizzi (Phase 0 POC)
+# ══════════════════════════════════════════════════════════════
+# shadow_mode: true → tout appel passe par la file de validation Pascal
+# avant d'être déclenché chez Vapi. Mettre à false pour le mode autonome.
+phone:
+  enabled: true
+  provider: vapi
+  monthly_budget_eur: 50
+  shadow_mode: true
+  vapi_assistant_id: "1aca131c-21c5-4ac1-848a-e44a8c421f2c"
+  voice: "21m00Tcm4TlvDq8ikWAM"
+  caller_id: "+18604517094"
+  max_duration_sec: 600
+  legal_disclaimer: "Bonjour, je suis l'assistant IA des Démocrates. Cet appel est enregistré pour amélioration de la qualité. Souhaitez-vous continuer ?"
+  use_cases:
+    - lead_qualification
+    - member_recruitment
+    - donor_call
+    - partner_relations
+    - survey
+    - inbound_support
+
+# Intégration site lesdemocrates.org
+integration:
+  iframe:
+    embed_url: "https://bizzi.fr/iframe/articles?tenant=lesdemocrates&theme=light"
+    target_route: "/actualites/"
+    height_default: "1400"
+    sandbox: "allow-same-origin allow-scripts allow-popups"
+  webhook_url: "https://lesdemocrates.org/dem-api/bizzi/webhook"   # à activer côté backend Node 3001
+  shared_token_env: BIZZI_SHARED_TOKEN
+
+# ══════════════════════════════════════════════════════════════
+# SOCIAL — module bizzi.social (clips vidéo + publication multi-réseaux)
+# Phase 0 = shadow mode strict. Aucune publication tant que Pascal n'a
+# pas validé via POST /api/social/post/{id}/approve.
+# ══════════════════════════════════════════════════════════════
+
+social:
+  shadow_mode: true
+  networks: [tiktok, instagram, x, linkedin]
+
+  # Credentials — à provisionner via .env (Phase 1)
+  tiktok_token_ref:    env:TIKTOK_TOKEN_LESDEMOCRATES
+  instagram_token_ref: env:INSTAGRAM_TOKEN_LESDEMOCRATES
+  x_token_ref:         env:X_BEARER_TOKEN_LESDEMOCRATES
+  linkedin_token_ref:  env:LINKEDIN_TOKEN_LESDEMOCRATES
+
+  # Templates : 'base' = builtin, 'overrides' = surcharge.
+  # Builtins dispo : airbizness_deal, lesdemocrates_article, onyx_scoop
+  templates:
+    article_clip:
+      base: lesdemocrates_article
+      overrides:
+        duration_sec: 30
+        overlays:
+          - { type: drawbox,  x: 0, y: 0,    w: iw, h: 180, color: "black@0.85" }
+          - { type: drawbox,  x: 0, y: 1740, w: iw, h: 180, color: "black@0.85" }
+          - { type: drawtext, text: "Les Democrates",   color: "#fbbf24", size: 56, y: 60,  shadow: true }
+          - { type: drawtext, text: "{category}",       color: "#1e40af", size: 30, y: 130 }
+          - { type: drawtext, text: "{title}",          color: "white",   size: 60, y: 600, shadow: true, shadow_x: 3, shadow_y: 3 }
+          - { type: drawtext, text: "{subtitle}",       color: "white@0.85", size: 38, y: 900 }
+          - { type: drawbox,  x: 140, y: 1760, w: 800, h: 80, color: "#1e40af@0.95" }
+          - { type: drawtext, text: "Lire sur lesdemocrates.org", color: "white", size: 30, y: 1782 }
+
+    territory_focus:
+      base: lesdemocrates_article
+      overrides:
+        duration_sec: 35
+        overlays:
+          - { type: drawbox,  x: 0, y: 0,    w: iw, h: 180, color: "black@0.85" }
+          - { type: drawtext, text: "TERRITOIRES",      color: "#fbbf24", size: 40, y: 70 }
+          - { type: drawtext, text: "{region_label}",   color: "white",   size: 32, y: 130 }
+          - { type: drawtext, text: "{title}",          color: "white",   size: 60, y: 700, shadow: true }
+          - { type: drawbox,  x: 0, y: 1740, w: iw, h: 180, color: "black@0.85" }
+          - { type: drawtext, text: "Pour {region_label}", color: "#1e40af", size: 36, y: 1782 }
+
+  # Déclencheurs auto — Phase 1 (pas encore branchés au pipeline)
+  triggers:
+    - event: article_published
+      categories: [national, social, ecologie, justice, economie]
+      template: article_clip
+      networks: [tiktok, instagram]
+      caption: "{title} — {subtitle} #LesDemocrates #{category}"
+      hashtags: [LesDemocrates, Politique, France]
+    - event: article_published
+      categories: [territoires]
+      template: territory_focus
+      networks: [tiktok, instagram, linkedin]
+      caption: "{title} — focus {region_label}. #LesDemocrates"
+      hashtags: [LesDemocrates, Territoires]
+
+  safety:
+    require_human_approval: true
+    caption_max_chars: 2200
+    forbid_terms_ref: editorial_rules   # réutilise les 8 règles existantes
+# ════════════════════════════════════════════════════════════════════════════
+# PATCH À APPLIQUER MANUELLEMENT À domains/lesdemocrates.yaml (root-owned).
+# Coller ce bloc à la fin du fichier (après la section social:).
+# Validation Pascal requise.
+# ════════════════════════════════════════════════════════════════════════════
+
+# ══════════════════════════════════════════════════════════════
+# ORG_HIERARCHY — module bizzi.org_hierarchy (Phase 0)
+# Dimension hiérarchique organisationnelle.
+# Sample concret : 2 fédérations (91, 93) + 4 sections locales (Évry, Lisses,
+# Bondoufle, Saint-Denis). Région IDF + Bureau National en racine.
+# Pascal pourra étendre via /api/org/sync-from-yaml après chaque édition.
+# ══════════════════════════════════════════════════════════════
+
+org_hierarchy:
+  enabled: true
+
+  levels:
+    - { id: section,    label: "Section locale",  order: 0 }
+    - { id: federation, label: "Fédération",      order: 1 }
+    - { id: region,     label: "Région",          order: 2 }
+    - { id: national,   label: "Bureau National", order: 3 }
+
+  units:
+    # National (racine)
+    - { id: national_bn, level: national, name: "Bureau National Les Démocrates", contact_email: "contact@lesdemocrates.org" }
+
+    # Région IDF (parent = national)
+    - { id: region_idf, level: region, name: "Région Île-de-France", parent: national_bn, geo_meta: { region_id: "idf" } }
+
+    # Fédérations (parent = région)
+    - { id: fed_91, level: federation, name: "Fédération Essonne (91)",          parent: region_idf, geo_meta: { dept: "91" } }
+    - { id: fed_93, level: federation, name: "Fédération Seine-Saint-Denis (93)", parent: region_idf, geo_meta: { dept: "93" } }
+
+    # Sections locales (parent = fédération)
+    - { id: section_evry,      level: section, name: "Section Évry-Courcouronnes", parent: fed_91, geo_meta: { postal_code: "91000" } }
+    - { id: section_lisses,    level: section, name: "Section Lisses",             parent: fed_91, geo_meta: { postal_code: "91090" } }
+    - { id: section_bondoufle, level: section, name: "Section Bondoufle",          parent: fed_91, geo_meta: { postal_code: "91070" } }
+    - { id: section_st_denis,  level: section, name: "Section Saint-Denis",        parent: fed_93, geo_meta: { postal_code: "93200" } }
+
+  # Résolution ville → org_unit (utilisé par bizzi-audience pour assigner
+  # automatiquement audience_reports.org_unit_id selon la ville détectée).
+  geo_mapping:
+    "Évry-Courcouronnes": section_evry
+    "Évry":               section_evry
+    "Lisses":             section_lisses
+    "Bondoufle":          section_bondoufle
+    "Saint-Denis":        section_st_denis
+
+  # Permissions par rôle (Phase 0 = règles génériques, Phase 1 = surcharge
+  # configurable ici-même).
+  permissions:
+    secretaire_section:      { can_view: ["own"] }
+    secretaire_federal:      { can_view: ["own", "descendants"] }
+    responsable_territorial: { can_view: ["own", "descendants"] }
+    instance_nationale:      { can_view: ["all"], can_broadcast: true }
+    administrateur_autorise: { can_view: ["all"], can_broadcast: true, can_admin: true }
+
+  # Phase 1 : propositions auto de programme à partir des agrégations.
+  auto_program_generation:
+    enabled: false
+    triggers:
+      - when: "category mentions > 30% national 30d"
+        propose: "axe_programme"
+
+  # ──────────────────────────────────────────────────────────────
+  # MOUNT POINTS UI — Pas de containers HTML nouveaux côté tenant.
+  # On documente quels data-bizzi-mount sont supportés. Le tenant
+  # ajoute juste l'attribut sur ses containers existants. Le loader
+  # bizzi-loader.js parse + hydrate.
+  # ──────────────────────────────────────────────────────────────
+  mount_points:
+    "org/territories":
+      desc: "Vue arbre fédérations + sections (carte/liste)"
+      example_target: "panel-territoires"
+      endpoint: "/api/org/units/tree?tenant_id=4"
+    "org/units-tree":
+      desc: "Liste plate de tous les org_units du tenant"
+      endpoint: "/api/org/units?tenant_id=4"
+    "org/unit-detail":
+      desc: "Fiche détaillée d'un org_unit (id résolu via data-bizzi-id)"
+      endpoint: "/api/org/units/{id}"
+
+# ══════════════════════════════════════════════════════════════
+# AUDIENCE — Capteur d'opinion publique (bizzi.audience)
+# Engine universel : ces catégories/keywords sont SPÉCIFIQUES au tenant.
+# Phase 0 : chatbot probleme-ville + formulaires alimentent /api/audience/ingest.
+# Phase 1 : webhook FB + alertes explosion + propositions contenu auto.
+# ══════════════════════════════════════════════════════════════
+audience:
+  enabled: true
+  monthly_budget_eur: 30
+
+  sources:
+    chatbot:  { enabled: true }
+    facebook: { enabled: true, page_id: "lesdemocrates_off", access_token_ref: "env:FB_TOKEN" }
+    forms:    { enabled: true }
+    twitter:        { enabled: false }
+    webhook_zendesk: { enabled: false }
+    email_imap:     { enabled: false }
+
+  categories:
+    - { id: logement,       label: "Logement",        icon: "🏠" }
+    - { id: securite,       label: "Sécurité",        icon: "🛡️" }
+    - { id: sante,          label: "Santé",           icon: "🏥" }
+    - { id: transport,      label: "Transport",       icon: "🚆" }
+    - { id: emploi,         label: "Emploi",          icon: "💼" }
+    - { id: jeunesse,       label: "Jeunesse",        icon: "🎓" }
+    - { id: ecologie,       label: "Écologie",        icon: "🌿" }
+    - { id: proprete,       label: "Propreté",        icon: "🧹" }
+    - { id: pouvoir_achat,  label: "Pouvoir d'achat", icon: "💶" }
+    - { id: education,      label: "Éducation",       icon: "📚" }
+    - { id: discrimination, label: "Discrimination",  icon: "⚖️" }
+    - { id: immigration,    label: "Immigration",     icon: "🌍" }
+    - { id: autres,         label: "Autres",          icon: "•"  }
+
+  priority_keywords_boost:
+    "+5": ["agression", "rats", "hôpital fermé", "violence", "incendie"]
+    "+3": ["plus de médecin", "loyer", "trafic", "insalubre", "fermeture"]
+
+  alerts:
+    threshold_explosion_pct: 30
+    notify: "pascal@cabinet.fr"
+    notify_channel: dashboard_pwa_push
+
+  content_generation:
+    enabled: true
+    auto_propose:
+      reply_text:        true
+      facebook_post:     true
+      improvement_idea:  true
+      synthesis_report:  true
+      video_clip:        true
+      faq_entry:         false
+      ticket_zendesk:    false
+      bug_issue:         false
+    require_validation: true
