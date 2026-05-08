@@ -1,0 +1,82 @@
+# ════════════════════════════════════════════════════════════════════════════
+# PATCH À APPLIQUER MANUELLEMENT À domains/lesdemocrates.yaml (root-owned).
+# Coller ce bloc à la fin du fichier (après la section social:).
+# Validation Pascal requise.
+# ════════════════════════════════════════════════════════════════════════════
+
+# ══════════════════════════════════════════════════════════════
+# ORG_HIERARCHY — module bizzi.org_hierarchy (Phase 0)
+# Dimension hiérarchique organisationnelle.
+# Sample concret : 2 fédérations (91, 93) + 4 sections locales (Évry, Lisses,
+# Bondoufle, Saint-Denis). Région IDF + Bureau National en racine.
+# Pascal pourra étendre via /api/org/sync-from-yaml après chaque édition.
+# ══════════════════════════════════════════════════════════════
+
+org_hierarchy:
+  enabled: true
+
+  levels:
+    - { id: section,    label: "Section locale",  order: 0 }
+    - { id: federation, label: "Fédération",      order: 1 }
+    - { id: region,     label: "Région",          order: 2 }
+    - { id: national,   label: "Bureau National", order: 3 }
+
+  units:
+    # National (racine)
+    - { id: national_bn, level: national, name: "Bureau National Les Démocrates", contact_email: "contact@lesdemocrates.org" }
+
+    # Région IDF (parent = national)
+    - { id: region_idf, level: region, name: "Région Île-de-France", parent: national_bn, geo_meta: { region_id: "idf" } }
+
+    # Fédérations (parent = région)
+    - { id: fed_91, level: federation, name: "Fédération Essonne (91)",          parent: region_idf, geo_meta: { dept: "91" } }
+    - { id: fed_93, level: federation, name: "Fédération Seine-Saint-Denis (93)", parent: region_idf, geo_meta: { dept: "93" } }
+
+    # Sections locales (parent = fédération)
+    - { id: section_evry,      level: section, name: "Section Évry-Courcouronnes", parent: fed_91, geo_meta: { postal_code: "91000" } }
+    - { id: section_lisses,    level: section, name: "Section Lisses",             parent: fed_91, geo_meta: { postal_code: "91090" } }
+    - { id: section_bondoufle, level: section, name: "Section Bondoufle",          parent: fed_91, geo_meta: { postal_code: "91070" } }
+    - { id: section_st_denis,  level: section, name: "Section Saint-Denis",        parent: fed_93, geo_meta: { postal_code: "93200" } }
+
+  # Résolution ville → org_unit (utilisé par bizzi-audience pour assigner
+  # automatiquement audience_reports.org_unit_id selon la ville détectée).
+  geo_mapping:
+    "Évry-Courcouronnes": section_evry
+    "Évry":               section_evry
+    "Lisses":             section_lisses
+    "Bondoufle":          section_bondoufle
+    "Saint-Denis":        section_st_denis
+
+  # Permissions par rôle (Phase 0 = règles génériques, Phase 1 = surcharge
+  # configurable ici-même).
+  permissions:
+    secretaire_section:      { can_view: ["own"] }
+    secretaire_federal:      { can_view: ["own", "descendants"] }
+    responsable_territorial: { can_view: ["own", "descendants"] }
+    instance_nationale:      { can_view: ["all"], can_broadcast: true }
+    administrateur_autorise: { can_view: ["all"], can_broadcast: true, can_admin: true }
+
+  # Phase 1 : propositions auto de programme à partir des agrégations.
+  auto_program_generation:
+    enabled: false
+    triggers:
+      - when: "category mentions > 30% national 30d"
+        propose: "axe_programme"
+
+  # ──────────────────────────────────────────────────────────────
+  # MOUNT POINTS UI — Pas de containers HTML nouveaux côté tenant.
+  # On documente quels data-bizzi-mount sont supportés. Le tenant
+  # ajoute juste l'attribut sur ses containers existants. Le loader
+  # bizzi-loader.js parse + hydrate.
+  # ──────────────────────────────────────────────────────────────
+  mount_points:
+    "org/territories":
+      desc: "Vue arbre fédérations + sections (carte/liste)"
+      example_target: "panel-territoires"
+      endpoint: "/api/org/units/tree?tenant_id=4"
+    "org/units-tree":
+      desc: "Liste plate de tous les org_units du tenant"
+      endpoint: "/api/org/units?tenant_id=4"
+    "org/unit-detail":
+      desc: "Fiche détaillée d'un org_unit (id résolu via data-bizzi-id)"
+      endpoint: "/api/org/units/{id}"
