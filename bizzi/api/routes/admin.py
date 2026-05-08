@@ -379,3 +379,53 @@ async def create_tenant(payload: TenantCreate):
             "Configurer queries/DB plus tard pour activer les tools."
         ),
     }
+
+
+# ── /tenants/{slug}/resale_consent ──────────────────────────────────
+# Phase 11 — opt-in/out tenant pour la revente de logs anonymisés.
+
+class ConsentBody(BaseModel):
+    consent: bool
+
+
+@router.post("/tenants/{slug}/resale_consent")
+async def set_resale_consent(slug: str, body: ConsentBody):
+    """Set resale_consent sur tous les chat_logs existants du tenant + note pour les futurs.
+
+    Note V1 : on UPDATE les rows existantes ; on n'écrit pas (encore) le flag dans
+    le YAML — les futurs logs adoptent par défaut `resale_consent = TRUE` (default
+    de la colonne). Pour les opt-out durables, ajouter une lecture du YAML dans
+    chat_agent._persist_chat_log (TODO V2).
+    """
+    if not SLUG_RE.match(slug):
+        raise HTTPException(400, f"slug invalide '{slug}'")
+
+    import os as _os
+    import psycopg2 as _pg
+    from dotenv import load_dotenv as _ld
+    _ld("/opt/bizzi/bizzi/.env")
+    db_url = _os.getenv("DATABASE_URL")
+    if not db_url:
+        raise HTTPException(500, "DATABASE_URL missing")
+
+    try:
+        with _pg.connect(db_url) as c, c.cursor() as cur:
+            cur.execute(
+                "UPDATE chat_logs SET resale_consent = %s WHERE tenant = %s",
+                (body.consent, slug),
+            )
+            updated = cur.rowcount
+    except Exception as e:
+        logger.exception(f"set_resale_consent failed for {slug}")
+        raise HTTPException(500, f"db_error: {type(e).__name__}: {e}")
+
+    return {
+        "success": True,
+        "tenant": slug,
+        "consent": body.consent,
+        "rows_updated": updated,
+        "note": (
+            "V1 : update des rows existantes uniquement. Pour persister l'opt-out sur les "
+            "futurs logs, V2 lira la valeur depuis le YAML tenant."
+        ),
+    }

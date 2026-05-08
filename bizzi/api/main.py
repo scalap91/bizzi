@@ -24,6 +24,7 @@ from observability import UsageLoggerMiddleware
 from api.routes import admin_usage
 from api.routes import admin as admin_routes
 from api.routes import peer as peer_routes
+from api.routes import exports as exports_routes
 
 app = FastAPI(
     title       = "Bizzi API",
@@ -77,6 +78,7 @@ app.include_router(audience_embed.router,  prefix="/embed",        tags=["Audien
 app.include_router(admin_usage.router, prefix="/api/admin", tags=["Admin"])
 app.include_router(admin_routes.router, prefix="/api/admin", tags=["Admin"])
 app.include_router(peer_routes.router, prefix="/api/peer", tags=["Peer"])
+app.include_router(exports_routes.router, prefix="/api/admin/exports", tags=["Exports"])
 
 @app.get("/")
 async def root():
