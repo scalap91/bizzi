@@ -1,0 +1,36 @@
+# Tenant config Bizzi — onyx (migré du domains/onyx.yaml ancien format)
+# Migration nuit 2026-05-08 — additif, ne supprime PAS le domains/onyx.yaml original
+# TODO Pascal : configurer DB tenant + queries quand prêt à brancher
+
+tenant: onyx
+metadata:
+  name: Onyx Infos
+  domain: media
+  description: "Tenant onyx — migré du domains/ ancien format le 2026-05-08"
+  agent_persona: "Conseiller éditorial Onyx Infos — média indépendant, ton journalistique rigoureux"
+  system_prompt: |
+    Tu es l'agent support Onyx Infos, média d'actualité indépendant.
+    {persona}
+    Réponds en français, concis (3-5 phrases max), professionnel.
+  llm:
+    model: claude-haiku-4-5
+    max_tokens: 1024
+    temperature: 0.7
+  rate_limit:
+    max_per_day: 100
+    max_tokens_per_day: 200000
+
+db:
+  # TODO : configurer DB de ce tenant — pour l'instant placeholder
+  type: postgres
+  host: 127.0.0.1
+  port: 5432
+  name: TODO_onyx_db
+  user: bizzi_reader_onyx
+  # TODO Pascal : quand DB prête, retirer `password` ci-dessous + ajouter
+  # `password_env: BIZZI_ONYX_DB_PASSWORD` + setter la var dans /etc/supervisor/conf.d/bizzi.conf
+  password: "TODO_PLACEHOLDER_ROTATE_ME"
+
+queries: {}
+# NB : queries vides = pas de tools dispo pour cet agent. À compléter plus tard quand DB du tenant
+# sera connectée à Bizzi (créer user PG `bizzi_reader_onyx` READ-ONLY + grant SELECT + définir queries).
