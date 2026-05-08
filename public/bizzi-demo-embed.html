@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bizzi — Démo embed (chat / bureau / meeting)</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      background: #f7f9fb;
+      color: #222;
+    }
+    header {
+      background: #2d6a4f;
+      color: #fff;
+      padding: 16px 24px;
+    }
+    header h1 { margin: 0; font-size: 18px; }
+    header p { margin: 4px 0 0; font-size: 13px; opacity: .85; }
+    main { padding: 24px; max-width: 1200px; margin: 0 auto; }
+    section { background: #fff; border-radius: 10px; padding: 18px; margin-bottom: 18px; box-shadow: 0 2px 4px rgba(0,0,0,.04); }
+    section h2 { margin: 0 0 10px; font-size: 16px; color: #2d6a4f; }
+    section p { margin: 0 0 12px; font-size: 14px; color: #555; }
+    code { background: #f0f3f4; padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Bizzi — Démo embed</h1>
+    <p>3 mounts (chat, bureau, meeting) sur le tenant <code>airbizness</code>.</p>
+  </header>
+  <main>
+
+    <section>
+      <h2>1. Renderer <code>chat</code></h2>
+      <p>Bulle flottante en bas à droite (built-in).</p>
+      <div data-bizzi-mount="chat" data-bizzi-tenant="airbizness" data-bizzi-title="Conseiller AirBizness"></div>
+    </section>
+
+    <section>
+      <h2>2. Renderer <code>bureau</code></h2>
+      <p>Iframe vers <code>/bureau.html?tenant=airbizness</code>.</p>
+      <div data-bizzi-mount="bureau" data-bizzi-tenant="airbizness" data-bizzi-height="500"></div>
+    </section>
+
+    <section>
+      <h2>3. Renderer <code>meeting</code></h2>
+      <p>Iframe vers <code>/bizzi-meeting-room.html?tenant=airbizness</code>.</p>
+      <div data-bizzi-mount="meeting" data-bizzi-tenant="airbizness" data-bizzi-height="500"></div>
+    </section>
+
+  </main>
+
+  <script src="/bizzi-loader.js" defer></script>
+</body>
+</html>

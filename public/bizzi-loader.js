@@ -369,6 +369,41 @@
   };
 
   // ====================================================================
+  // 2bis. Renderers iframe — `bureau` et `meeting`
+  // ====================================================================
+  function ensureIframeStyles() {
+    if (document.getElementById('bzz-iframe-styles')) return;
+    var css = [
+      '.bzz-bureau-iframe,.bzz-meeting-iframe{width:100%;min-height:600px;border:1px solid #ddd;border-radius:8px;display:block;}'
+    ].join('\n');
+    var style = document.createElement('style');
+    style.id = 'bzz-iframe-styles';
+    style.textContent = css;
+    document.head.appendChild(style);
+  }
+
+  function makeIframeRenderer(pagePath, klass) {
+    return function (mountEl, opts) {
+      ensureIframeStyles();
+      var tenant = encodeURIComponent(opts.tenant || 'default');
+      var height = mountEl.getAttribute('data-bizzi-height') || '600';
+      var iframe = document.createElement('iframe');
+      iframe.className = klass;
+      iframe.src = 'https://bizzi.fr' + pagePath + '?tenant=' + tenant;
+      iframe.setAttribute('width', '100%');
+      iframe.setAttribute('height', String(height));
+      iframe.setAttribute('frameborder', '0');
+      iframe.setAttribute('allow', 'clipboard-write');
+      iframe.setAttribute('loading', 'lazy');
+      iframe.style.minHeight = String(height) + 'px';
+      mountEl.appendChild(iframe);
+    };
+  }
+
+  RENDERERS.bureau  = makeIframeRenderer('/bureau.html',             'bzz-bureau-iframe');
+  RENDERERS.meeting = makeIframeRenderer('/bizzi-meeting-room.html', 'bzz-meeting-iframe');
+
+  // ====================================================================
   // 3. API publique : registerRenderer + mountAll
   // ====================================================================
   var Bizzi = window.Bizzi || {};
