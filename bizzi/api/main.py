@@ -23,6 +23,7 @@ from audience import iframe_embed as audience_embed
 from observability import UsageLoggerMiddleware
 from api.routes import admin_usage
 from api.routes import admin as admin_routes
+from api.routes import peer as peer_routes
 
 app = FastAPI(
     title       = "Bizzi API",
@@ -75,6 +76,7 @@ app.include_router(audience_routes.router, prefix="/api/audience", tags=["Audien
 app.include_router(audience_embed.router,  prefix="/embed",        tags=["Audience-Embed"])
 app.include_router(admin_usage.router, prefix="/api/admin", tags=["Admin"])
 app.include_router(admin_routes.router, prefix="/api/admin", tags=["Admin"])
+app.include_router(peer_routes.router, prefix="/api/peer", tags=["Peer"])
 
 @app.get("/")
 async def root():
