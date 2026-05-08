@@ -13,7 +13,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 import os
 
-from api.routes import domains, agents, pipeline, content, tools, tenant
+from api.routes import domains, agents, pipeline, content, tools, tenant, comments, membres, meetings, articles
+from phone import routes as phone_routes
+from social import routes as social_routes
+from org_hierarchy import routes as org_routes
+from org_hierarchy.embed import embed_router as org_embed_router
+from audience import routes as audience_routes
+from audience import iframe_embed as audience_embed
+from observability import UsageLoggerMiddleware
+from api.routes import admin_usage
 
 app = FastAPI(
     title       = "Bizzi API",
@@ -24,6 +32,13 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
+)
+
+app.add_middleware(
+    UsageLoggerMiddleware,
+    db_config=dict(host="localhost", database="bizzi",
+                   user="bizzi_admin", password=os.environ.get("DB_PASSWORD", "")),
+    enabled=True,
 )
 
 # ── Tokens par tenant ─────────────────────────────────────────
@@ -47,6 +62,17 @@ app.include_router(pipeline.router, prefix="/api/pipeline", tags=["Pipeline"])
 app.include_router(content.router,  prefix="/api/content",  tags=["Contenu"])
 app.include_router(tools.router,    prefix="/api/tools",    tags=["Outils"])
 app.include_router(tenant.router,   prefix="/api/tenant",   tags=["Tenant"])
+app.include_router(comments.router, prefix="/api",          tags=["Commentaires"])
+app.include_router(membres.router, prefix="/api/membres", tags=["Membres"])
+app.include_router(meetings.router, prefix="/api/meetings", tags=["Réunions"])
+app.include_router(articles.router, prefix="/api/articles", tags=["Articles"])
+app.include_router(phone_routes.router, prefix="/api/phone", tags=["Phone"])
+app.include_router(social_routes.router, prefix="/api/social", tags=["Social"])
+app.include_router(org_routes.router,    prefix="/api/org",   tags=["OrgHierarchy"])
+app.include_router(org_embed_router,     prefix="/embed/org", tags=["OrgEmbed"])
+app.include_router(audience_routes.router, prefix="/api/audience", tags=["Audience"])
+app.include_router(audience_embed.router,  prefix="/embed",        tags=["Audience-Embed"])
+app.include_router(admin_usage.router, prefix="/api/admin", tags=["Admin"])
 
 @app.get("/")
 async def root():
