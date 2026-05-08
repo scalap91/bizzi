@@ -1,0 +1,103 @@
+# bizzi.data — Patch YAML lesdemocrates Phase 0
+# ════════════════════════════════════════════════
+# À appliquer (avec validation Pascal) :
+#   sudo cp /opt/bizzi/bizzi/domains/lesdemocrates.yaml \
+#         /opt/bizzi/bizzi/domains/lesdemocrates.yaml.bak-pre-data-$(date +%Y%m%d-%H%M%S)
+#   sudo /opt/bizzi/bizzi/venv/bin/python /opt/bizzi/bizzi/data/migrations/apply_lesdemocrates_data.py
+#
+# Le script .py vérifie qu'aucune section data_sources/semantic_schema/semantic_views
+# n'existe déjà avant d'append.
+#
+# Sections ajoutées :
+# ──────────────────────────────────────────────────────────────
+
+data_sources:
+  - id: bizzi_main
+    type: postgresql
+    scope: read_only
+    host: localhost
+    port: 5432
+    database: bizzi
+    user: bizzi_admin
+    password: ${DB_PASSWORD}
+    description: "DB moteur Bizzi — productions/articles éditoriaux du tenant"
+
+semantic_schema:
+  bizzi_article:
+    source:        bizzi_main
+    physical_name: bizzi_articles
+    primary_key:   id
+    description:   "Article éditorial Bizzi (table legacy bizzi_articles, multi-tenant via colonne `tenant`)"
+    fields:
+      - { name: id,         type: int,      pk: true }
+      - { name: run_id,     type: text,     description: "ID du pipeline run" }
+      - { name: tenant,     type: text,     filterable: true, description: "Slug tenant" }
+      - { name: topic,      type: text,     description: "Sujet/titre de l'article" }
+      - { name: content,    type: text,     description: "Contenu HTML" }
+      - { name: status,     type: enum,     values: [published, draft, archived] }
+      - { name: image_url,  type: text }
+      - { name: source,     type: text }
+      - { name: category,   type: text,     filterable: true }
+      - { name: region,     type: text,     filterable: true }
+      - { name: slug,       type: text }
+      - { name: created_at, type: datetime, description: "Date de génération" }
+
+  production:
+    source:        bizzi_main
+    physical_name: productions
+    primary_key:   id
+    description:   "Production éditoriale moteur Bizzi (modèle SQLA, lié à events/agents)"
+    fields:
+      - { name: id,                pk: true,   type: int }
+      - { name: tenant_id,         type: int,  filterable: true }
+      - { name: title,             type: text }
+      - { name: slug,              type: text }
+      - { name: status,            type: enum }
+      - { name: word_count,        type: int }
+      - { name: quality_score,     type: int }
+      - { name: published_at,      type: datetime }
+      - { name: created_at,        type: datetime }
+
+semantic_views:
+  articles_recent:
+    description: "Articles publiés des 30 derniers jours pour ce tenant"
+    source: bizzi_main
+    params:
+      - { name: tenant_slug, type: text, required: true }
+      - { name: limit,       type: int,  default: 50 }
+    sql: |
+      SELECT id, tenant, topic, slug, category, region, source, status, created_at
+      FROM bizzi_articles
+      WHERE tenant = %(tenant_slug)s
+        AND created_at > now() - interval '30 days'
+      ORDER BY created_at DESC
+      LIMIT %(limit)s
+    cache_ttl_sec: 60
+
+  articles_by_category:
+    description: "Articles d'une catégorie pour ce tenant (toutes périodes)"
+    source: bizzi_main
+    params:
+      - { name: tenant_slug, type: text, required: true }
+      - { name: category,    type: text, required: true }
+      - { name: limit,       type: int,  default: 100 }
+    sql: |
+      SELECT id, topic, slug, region, source, created_at
+      FROM bizzi_articles
+      WHERE tenant   = %(tenant_slug)s
+        AND category = %(category)s
+      ORDER BY created_at DESC
+      LIMIT %(limit)s
+
+  productions_pending_validation:
+    description: "Productions en attente de validation rédacteur en chef pour ce tenant"
+    source: bizzi_main
+    params:
+      - { name: tenant_id, type: int, required: true }
+    sql: |
+      SELECT id, title, slug, status, quality_score, created_at
+      FROM productions
+      WHERE tenant_id = %(tenant_id)s
+        AND status IN ('scored', 'editor_review', 'rewrite_requested')
+      ORDER BY created_at DESC
+      LIMIT 100

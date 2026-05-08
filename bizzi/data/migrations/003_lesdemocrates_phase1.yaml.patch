@@ -1,0 +1,236 @@
+# bizzi.data — Patch YAML lesdemocrates Phase 1
+# ════════════════════════════════════════════════════════════════
+# Suppose que 001 (Phase 0 : data_sources/semantic_schema/semantic_views)
+# a déjà été appliqué. Si ce n'est pas le cas, applique 001 d'abord.
+#
+# Ajouts Phase 1 :
+#   - Nouvelles entités    : audience_report, audience_trend, audience_alert,
+#                             agent_memory, social_post, contact, call
+#   - Nouvelles vues       : audience_top_categories, audience_alerts_active,
+#                             productions_published_last_week, calls_recent,
+#                             social_posts_kpi
+#   - events_routes        : routing déclaratif des events de ce tenant
+
+# À ajouter aux entities existantes via apply_lesdemocrates_phase1.py.
+# Bloc à fusionner avec semantic_schema:
+semantic_schema_additions:
+  audience_report:
+    source:        bizzi_main
+    physical_name: audience_reports
+    primary_key:   id
+    description:   "Remontée d'opinion publique (chatbot, formulaire, FB, …)"
+    fields:
+      - { name: id,             type: int, pk: true }
+      - { name: tenant_id,      type: int, filterable: true }
+      - { name: source,         type: text, filterable: true }
+      - { name: platform,       type: text }
+      - { name: city,           type: text, filterable: true }
+      - { name: cleaned_message, type: text, description: "Message nettoyé/anonymisé" }
+      - { name: categories,     type: json, description: "Catégories tenant détectées" }
+      - { name: subcategory,    type: text }
+      - { name: emotion,        type: text }
+      - { name: keywords,       type: json }
+      - { name: priority_score, type: int, filterable: true }
+      - { name: language,       type: text }
+      - { name: created_at,     type: datetime }
+
+  audience_trend:
+    source:        bizzi_main
+    physical_name: audience_trends
+    primary_key:   id
+    description:   "Compteur agrégé d'opinions par catégorie/ville"
+    fields:
+      - { name: id,                  pk: true,  type: int }
+      - { name: tenant_id,           type: int, filterable: true }
+      - { name: category,            type: text, filterable: true }
+      - { name: city,                type: text, filterable: true }
+      - { name: total_mentions_24h,  type: int }
+      - { name: total_mentions_7d,   type: int }
+      - { name: total_mentions_30d,  type: int }
+      - { name: trend_score,         type: float }
+      - { name: evolution_pct_7d,    type: float }
+      - { name: top_emotion,         type: text }
+      - { name: last_updated,        type: datetime }
+
+  audience_alert:
+    source:        bizzi_main
+    physical_name: audience_alerts
+    primary_key:   id
+    description:   "Alerte : sujet qui explose / chute soudaine"
+    fields:
+      - { name: id,           type: int, pk: true }
+      - { name: tenant_id,    type: int, filterable: true }
+      - { name: alert_type,   type: text, filterable: true }
+      - { name: category,     type: text }
+      - { name: city,         type: text }
+      - { name: metric_value, type: float }
+      - { name: threshold,    type: float }
+      - { name: title,        type: text }
+      - { name: description,  type: text }
+      - { name: status,       type: enum, values: [pending, processed, dismissed] }
+      - { name: created_at,   type: datetime }
+
+  agent_memory:
+    source:        bizzi_main
+    physical_name: agent_memories
+    primary_key:   id
+    description:   "Mémoire d'agent (notes, faits, contacts) — ILIKE searchable"
+    fields:
+      - { name: id,           type: int, pk: true }
+      - { name: tenant_id,    type: int, filterable: true }
+      - { name: agent_id,     type: int, filterable: true }
+      - { name: scope,        type: enum, values: [private, shared, team, global] }
+      - { name: memory_type,  type: enum, values: [note, fact, source, contact, style, rule, event] }
+      - { name: title,        type: text }
+      - { name: content,      type: text }
+      - { name: importance,   type: int }
+      - { name: created_at,   type: datetime }
+
+  social_post:
+    source:        bizzi_main
+    physical_name: social_posts
+    primary_key:   id
+    description:   "Post réseaux sociaux Bizzi (file shadow + métriques)"
+    fields:
+      - { name: id,           type: int, pk: true }
+      - { name: tenant_id,    type: int, filterable: true }
+      - { name: agent_id,     type: int }
+      - { name: networks,     type: json }
+      - { name: caption,      type: text }
+      - { name: status,       type: enum, values: [pending, approved, posting, posted, failed, rejected] }
+      - { name: shadow,       type: bool }
+      - { name: views,        type: int }
+      - { name: likes,        type: int }
+      - { name: shares,       type: int }
+      - { name: created_at,   type: datetime }
+      - { name: posted_at,    type: datetime }
+
+  contact:
+    source:        bizzi_main
+    physical_name: contacts
+    primary_key:   id
+    description:   "Contact CRM Bizzi (utilisé par le module phone)"
+    fields:
+      - { name: id,         type: int, pk: true }
+      - { name: tenant_id,  type: int, filterable: true }
+      - { name: phone,      type: text, filterable: true, pii: true }
+      - { name: full_name,  type: text }
+      - { name: email,      type: text, pii: true }
+      - { name: created_at, type: datetime }
+
+# À ajouter à semantic_views :
+semantic_views_additions:
+  audience_top_categories:
+    description: "Top catégories d'opinion sur 24h pour ce tenant"
+    source: bizzi_main
+    params:
+      - { name: tenant_id, type: int, required: true }
+      - { name: limit,     type: int, default: 5 }
+    sql: |
+      SELECT category, total_mentions_24h, total_mentions_7d,
+             top_emotion, last_updated
+      FROM audience_trends
+      WHERE tenant_id = %(tenant_id)s AND city IS NULL
+      ORDER BY total_mentions_24h DESC
+      LIMIT %(limit)s
+    cache_ttl_sec: 60
+
+  audience_alerts_active:
+    description: "Alertes audience pending pour ce tenant"
+    source: bizzi_main
+    params:
+      - { name: tenant_id, type: int, required: true }
+    sql: |
+      SELECT id, alert_type, category, city, metric_value, threshold,
+             title, description, created_at
+      FROM audience_alerts
+      WHERE tenant_id = %(tenant_id)s AND status = 'pending'
+      ORDER BY created_at DESC LIMIT 50
+
+  audience_recent_messages:
+    description: "Derniers messages d'opinion (déjà nettoyés/anonymisés) — pour briefing analyste"
+    source: bizzi_main
+    params:
+      - { name: tenant_id, type: int, required: true }
+      - { name: category,  type: text, required: false }
+      - { name: limit,     type: int, default: 20 }
+    sql: |
+      SELECT id, source, city, cleaned_message, categories, subcategory,
+             emotion, priority_score, created_at
+      FROM audience_reports
+      WHERE tenant_id = %(tenant_id)s
+        AND (%(category)s IS NULL OR %(category)s = ANY(categories))
+      ORDER BY created_at DESC
+      LIMIT %(limit)s
+    pii_mask: []
+
+  productions_published_last_week:
+    description: "Productions publiées les 7 derniers jours pour indexation memory"
+    source: bizzi_main
+    params:
+      - { name: tenant_id, type: int, required: true }
+    sql: |
+      SELECT id, title, slug, status, published_at, quality_score
+      FROM productions
+      WHERE tenant_id = %(tenant_id)s
+        AND status = 'published'
+        AND published_at > now() - interval '7 days'
+      ORDER BY published_at DESC LIMIT 100
+
+  social_posts_kpi:
+    description: "KPI social last 30 days (un row par network agrégé)"
+    source: bizzi_main
+    params:
+      - { name: tenant_id, type: int, required: true }
+    sql: |
+      SELECT
+        unnest(networks)        AS network,
+        count(*)                AS post_count,
+        sum(views)              AS total_views,
+        sum(likes)              AS total_likes,
+        sum(shares)             AS total_shares,
+        avg(likes::float / NULLIF(views, 0)) AS avg_engagement_ratio
+      FROM social_posts
+      WHERE tenant_id = %(tenant_id)s
+        AND status = 'posted'
+        AND posted_at > now() - interval '30 days'
+      GROUP BY network
+      ORDER BY total_views DESC NULLS LAST
+
+  calls_recent:
+    description: "Appels les plus récents pour ce tenant"
+    source: bizzi_main
+    params:
+      - { name: tenant_id, type: int, required: true }
+      - { name: limit,     type: int, default: 20 }
+    sql: |
+      SELECT id, agent_id, contact_phone, use_case, status,
+             duration_sec, cost_eur, started_at
+      FROM calls
+      WHERE tenant_id = %(tenant_id)s
+      ORDER BY started_at DESC NULLS LAST
+      LIMIT %(limit)s
+    pii_mask: [contact_phone]
+
+# Section nouvelle : routing déclaratif d'events tenant.
+events_routes:
+  - event: audience.alert.raised
+    then:
+      log: true
+      store_in_memory: true
+  - event: audience.report.created
+    then:
+      log: true
+  - event: call.completed
+    then:
+      log: true
+      store_in_memory: true
+  - event: social.post.published
+    then:
+      log: true
+  - event: article.published
+    then:
+      log: true
+      # social_clip et audience_alert sont des primitives "ignored" Phase 1
+      # (signalées en handler_results pour la traçabilité, mais pas exécutées).
+      social_clip: tiktok
