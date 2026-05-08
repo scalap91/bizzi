@@ -150,12 +150,104 @@ body{font-family:var(--B);background:var(--bg);color:var(--w);display:flex;flex-
 .bc-val{font-family:var(--M);font-size:.68rem;color:var(--w);width:50px;text-align:right;flex-shrink:0}
 
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+
+/* ── RESPONSIVE — breakpoint 820px (tablette/mobile) ── */
+.menu-toggle{display:none;background:none;border:none;color:var(--w);font-size:1.3rem;cursor:pointer;padding:6px 10px;margin-right:4px}
+.drawer-bk{display:none}
+@media(max-width:820px){
+  .menu-toggle{display:inline-block}
+
+  /* Sidebar devient drawer mobile */
+  .layout{grid-template-columns:1fr}
+  .snav{position:fixed;top:0;left:0;bottom:0;width:260px;max-width:80vw;z-index:200;background:var(--s1);transform:translateX(-100%);transition:transform .25s ease;overflow-y:auto;border-right:1px solid var(--b1)}
+  .snav.open{transform:translateX(0)}
+  .drawer-bk{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150;opacity:0;pointer-events:none;transition:opacity .25s}
+  .drawer-bk.open{opacity:1;pointer-events:auto}
+
+  /* Topbar plus compact */
+  .bar{padding:0 10px;gap:8px}
+  .bar > div:not(.bar-r){font-size:.78rem}
+  .org-sub,.bar-sep{display:none}
+  .ck{display:none}
+
+  /* Métriques en 2 colonnes au lieu de 6 */
+  .metrics{grid-template-columns:repeat(2,1fr)}
+  .mc{padding:10px 12px}
+  .mv{font-size:1.4rem!important}
+  .ml{font-size:.6rem!important}
+  .ms{font-size:.55rem!important}
+
+  /* Toutes les grilles 2-colonnes inline-style dans .main → 1 colonne empilée */
+  .main div[style*="grid-template-columns:2fr 1fr"],
+  .main div[style*="grid-template-columns: 2fr 1fr"],
+  .main div[style*="grid-template-columns:1fr 1fr"],
+  .main div[style*="grid-template-columns: 1fr 1fr"]{
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+  }
+  /* Headers de cards (titre + badge) — wrap autorisé si trop long */
+  .ch{font-size:.62rem!important;line-height:1.3;flex-wrap:wrap;gap:6px;padding:10px 12px}
+  .ch > span{white-space:normal;text-align:right;flex-shrink:0}
+  /* Padding des pages plus serré sur mobile (les cards gardent leur padding interne propre) */
+  .pg{padding:0!important}
+  .content{padding:12px!important;gap:10px!important}
+  .ph{padding:12px 12px 0!important}
+
+  /* Sous-grille 5 colonnes (.mc5) → 2 colonnes */
+  .mc5{grid-template-columns:repeat(2,1fr)}
+
+  /* Table tenants : empilée verticale propre — pas de cellule chevauchée */
+  .tbl-head{display:none}
+  .tbl-row{
+    grid-template-columns:18px 1fr auto auto auto;
+    grid-template-rows:auto auto;
+    gap:8px 10px;
+    padding:12px;
+    align-items:center;
+  }
+  /* Ligne 1 : dot · name+domain · plan (col 3 span jusqu'au bord) */
+  .tbl-row > div:nth-child(1){grid-row:1;grid-column:1;align-self:center}
+  .tbl-row > div:nth-child(2){grid-row:1;grid-column:2;min-width:0;overflow:hidden}
+  .tbl-row > div:nth-child(3){grid-row:1;grid-column:3/-1;justify-self:end}
+  /* Métriques chiffres bruts (productions/poubelle/agents) → masquées mobile (sans label, illisibles) */
+  .tbl-row > div:nth-child(4),
+  .tbl-row > div:nth-child(5),
+  .tbl-row > div:nth-child(6){display:none}
+  /* Ligne 2 : statut · rev · bouton — chacun sa colonne */
+  .tbl-row > div:nth-child(7){grid-row:2;grid-column:1/3;font-size:.7rem;align-self:center}
+  .tbl-row > div:nth-child(8){grid-row:2;grid-column:3/4;font-size:.78rem;align-self:center;justify-self:start;font-weight:600;color:var(--w)}
+  .tbl-row > div:nth-child(9){grid-row:2;grid-column:5/-1;justify-self:end;align-self:center}
+  .t-name{font-size:.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .t-domain{font-size:.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .t-rev{font-size:.78rem!important;color:var(--w)}
+  .t-val{display:inline}
+
+  /* Détail client / pipelines : padding réduit */
+  .pipe-name{width:auto;min-width:90px}
+  .bc-label{width:90px}
+
+  /* Topbar : préserver logo, raccourcir titre & nom user */
+  .logo{flex-shrink:0;font-size:.95rem}
+  .bar-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.66rem!important}
+  .bar-r{gap:6px}
+  .bar-r > div:last-child{font-size:.6rem!important;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .admin-badge{font-size:.5rem!important;padding:2px 7px;line-height:1.2}
+}
+
+/* Très petit (≤480px) — ultra compact */
+@media(max-width:480px){
+  .metrics{grid-template-columns:1fr 1fr}
+  .mv{font-size:1.2rem!important}
+  .bar{height:48px}
+  .logo{font-size:.85rem}
+}
 </style>
 </head>
 <body>
 
 <!-- TOPBAR -->
 <div class="bar">
+  <button class="menu-toggle" onclick="toggleDrawer()" aria-label="Menu">☰</button>
   <div class="logo">Bizzi</div>
   <div class="bar-sep"></div>
   <div class="bar-title">Administration globale</div>
@@ -169,8 +261,11 @@ body{font-family:var(--B);background:var(--bg);color:var(--w);display:flex;flex-
 
 <div class="layout">
 
+<!-- Drawer backdrop mobile -->
+<div class="drawer-bk" id="drawer-bk" onclick="toggleDrawer()"></div>
+
 <!-- ══ SIDEBAR ══ -->
-<div class="snav">
+<div class="snav" id="snav">
 
   <!-- Barre de recherche -->
   <div class="search-wrap">
@@ -233,113 +328,7 @@ body{font-family:var(--B);background:var(--bg);color:var(--w);display:flex;flex-
           <div>MRR</div><div>Actions</div>
         </div>
 
-        <div class="tbl-row" onclick="openClient('Les Démocrates')">
-          <div class="t-dot" style="background:#ffd23f"></div>
-          <div><div class="t-name">Les Démocrates</div><div class="t-domain">politics · lesdemocrates.org</div></div>
-          <div><span class="t-plan plan-p">Pro</span></div>
-          <div class="t-val hi">284</div>
-          <div class="t-val warn">18</div>
-          <div class="t-val hi">6</div>
-          <div class="t-status s-ok">● Actif</div>
-          <div class="t-rev">299€</div>
-          <div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Les Démocrates')">Voir</button></div>
-        </div>
-
-        <div class="tbl-row" onclick="openClient('Onyx-news')">
-          <div class="t-dot" style="background:#ffd23f"></div>
-          <div><div class="t-name">Onyx-news</div><div class="t-domain">media · onyx-news.fr</div></div>
-          <div><span class="t-plan plan-p">Pro</span></div>
-          <div class="t-val hi">512</div>
-          <div class="t-val warn">31</div>
-          <div class="t-val hi">10</div>
-          <div class="t-status s-ok">● Actif</div>
-          <div class="t-rev">299€</div>
-          <div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Onyx-news')">Voir</button></div>
-        </div>
-
-        <div class="tbl-row" onclick="openClient('Groupe Helios')">
-          <div class="t-dot" style="background:#ffd23f"></div>
-          <div><div class="t-name">Groupe Helios</div><div class="t-domain">diagnostic · groupe-helios.fr</div></div>
-          <div><span class="t-plan plan-b">Business</span></div>
-          <div class="t-val hi">198</div>
-          <div class="t-val">9</div>
-          <div class="t-val hi">12</div>
-          <div class="t-status s-ok">● Actif</div>
-          <div class="t-rev">699€</div>
-          <div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Groupe Helios')">Voir</button></div>
-        </div>
-
-        <div class="tbl-row" onclick="openClient('Le Réseau Local')">
-          <div class="t-dot" style="background:#ffd23f"></div>
-          <div><div class="t-name">Le Réseau Local</div><div class="t-domain">media · reseaulocal.info</div></div>
-          <div><span class="t-plan plan-e">Enterprise</span></div>
-          <div class="t-val hi">892</div>
-          <div class="t-val warn">54</div>
-          <div class="t-val hi">15</div>
-          <div class="t-status s-ok">● Actif</div>
-          <div class="t-rev">2 926€</div>
-          <div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Le Réseau Local')">Voir</button></div>
-        </div>
-
-        <div class="tbl-row" onclick="openClient('Objectif Citoyen')">
-          <div class="t-dot" style="background:#e6b800"></div>
-          <div><div class="t-name">Objectif Citoyen</div><div class="t-domain">media · objectif-citoyen.fr</div></div>
-          <div><span class="t-plan plan-p">Pro</span></div>
-          <div class="t-val hi">512</div>
-          <div class="t-val warn">22</div>
-          <div class="t-val hi">8</div>
-          <div class="t-status s-ok">● Actif</div>
-          <div class="t-rev">299€</div>
-          <div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Objectif Citoyen')">Voir</button></div>
-        </div>
-
-        <div class="tbl-row" onclick="openClient('Cabinet Mercier')">
-          <div class="t-dot" style="background:#ffd23f"></div>
-          <div><div class="t-name">Cabinet Mercier</div><div class="t-domain">diagnostic · cabinet-mercier.fr</div></div>
-          <div><span class="t-plan plan-s">Starter</span></div>
-          <div class="t-val hi">127</div>
-          <div class="t-val">4</div>
-          <div class="t-val hi">3</div>
-          <div class="t-status s-ok">● Actif</div>
-          <div class="t-rev">99€</div>
-          <div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Cabinet Mercier')">Voir</button></div>
-        </div>
-
-        <div class="tbl-row" onclick="openClient('Association AVEF')">
-          <div class="t-dot" style="background:#ffd23f"></div>
-          <div><div class="t-name">Association AVEF</div><div class="t-domain">politics · avef.org</div></div>
-          <div><span class="t-plan plan-s">Starter</span></div>
-          <div class="t-val hi">89</div>
-          <div class="t-val">3</div>
-          <div class="t-val hi">3</div>
-          <div class="t-status s-ok">● Actif</div>
-          <div class="t-rev">99€</div>
-          <div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Association AVEF')">Voir</button></div>
-        </div>
-
-        <div class="tbl-row" onclick="openClient('Mairie de Valbonne')">
-          <div class="t-dot" style="background:var(--mid)"></div>
-          <div><div class="t-name">Mairie de Valbonne</div><div class="t-domain">custom · valbonne.fr</div></div>
-          <div><span class="t-plan plan-p">Pro</span></div>
-          <div class="t-val">43</div>
-          <div class="t-val">5</div>
-          <div class="t-val">7</div>
-          <div class="t-status s-warn">⚠ Config mail</div>
-          <div class="t-rev">299€</div>
-          <div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Mairie de Valbonne')">Voir</button></div>
-        </div>
-
-        <div class="tbl-row" onclick="openClient('Cabinet Fontaine')">
-          <div class="t-dot" style="background:#ffd23f"></div>
-          <div><div class="t-name">Cabinet Fontaine</div><div class="t-domain">diagnostic · fontaine-expert.fr</div></div>
-          <div><span class="t-plan plan-s">Starter</span></div>
-          <div class="t-val">31</div>
-          <div class="t-val warn">8</div>
-          <div class="t-val">2</div>
-          <div class="t-status s-warn">⚠ Ollama lent</div>
-          <div class="t-rev">99€</div>
-          <div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Cabinet Fontaine')">Voir</button></div>
-        </div>
+        <div id="tenants-tbl"></div>
 
       </div>
 
@@ -422,12 +411,7 @@ body{font-family:var(--B);background:var(--bg);color:var(--w);display:flex;flex-
     <div class="card">
       <div class="ch">Clients <span style="font-weight:400;color:#ffd23f">9 actifs</span></div>
       <div class="tbl-head"><div></div><div>Client</div><div>Plan</div><div>Productions</div><div>Poubelle</div><div>Agents</div><div>Statut</div><div>MRR</div><div>Actions</div></div>
-      <div class="tbl-row" onclick="openClient('Les Démocrates')"><div class="t-dot" style="background:#ffd23f"></div><div><div class="t-name">Les Démocrates</div><div class="t-domain">politics · lesdemocrates.org</div></div><div><span class="t-plan plan-p">Pro</span></div><div class="t-val hi">284</div><div class="t-val warn">18</div><div class="t-val hi">6</div><div class="t-status s-ok">● Actif</div><div class="t-rev">299€</div><div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Les Démocrates')">Voir</button></div></div>
-      <div class="tbl-row" onclick="openClient('Onyx-news')"><div class="t-dot" style="background:#ffd23f"></div><div><div class="t-name">Onyx-news</div><div class="t-domain">media · onyx-news.fr</div></div><div><span class="t-plan plan-p">Pro</span></div><div class="t-val hi">512</div><div class="t-val warn">31</div><div class="t-val hi">10</div><div class="t-status s-ok">● Actif</div><div class="t-rev">299€</div><div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Onyx-news')">Voir</button></div></div>
-      <div class="tbl-row" onclick="openClient('Groupe Helios')"><div class="t-dot" style="background:#ffd23f"></div><div><div class="t-name">Groupe Helios</div><div class="t-domain">diagnostic · groupe-helios.fr</div></div><div><span class="t-plan plan-b">Business</span></div><div class="t-val hi">198</div><div class="t-val">9</div><div class="t-val hi">12</div><div class="t-status s-ok">● Actif</div><div class="t-rev">699€</div><div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Groupe Helios')">Voir</button></div></div>
-      <div class="tbl-row" onclick="openClient('Le Réseau Local')"><div class="t-dot" style="background:#ffd23f"></div><div><div class="t-name">Le Réseau Local</div><div class="t-domain">media · reseaulocal.info</div></div><div><span class="t-plan plan-e">Enterprise</span></div><div class="t-val hi">892</div><div class="t-val warn">54</div><div class="t-val hi">15</div><div class="t-status s-ok">● Actif</div><div class="t-rev">2 926€</div><div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Le Réseau Local')">Voir</button></div></div>
-      <div class="tbl-row" onclick="openClient('Mairie de Valbonne')"><div class="t-dot" style="background:var(--mid)"></div><div><div class="t-name">Mairie de Valbonne</div><div class="t-domain">custom · valbonne.fr</div></div><div><span class="t-plan plan-p">Pro</span></div><div class="t-val">43</div><div class="t-val">5</div><div class="t-val">7</div><div class="t-status s-warn">⚠ Config mail</div><div class="t-rev">299€</div><div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Mairie de Valbonne')">Voir</button></div></div>
-      <div class="tbl-row" onclick="openClient('Cabinet Fontaine')"><div class="t-dot" style="background:#ffd23f"></div><div><div class="t-name">Cabinet Fontaine</div><div class="t-domain">diagnostic · fontaine-expert.fr</div></div><div><span class="t-plan plan-s">Starter</span></div><div class="t-val">31</div><div class="t-val warn">8</div><div class="t-val">2</div><div class="t-status s-warn">⚠ Ollama lent</div><div class="t-rev">99€</div><div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('Cabinet Fontaine')">Voir</button></div></div>
+      <div id="tenants-tbl-2"></div>
     </div>
   </div>
 </div>
@@ -567,47 +551,113 @@ body{font-family:var(--B);background:var(--bg);color:var(--w);display:flex;flex-
 <script>
 
 // ── Appels API ────────────────────────────────────────────────
-const API   = 'https://bizzi.fr';
+// Détection auto de l'origine API : si on sert depuis dashboard.bizzi.fr (sans SSL HSTS),
+// on appelle /api en relatif ; sinon on cible https://bizzi.fr.
+const API = (window.location.origin.includes('dashboard.bizzi.fr')
+              ? window.location.origin : 'https://bizzi.fr');
 const TOKEN = localStorage.getItem('bizzi_admin_token') || 'ADMIN_TOKEN';
 const H     = {'Authorization': `Bearer ${TOKEN}`};
+
+function escapeHtml(s) { return String(s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function renderTenantsTable(tenants, containerId) {
+  const tbl = document.getElementById(containerId);
+  if (!tbl) return;
+  if (!tenants.length) {
+    tbl.innerHTML = '<div style="padding:24px;color:var(--mid);font-size:.78rem">Aucun tenant configuré. Crée un YAML dans /opt/bizzi/bizzi/tenants/.</div>';
+    return;
+  }
+  tbl.innerHTML = tenants.map(t => {
+    const dotColor = t.status==='active' ? '#88e066' : (t.status==='warning' ? '#ffa040' : '#ff5050');
+    const planClass = (t.plan === 'starter') ? 'plan-s' : (t.plan === 'business') ? 'plan-b' : (t.plan === 'enterprise') ? 'plan-e' : 'plan-p';
+    const statusCls = t.status==='active' ? 's-ok' : 's-warn';
+    const statusLbl = t.status==='active' ? '● Actif' : ('⚠ ' + t.status);
+    const cost = (typeof t.cost_today_usd === 'number') ? ('$' + t.cost_today_usd.toFixed(4)) : '—';
+    return `
+      <div class="tbl-row" onclick="openClient('${escapeHtml(t.slug)}')">
+        <div class="t-dot" style="background:${dotColor}"></div>
+        <div>
+          <div class="t-name">${escapeHtml(t.name)}</div>
+          <div class="t-domain">${escapeHtml(t.domain || '')} · ${escapeHtml(t.slug)}</div>
+        </div>
+        <div><span class="t-plan ${planClass}">${escapeHtml(t.plan || 'pro')}</span></div>
+        <div class="t-val hi">${t.messages_total ?? 0}</div>
+        <div class="t-val">${t.queries_count ?? 0}</div>
+        <div class="t-val hi">${t.messages_today ?? 0}</div>
+        <div class="t-status ${statusCls}">${statusLbl}</div>
+        <div class="t-rev">${cost}</div>
+        <div class="t-actions"><button class="t-btn" onclick="event.stopPropagation();openClient('${escapeHtml(t.slug)}')">Voir</button></div>
+      </div>`;
+  }).join('');
+}
+
+function renderGlobalKpis(g) {
+  // Met à jour les 6 KPI globaux (.metrics > .mc) — overview top.
+  const metrics = document.querySelector('.metrics');
+  if (!metrics || !g) return;
+  const cards = metrics.querySelectorAll('.mc');
+  // Map ordonné : [valeur, label, sub]
+  const data = [
+    [g.tenants_total ?? 0, 'Tenants',          (g.tenants_active_today ?? 0) + ' actifs aujourd\'hui'],
+    [g.messages_today ?? 0, 'Messages 24h',     (g.messages_total ?? 0) + ' au total'],
+    [g.tokens_in_total ?? 0, 'Tokens entrée',   (g.tokens_out_total ?? 0) + ' tokens sortie'],
+    ['$' + (g.cost_today_usd ?? 0).toFixed(4), 'Coût 24h',  '$' + (g.cost_total_usd ?? 0).toFixed(4) + ' au total'],
+    [g.tools_called_total ?? 0, 'Tool calls',   'Cumul total'],
+    [(g.avg_duration_ms ?? 0) + 'ms', 'Latence moy.', 'Par appel chat'],
+  ];
+  cards.forEach((card, i) => {
+    if (!data[i]) return;
+    const mv = card.querySelector('.mv');
+    const ml = card.querySelector('.ml');
+    const ms = card.querySelector('.ms');
+    if (mv) mv.textContent = data[i][0];
+    if (ml) ml.textContent = data[i][1];
+    if (ms) ms.textContent = data[i][2];
+  });
+}
 
 async function loadGlobalStats() {
   try {
     const r = await fetch(`${API}/api/admin/stats/global`, {headers: H});
-    if (!r.ok) return;
+    if (!r.ok) return null;
     const d = await r.json();
-    // Mettre à jour les métriques globales
-    document.querySelectorAll('[data-stat]').forEach(el => {
-      const key = el.dataset.stat;
-      if (d[key] !== undefined) el.textContent = d[key];
-    });
-  } catch(e) { console.log('Stats globales : mode démo'); }
+    renderGlobalKpis(d);
+    return d;
+  } catch(e) { console.log('Stats globales : erreur', e.message); return null; }
 }
 
 async function loadTenantsStats() {
   try {
     const r = await fetch(`${API}/api/admin/stats/tenants`, {headers: H});
-    if (!r.ok) return;
+    if (!r.ok) return null;
     const d = await r.json();
-    // Mettre à jour les données clients
-    d.tenants.forEach(t => {
-      const row = document.querySelector(`[data-tenant="${t.slug}"]`);
-      if (!row) return;
-      const els = row.querySelectorAll('[data-field]');
-      els.forEach(el => {
-        const f = el.dataset.field;
-        if (t[f] !== undefined) el.textContent = t[f];
-      });
-    });
-    // Mettre à jour CLIENTS pour la recherche
-    CLIENTS = d.tenants.map(t => ({
-      name: t.name, initials: t.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),
-      color: t.color, domain: t.domain, plan: t.plan,
-      prod: t.productions, trash: t.trashed, agents: t.agents_active,
-      score: t.avg_score, status: t.status, rev: t.mrr+'€', site: t.site
+    const tenants = d.tenants || [];
+    renderTenantsTable(tenants, 'tenants-tbl');
+    renderTenantsTable(tenants, 'tenants-tbl-2');
+    // Mettre à jour CLIENTS pour la recherche & openClient()
+    CLIENTS = tenants.map(t => ({
+      slug: t.slug,
+      name: t.name,
+      initials: (t.name || t.slug || '?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),
+      color: '#ffd23f',
+      domain: t.domain || '',
+      plan: t.plan || 'pro',
+      prod: t.messages_total ?? 0,
+      trash: 0,
+      agents: t.queries_count ?? 0,
+      score: 0,
+      status: t.status,
+      rev: '$' + (t.cost_today_usd ?? 0).toFixed(4),
+      site: t.slug
     }));
-  } catch(e) { console.log('Stats tenants : mode démo'); }
+    return tenants;
+  } catch(e) { console.log('Stats tenants : erreur', e.message); return null; }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadGlobalStats();
+  loadTenantsStats();
+});
 
 async function loadClientDetail(slug) {
   try {
@@ -675,8 +725,9 @@ document.addEventListener('click', e => {
 });
 
 // ── Ouvrir un client ──────────────────────────────────────────
-function openClient(name) {
-  const c = CLIENTS.find(x => x.name === name);
+function openClient(key) {
+  // key peut être soit un slug (depuis la table dynamique), soit un name (legacy)
+  const c = CLIENTS.find(x => x.slug === key || x.name === key);
   if (!c) return;
 
   const pct = Math.round(c.trash / c.prod * 100);
@@ -726,7 +777,21 @@ function go(id, el) {
   const pg = document.getElementById('pg-' + id);
   if (pg) pg.classList.add('on');
   if (el) el.classList.add('on');
+  // ferme le drawer mobile après navigation
+  closeDrawer();
 }
+
+// ── Drawer mobile (sidebar) ───────────────────────────────────
+function toggleDrawer() {
+  document.getElementById('snav').classList.toggle('open');
+  document.getElementById('drawer-bk').classList.toggle('open');
+}
+function closeDrawer() {
+  document.getElementById('snav').classList.remove('open');
+  document.getElementById('drawer-bk').classList.remove('open');
+}
+// Esc ferme le drawer
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
 
 // ── Horloge ───────────────────────────────────────────────────
 function tick() {
