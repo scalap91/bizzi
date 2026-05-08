@@ -1,0 +1,110 @@
+# Tenant config Bizzi — airbizness (réservation de vols)
+# Backend tenant : /var/www/airbizness (PostgreSQL airbizness)
+# User Bizzi : bizzi_reader (READ-ONLY sur tables exposées)
+
+tenant: airbizness
+metadata:
+  name: AirBizness
+  domain: travel
+  description: "Site de réservation de vols (deals, alertes prix, bookings)"
+  agent_persona: "Conseiller voyage AirBizness — courtois, factuel, professionnel"
+  system_prompt: |
+    Tu es l'agent support AirBizness, un site de réservation de vols.
+    {persona}
+    Tu peux interroger la base de données via les tools fournis pour répondre précisément.
+    Si le visiteur fournit son email, utilise list_bookings_by_email pour voir ses réservations.
+    Si le visiteur cherche un vol, utilise search_deals avec codes IATA (CDG, JFK, BCN…).
+    Réponds en français, concis (3-5 phrases max), professionnel.
+  llm:
+    model: claude-haiku-4-5
+    max_tokens: 1024
+    temperature: 0.7
+  rate_limit:
+    max_per_day: 100
+    max_tokens_per_day: 200000
+
+db:
+  type: postgres
+  host: 127.0.0.1
+  port: 5432
+  name: airbizness
+  user: bizzi_reader
+  password_env: BIZZI_AIRBIZNESS_DB_PASSWORD
+
+queries:
+
+  # ── BOOKINGS (réservations utilisateur) ────────────────────────────────────
+  get_booking_by_ref:
+    sql: |
+      SELECT booking_ref, user_email, passenger_name, origin, destination,
+             airline_name, departure_at, amount_cents, currency, status, created_at
+      FROM bookings
+      WHERE booking_ref = %(booking_ref)s
+    params: [booking_ref]
+    returns: row
+    description: "Retourne les détails d'une réservation par sa référence (ex: BIZ-XYZ123)."
+
+  list_bookings_by_email:
+    sql: |
+      SELECT booking_ref, origin, destination, airline_name, departure_at,
+             amount_cents, currency, status, created_at
+      FROM bookings
+      WHERE user_email = %(email)s
+      ORDER BY departure_at DESC
+    params: [email]
+    returns: rows
+    max_rows: 20
+    description: "Liste les réservations d'un utilisateur identifié par son email."
+
+  # ── DEALS (offres de vols catalogue) ───────────────────────────────────────
+  search_deals:
+    sql: |
+      SELECT offer_id, origin, destination, airline_name, price, currency,
+             cabin_class, departure_at, duration_minutes, stops, score_deal
+      FROM deals
+      WHERE origin = %(origin)s
+        AND destination = %(destination)s
+        AND price <= %(max_price)s
+        AND (expires_at IS NULL OR expires_at > NOW())
+      ORDER BY price ASC, score_deal DESC NULLS LAST
+    params: [origin, destination, max_price]
+    returns: rows
+    max_rows: 10
+    description: |
+      Cherche les meilleurs deals pour un trajet (codes IATA: 'CDG', 'JFK', etc.)
+      avec un budget max en euros (entier). Retourne les 10 moins chers non expirés.
+
+  cheapest_deals_from:
+    sql: |
+      SELECT origin, destination, airline_name, price, departure_at, duration_minutes
+      FROM deals
+      WHERE origin = %(origin)s
+        AND (expires_at IS NULL OR expires_at > NOW())
+      ORDER BY price ASC
+    params: [origin]
+    returns: rows
+    max_rows: 10
+    description: "Top 10 des destinations les moins chères au départ d'un aéroport (code IATA)."
+
+  # ── ALERTES (alertes prix utilisateur) ─────────────────────────────────────
+  list_alerts_by_email:
+    sql: |
+      SELECT id, origin, destination, max_price, active, triggered, triggered_price, created_at
+      FROM alertes
+      WHERE email = %(email)s
+      ORDER BY created_at DESC
+    params: [email]
+    returns: rows
+    max_rows: 20
+    description: "Liste les alertes prix configurées par un utilisateur (par email)."
+
+  # ── STATS (info publique générale) ─────────────────────────────────────────
+  count_active_deals_to:
+    sql: |
+      SELECT COUNT(*) AS n
+      FROM deals
+      WHERE destination = %(destination)s
+        AND (expires_at IS NULL OR expires_at > NOW())
+    params: [destination]
+    returns: scalar
+    description: "Combien de deals actifs sont disponibles vers une destination (code IATA)."
