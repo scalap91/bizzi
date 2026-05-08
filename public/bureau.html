@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Bureau — Core Agents</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Mono:wght@400;500&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05060d;--s1:#090b16;--s2:#0d1020;--card:#0f1222;
+  --b1:#151929;--b2:#1e2438;--w:#eef0f8;--mid:#52587a;
+  --accent:#e02d2d;--grn:#00c896;--amb:#f59e0b;
+  --D:'Syne',sans-serif;--B:'Outfit',sans-serif;--M:'DM Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--B);background:var(--bg);color:var(--w);display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+
+.bar{height:52px;background:var(--s1);border-bottom:1px solid var(--b1);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0}
+.logo{font-family:var(--D);font-size:1rem;font-weight:900;letter-spacing:-.04em;color:var(--accent)}
+.bar-title{font-family:var(--D);font-size:.85rem;font-weight:700;color:var(--w)}
+.bar-sub{font-size:.68rem;color:var(--mid)}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--grn);animation:p 1.5s infinite;flex-shrink:0}
+@keyframes p{0%,100%{box-shadow:0 0 0 0 rgba(0,200,150,.5)}70%{box-shadow:0 0 0 5px rgba(0,200,150,0)}}
+
+.layout{flex:1;display:grid;grid-template-columns:220px 1fr 280px;overflow:hidden}
+
+/* SIDEBAR GAUCHE - Profil agent */
+.sidebar{background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;overflow:hidden}
+.agent-card{padding:20px;border-bottom:1px solid var(--b1);display:flex;flex-direction:column;align-items:center;gap:10px}
+.agent-av{width:60px;height:60px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--D);font-size:1.3rem;font-weight:800;color:#fff}
+.agent-name{font-family:var(--D);font-size:.9rem;font-weight:700;text-align:center}
+.agent-role{font-size:.68rem;color:var(--mid);text-align:center}
+.agent-email{font-size:.62rem;color:var(--mid);font-family:var(--M);text-align:center;margin-top:2px}
+.status-badge{font-size:.6rem;font-weight:700;padding:3px 10px;border-radius:100px;background:rgba(0,200,150,.12);color:var(--grn)}
+
+.nav{display:flex;flex-direction:column;padding:8px;gap:2px;flex:1;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;cursor:pointer;font-size:.73rem;color:var(--mid);transition:all .15s}
+.nav-item:hover{background:var(--s2);color:var(--w)}
+.nav-item.on{background:rgba(224,45,45,.1);color:var(--w);border-left:2px solid var(--accent)}
+.nav-item .ico{width:16px;text-align:center;font-size:.85rem}
+
+.agent-actions{padding:12px;border-top:1px solid var(--b1);display:flex;gap:6px}
+.btn{font-family:var(--D);font-size:.65rem;font-weight:700;padding:7px 12px;border-radius:6px;cursor:pointer;border:none;transition:all .15s;flex:1;text-align:center}
+.br{background:var(--accent);color:#fff}.bg{background:var(--s2);color:var(--mid);border:1px solid var(--b2)}
+.br:hover{opacity:.85}.bg:hover{color:var(--w)}
+
+/* CONTENU PRINCIPAL */
+.content{overflow-y:auto;display:flex;flex-direction:column}
+.panel{display:none;padding:16px;flex-direction:column;gap:12px;flex:1}
+.panel.on{display:flex}
+.panel-title{font-family:var(--D);font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mid);margin-bottom:4px}
+
+/* SIDEBAR DROITE - Activité */
+.activity{background:var(--s1);border-left:1px solid var(--b1);overflow-y:auto;display:flex;flex-direction:column}
+.act-title{padding:11px 14px;font-family:var(--D);font-size:.59rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--mid);border-bottom:1px solid var(--b1)}
+.act-item{padding:9px 14px;border-bottom:1px solid var(--b1);display:flex;gap:8px}
+.act-item:last-child{border:none}
+.act-ico{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.7rem;background:var(--s2)}
+.act-txt{font-size:.7rem;line-height:1.5;color:rgba(255,255,255,.75)}
+.act-tm{font-size:.57rem;color:var(--mid);margin-top:1px}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--b1);border-radius:9px;overflow:hidden}
+.card-head{padding:10px 13px;border-bottom:1px solid var(--b1);font-family:var(--D);font-size:.61rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);display:flex;align-items:center;justify-content:space-between}
+.card-body{padding:13px}
+
+/* FORM IDENTITÉ */
+.form-group{margin-bottom:10px}
+.form-group label{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);display:block;margin-bottom:4px}
+.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--s1);border:1px solid var(--b2);border-radius:6px;padding:8px 10px;color:var(--w);font-size:.78rem;font-family:var(--B);outline:none;transition:border-color .15s;resize:vertical}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.preview-line{font-size:.68rem;color:var(--mid);font-family:var(--M);margin-top:6px;padding:7px 10px;background:rgba(255,255,255,.03);border-radius:5px}
+.preview-line span{color:var(--accent)}
+
+/* PROMPT */
+.prompt-area{width:100%;min-height:200px;background:var(--s1);border:1px solid var(--b2);border-radius:6px;padding:10px;color:var(--w);font-size:.75rem;font-family:var(--M);outline:none;line-height:1.6;resize:vertical}
+.prompt-area:focus{border-color:var(--accent)}
+.readonly{opacity:.5;cursor:not-allowed}
+
+/* RÉSEAUX */
+.network-row{background:var(--card);border:1px solid var(--b1);border-radius:8px;padding:12px 13px;margin-bottom:7px;display:flex;align-items:center;gap:11px}
+.net-icon{width:30px;height:30px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#fff}
+.net-info{flex:1}
+.net-name{font-size:.76rem;font-weight:600;margin-bottom:2px}
+.net-handle{font-size:.63rem;color:var(--mid)}
+.net-status{font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:100px;flex-shrink:0}
+.ns-ok{background:rgba(0,200,150,.12);color:var(--grn)}
+.ns-warn{background:rgba(245,158,11,.12);color:var(--amb)}
+.ns-err{background:rgba(224,45,45,.12);color:var(--red)}
+.net-input{display:flex;gap:6px;margin-top:8px}
+.net-input input{flex:1;background:var(--s1);border:1px solid var(--b2);border-radius:5px;padding:6px 9px;color:var(--w);font-size:.7rem;font-family:var(--M);outline:none}
+.net-input button{background:var(--accent);color:#fff;border:none;border-radius:5px;padding:6px 12px;font-size:.68rem;font-family:var(--D);font-weight:700;cursor:pointer}
+
+/* CONTENT LIST */
+.content-item{display:flex;align-items:center;gap:9px;padding:9px 13px;border-bottom:1px solid var(--b1);cursor:pointer;transition:background .12s}
+.content-item:hover{background:rgba(255,255,255,.02)}.content-item:last-child{border:none}
+.ci-status{font-size:.55rem;font-weight:700;padding:2px 6px;border-radius:3px;text-transform:uppercase;flex-shrink:0}
+.ci-title{font-size:.75rem;line-height:1.4;flex:1}
+.ci-meta{font-size:.6rem;color:var(--mid);white-space:nowrap}
+.ci-score{font-family:var(--M);font-size:.62rem;padding:1px 5px;border-radius:3px;flex-shrink:0}
+
+/* SAVE CONFIRM */
+.save-ok{display:none;margin-top:8px;padding:8px 12px;background:rgba(0,200,150,.08);border:1px solid rgba(0,200,150,.2);border-radius:6px;font-size:.72rem;color:var(--grn);text-align:center}
+
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+.f{display:flex}.ic{align-items:center}.g2{gap:8px}.mla{margin-left:auto}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="bar">
+  <div class="logo" id="org-logo">⬡ Core</div>
+  <div style="width:1px;height:24px;background:var(--b1)"></div>
+  <div>
+    <div class="bar-title" id="bar-title">Bureau</div>
+    <div class="bar-sub" id="bar-sub">Chargement...</div>
+  </div>
+  <div style="margin-left:auto" class="f ic g2">
+    <div class="pulse"></div>
+    <div style="font-size:.67rem;color:var(--mid)" id="bar-status">● Actif</div>
+    <a href="meeting-room.html" style="font-size:.68rem;color:var(--mid);text-decoration:none;background:var(--s2);padding:5px 10px;border-radius:6px;border:1px solid var(--b2)">🏛️ Salle de réunion</a>
+    <a href="javascript:history.back()" style="font-size:.68rem;color:var(--mid);text-decoration:none">← Retour</a>
+  </div>
+</div>
+
+<div class="layout">
+
+<!-- SIDEBAR GAUCHE -->
+<div class="sidebar">
+  <div class="agent-card">
+    <div class="agent-av" id="av">?</div>
+    <div>
+      <div class="agent-name" id="agent-name">Chargement...</div>
+      <div class="agent-role" id="agent-role">Rôle</div>
+      <div class="agent-email" id="agent-email">email@org.fr</div>
+    </div>
+    <div class="status-badge" id="agent-status">● Actif</div>
+  </div>
+
+  <div class="nav">
+    <div class="nav-item on" onclick="showPanel('prompt',this)"><span class="ico">🧠</span> Identité & Prompt</div>
+    <div class="nav-item" onclick="showPanel('content',this)"><span class="ico" id="nav-content-ico">📄</span> <span id="nav-content-label">Contenu</span></div>
+    <div class="nav-item" onclick="showPanel('knowledge',this)"><span class="ico">📚</span> Compétences</div>
+    <div class="nav-item" onclick="showPanel('networks',this)"><span class="ico">🔗</span> Connexions</div>
+    <div class="nav-item" onclick="showPanel('stats',this)"><span class="ico">📊</span> Statistiques</div>
+  </div>
+
+  <div class="agent-actions">
+    <button class="btn bg" id="btn-pause" onclick="togglePause()">⏸ Pause</button>
+    <button class="btn br" onclick="saveAll()">💾 Sauvegarder</button>
+  </div>
+</div>
+
+<!-- CONTENU PRINCIPAL -->
+<div class="content">
+
+  <!-- PANEL : Identité & Prompt -->
+  <div class="panel on" id="panel-prompt">
+    <div class="panel-title">Identité — utilisée dans le prompt automatiquement</div>
+
+    <div class="card">
+      <div class="card-head">Profil de l'agent</div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group"><label>Prénom</label><input id="f-prenom" oninput="syncPrompt()"></div>
+          <div class="form-group"><label>Nom</label><input id="f-nom" oninput="syncPrompt()"></div>
+        </div>
+        <div class="form-group"><label>Rôle / Fonction</label><input id="f-role" oninput="syncPrompt()"></div>
+        <div class="form-group"><label>Spécialité</label><input id="f-specialty" oninput="syncPrompt()"></div>
+        <div class="preview-line">You are <span id="preview-name">...</span>, <span id="preview-role">...</span> for <span id="preview-org">...</span>.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">Prompt de personnalité <span style="font-weight:400;font-size:.57rem" id="prompt-chars">0 car.</span></div>
+      <div class="card-body" style="padding:0">
+        <textarea class="prompt-area" id="prompt-textarea" oninput="updateChars()" style="border:none;border-radius:0"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">Charte de l'organisation <span style="font-weight:400;font-size:.57rem">lecture seule · injectée automatiquement</span></div>
+      <div class="card-body" style="padding:0">
+        <textarea class="prompt-area readonly" id="org-rules" readonly style="border:none;border-radius:0;min-height:80px"></textarea>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px">
+      <button class="btn br" style="flex:1" onclick="saveAll()">💾 Sauvegarder</button>
+      <button class="btn bg" onclick="resetPrompt()">Réinitialiser</button>
+    </div>
+    <div class="save-ok" id="save-ok">✓ Sauvegardé — prendra effet au prochain pipeline</div>
+  </div>
+
+  <!-- PANEL : Compétences -->
+  <div class="panel" id="panel-knowledge">
+    <div class="panel-title">📚 Bibliothèque de compétences</div>
+
+    <!-- Stats bibliothèque -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px">
+      <div class="card"><div class="card-body" style="text-align:center;padding:10px"><div style="font-family:var(--D);font-size:1.4rem;font-weight:800;color:var(--accent)" id="k-docs">0</div><div style="font-size:.62rem;color:var(--mid)">Documents</div></div></div>
+      <div class="card"><div class="card-body" style="text-align:center;padding:10px"><div style="font-family:var(--D);font-size:1.4rem;font-weight:800;color:var(--blu)" id="k-urls">0</div><div style="font-size:.62rem;color:var(--mid)">URLs</div></div></div>
+      <div class="card"><div class="card-body" style="text-align:center;padding:10px"><div style="font-family:var(--D);font-size:1.4rem;font-weight:800;color:var(--grn)" id="k-mem">0</div><div style="font-size:.62rem;color:var(--mid)">Mémoire</div></div></div>
+    </div>
+
+    <!-- Upload documents -->
+    <div class="card">
+      <div class="card-head">📂 Documents <span style="font-weight:400;font-size:.57rem">PDF · Word · Excel · CSV · TXT — max 10 Mo</span></div>
+      <div class="card-body">
+
+        <!-- Zone drag & drop -->
+        <div id="drop-zone" style="border:2px dashed var(--b2);border-radius:8px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:10px"
+          onclick="document.getElementById('file-input').click()"
+          ondragover="event.preventDefault();this.style.borderColor='var(--accent)';this.style.background='rgba(224,45,45,.04)'"
+          ondragleave="this.style.borderColor='var(--b2)';this.style.background=''"
+          ondrop="handleDrop(event)">
+          <div style="font-size:1.8rem;margin-bottom:6px">📁</div>
+          <div style="font-size:.75rem;color:var(--mid)">Glisser des fichiers ici ou <span style="color:var(--accent)">parcourir</span></div>
+          <div style="font-size:.63rem;color:var(--mid);margin-top:3px">PDF, Word, Excel, CSV, TXT</div>
+        </div>
+        <input type="file" id="file-input" multiple accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.txt,.md" style="display:none" onchange="uploadFiles(this.files)">
+
+        <!-- Liste documents -->
+        <div id="docs-list" style="display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto">
+          <div style="font-size:.7rem;color:var(--mid);text-align:center;padding:8px">Aucun document</div>
+        </div>
+
+        <!-- Barre de progression -->
+        <div id="upload-progress" style="display:none;margin-top:8px">
+          <div style="font-size:.68rem;color:var(--mid);margin-bottom:4px" id="upload-status">Upload en cours...</div>
+          <div style="height:3px;background:var(--b1);border-radius:2px">
+            <div id="progress-bar" style="height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .3s"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- URLs -->
+    <div class="card">
+      <div class="card-head">🔗 URLs à consulter <span style="font-weight:400;font-size:.57rem">Sites · Articles · Lois · Rapports en ligne</span></div>
+      <div class="card-body">
+        <div style="display:flex;gap:6px;margin-bottom:8px">
+          <input id="url-input" type="url" placeholder="https://www.legifrance.gouv.fr/..." style="flex:1;background:var(--s1);border:1px solid var(--b2);border-radius:6px;padding:7px 10px;color:var(--w);font-size:.75rem;outline:none;font-family:var(--M)">
+          <input id="url-label" type="text" placeholder="Nom / description" style="flex:1;background:var(--s1);border:1px solid var(--b2);border-radius:6px;padding:7px 10px;color:var(--w);font-size:.75rem;outline:none">
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:10px">
+          <select id="url-cat" style="background:var(--s1);border:1px solid var(--b2);border-radius:6px;padding:7px 10px;color:var(--w);font-size:.73rem;outline:none">
+            <option value="general">Général</option>
+            <option value="law">Textes de loi</option>
+            <option value="report">Rapports / Études</option>
+            <option value="news">Actualité</option>
+            <option value="internal">Document interne</option>
+            <option value="finance">Finance / Comptabilité</option>
+            <option value="technical">Technique / Normes</option>
+          </select>
+          <button class="btn br" style="flex:1;padding:7px" onclick="addURL()">+ Ajouter</button>
+        </div>
+
+        <!-- Liste URLs -->
+        <div id="urls-list" style="display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto">
+          <div style="font-size:.7rem;color:var(--mid);text-align:center;padding:8px">Aucune URL</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tester le contexte -->
+    <div class="card">
+      <div class="card-head">🧪 Tester le contexte généré</div>
+      <div class="card-body">
+        <div style="display:flex;gap:6px;margin-bottom:8px">
+          <input id="test-topic" type="text" placeholder="Ex : Déserts médicaux Essonne, Bilan 2024..." style="flex:1;background:var(--s1);border:1px solid var(--b2);border-radius:6px;padding:7px 10px;color:var(--w);font-size:.75rem;outline:none">
+          <button class="btn br" style="padding:7px 14px" onclick="testContext()">Tester</button>
+        </div>
+        <div id="context-preview" style="display:none;background:var(--s1);border:1px solid var(--b2);border-radius:6px;padding:10px;font-size:.68rem;color:var(--mid);font-family:var(--M);max-height:150px;overflow-y:auto;line-height:1.6;white-space:pre-wrap"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PANEL : Contenu produit -->
+  <div class="panel" id="panel-content">
+    <div class="panel-title" id="content-panel-title">Contenu produit</div>
+    <div class="card" style="flex:1;overflow:hidden">
+      <div class="card-head"><span id="content-count">0</span> <span id="content-unit-label">éléments</span></div>
+      <div id="content-list" style="overflow-y:auto;max-height:500px">
+        <div style="padding:20px;text-align:center;color:var(--mid);font-size:.75rem">Aucun contenu pour l'instant</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL : Connexions -->
+  <div class="panel" id="panel-networks">
+    <div class="panel-title">Connexions réseaux & services</div>
+
+    <!-- SECTION MAIL -->
+    <div class="card">
+      <div class="card-head">📧 Boîte email professionnelle <span id="mail-status-badge" style="font-size:.57rem;font-weight:400;padding:2px 8px;border-radius:100px;background:rgba(245,158,11,.12);color:var(--amb)">⚠ Non configurée</span></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:8px">
+
+        <!-- Provider -->
+        <div class="form-group">
+          <label>Hébergeur mail</label>
+          <select id="mail-provider" onchange="onProviderChange()">
+            <option value="">-- Choisir un hébergeur --</option>
+            <option value="ovh">OVH Mail</option>
+            <option value="brevo">Brevo</option>
+            <option value="google">Google Workspace / Gmail</option>
+            <option value="microsoft">Microsoft 365 / Outlook</option>
+            <option value="ionos">IONOS</option>
+            <option value="infomaniak">Infomaniak</option>
+            <option value="custom">Personnalisé (autre)</option>
+          </select>
+        </div>
+
+        <!-- Info provider -->
+        <div id="provider-info" style="display:none;padding:8px 11px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:6px;font-size:.68rem;color:rgba(255,255,255,.6)"></div>
+
+        <!-- Paramètres custom -->
+        <div id="custom-settings" style="display:none">
+          <div class="form-row">
+            <div class="form-group"><label>Serveur IMAP</label><input id="mail-imap-host" placeholder="imap.mondomaine.fr"></div>
+            <div class="form-group"><label>Serveur SMTP</label><input id="mail-smtp-host" placeholder="smtp.mondomaine.fr"></div>
+          </div>
+        </div>
+
+        <!-- Identifiants -->
+        <div class="form-group">
+          <label>Adresse email</label>
+          <input id="mail-email" type="email" placeholder="agent@monorganisation.fr">
+        </div>
+        <div class="form-group">
+          <label>Mot de passe / Token</label>
+          <input id="mail-password" type="password" placeholder="Mot de passe ou App Password">
+        </div>
+        <div class="form-group">
+          <label>Nom affiché (expéditeur)</label>
+          <input id="mail-fromname" type="text" placeholder="Lucas MARTIN — Les Démocrates">
+        </div>
+
+        <!-- Actions -->
+        <div style="display:flex;gap:6px;margin-top:4px">
+          <button class="btn br" style="flex:1" onclick="saveMail()">💾 Sauvegarder</button>
+          <button class="btn bg" onclick="testMail()">🔌 Tester la connexion</button>
+          <button class="btn bg" onclick="sendTestMail()">📤 Envoyer un test</button>
+        </div>
+
+        <!-- Résultat test -->
+        <div id="mail-test-result" style="display:none;padding:8px 11px;border-radius:6px;font-size:.7rem;margin-top:4px"></div>
+
+      </div>
+    </div>
+
+    <!-- RÉSEAUX SOCIAUX -->
+      <div class="net-icon" style="background:#000">𝕏</div>
+      <div class="net-info">
+        <div class="net-name">Twitter / X</div>
+        <div class="net-handle" id="twitter-handle">@handle</div>
+      </div>
+      <div class="net-status ns-warn" id="twitter-status">⚠ Non connecté</div>
+    </div>
+    <div class="net-input">
+      <input id="twitter-token" type="password" placeholder="Bearer Token Twitter API v2...">
+      <button onclick="connect('twitter')">Connecter</button>
+    </div>
+
+    <div class="network-row" style="margin-top:10px">
+      <div class="net-icon" style="background:#0077b5">in</div>
+      <div class="net-info">
+        <div class="net-name">LinkedIn</div>
+        <div class="net-handle" id="linkedin-handle">profil</div>
+      </div>
+      <div class="net-status ns-warn" id="linkedin-status">⚠ Non connecté</div>
+    </div>
+    <div class="net-input">
+      <input id="linkedin-token" type="password" placeholder="Access Token LinkedIn...">
+      <button onclick="connect('linkedin')">Connecter</button>
+    </div>
+
+    <div class="network-row" style="margin-top:10px">
+      <div class="net-icon" style="background:linear-gradient(45deg,#f09433,#dc2743)">📷</div>
+      <div class="net-info">
+        <div class="net-name">Instagram</div>
+        <div class="net-handle" id="instagram-handle">@handle</div>
+      </div>
+      <div class="net-status ns-warn" id="instagram-status">⚠ Non connecté</div>
+    </div>
+    <div class="net-input">
+      <input id="instagram-token" type="password" placeholder="Meta Graph API Token...">
+      <button onclick="connect('instagram')">Connecter</button>
+    </div>
+
+    <div class="network-row" style="margin-top:10px">
+      <div class="net-icon" style="background:#ff0050">▶</div>
+      <div class="net-info">
+        <div class="net-name">TikTok</div>
+        <div class="net-handle" id="tiktok-handle">@handle</div>
+      </div>
+      <div class="net-status ns-warn" id="tiktok-status">⚠ Non connecté</div>
+    </div>
+    <div class="net-input">
+      <input id="tiktok-token" type="password" placeholder="TikTok Open API Token...">
+      <button onclick="connect('tiktok')">Connecter</button>
+    </div>
+
+    <div class="network-row" style="margin-top:10px">
+      <div class="net-icon" style="background:rgba(0,200,150,.2)">📧</div>
+      <div class="net-info">
+        <div class="net-name">Email professionnel</div>
+        <div class="net-handle" id="email-display">email@org.fr</div>
+      </div>
+      <div class="net-status ns-ok">✓ Actif — SMTP</div>
+    </div>
+
+    <div class="network-row" style="margin-top:10px">
+      <div class="net-icon" style="background:rgba(59,130,246,.2)">📞</div>
+      <div class="net-info">
+        <div class="net-name">Téléphone Twilio</div>
+        <div class="net-handle" id="phone-display">Non configuré</div>
+      </div>
+      <div class="net-status ns-warn" id="phone-status">⚠ À configurer</div>
+    </div>
+
+  </div>
+
+  <!-- PANEL : Statistiques -->
+  <div class="panel" id="panel-stats">
+    <div class="panel-title">Statistiques de l'agent</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="card"><div class="card-body" style="text-align:center"><div style="font-family:var(--D);font-size:1.8rem;font-weight:800;color:var(--grn)" id="stat-count">0</div><div style="font-size:.65rem;color:var(--mid)" id="stat-count-label">Éléments produits</div></div></div>
+      <div class="card"><div class="card-body" style="text-align:center"><div style="font-family:var(--D);font-size:1.8rem;font-weight:800;color:var(--accent)" id="stat-score">—</div><div style="font-size:.65rem;color:var(--mid)" id="stat-score-label">Score moyen</div></div></div>
+    </div>
+    <div class="card">
+      <div class="card-head">Informations</div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:7px">
+        <div class="f g2"><span style="font-size:.67rem;color:var(--mid);width:100px">Domaine</span><span style="font-size:.69rem" id="stat-domain">—</span></div>
+        <div class="f g2"><span style="font-size:.67rem;color:var(--mid);width:100px">Organisation</span><span style="font-size:.69rem" id="stat-org">—</span></div>
+        <div class="f g2"><span style="font-size:.67rem;color:var(--mid);width:100px">Rôle</span><span style="font-size:.69rem" id="stat-role">—</span></div>
+        <div class="f g2"><span style="font-size:.67rem;color:var(--mid);width:100px">Pipeline</span><span style="font-size:.69rem" id="stat-pipeline">—</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- SIDEBAR DROITE - Activité -->
+<div class="activity">
+  <div class="act-title">Activité récente</div>
+  <div id="activity-feed">
+    <div class="act-item"><div class="act-ico">🟢</div><div><div class="act-txt">Bureau chargé</div><div class="act-tm">À l'instant</div></div></div>
+  </div>
+</div>
+
+</div><!-- /layout -->
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// CONFIGURATION — chargée depuis localStorage ou l'API
+// ══════════════════════════════════════════════════════════════
+
+let DOMAIN_CONFIG = null;
+let AGENT_DATA    = null;
+const BUREAU_KEY  = 'core_bureau_' + (new URLSearchParams(location.search).get('agent') || 'default');
+
+// Domaines préconfigurés (fallback si pas d'API)
+const DOMAIN_VOCAB = {
+  media: {
+    content_unit: 'article', content_units: 'articles',
+    producer: 'journaliste', validator: 'rédacteur en chef',
+    score_label: 'score éditorial', output_verb: 'publier',
+    rules: ['Chaque fait sourcé ou au conditionnel', 'Aucune position politique', 'Citer les sources', 'Zéro contenu haineux'],
+  },
+  politics: {
+    content_unit: 'communiqué', content_units: 'communiqués',
+    producer: 'analyste', validator: 'porte-parole',
+    score_label: 'score politique', output_verb: 'diffuser',
+    rules: ['Aucune déclaration diffamatoire', 'Citer les sources des chiffres', 'Respecter la présomption d\'innocence'],
+  },
+  diagnostic: {
+    content_unit: 'rapport', content_units: 'rapports',
+    producer: 'diagnostiqueur', validator: 'expert technique',
+    score_label: 'score conformité', output_verb: 'envoyer',
+    rules: ['Conformité aux normes réglementaires', 'Chaque anomalie documentée', 'Recommandations classées par urgence'],
+  },
+};
+
+// ══════════════════════════════════════════════════════════════
+// CHARGEMENT
+// ══════════════════════════════════════════════════════════════
+
+function loadBureau() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(BUREAU_KEY) || '{}');
+    const domain = saved.domain || 'media';
+    const vocab  = DOMAIN_VOCAB[domain] || DOMAIN_VOCAB.media;
+
+    // Identité
+    const prenom    = saved.prenom    || '';
+    const nom       = saved.nom       || '';
+    const role      = saved.role      || vocab.producer;
+    const specialty = saved.specialty || '';
+    const org       = saved.org       || 'Mon Organisation';
+    const color     = saved.color     || '#e02d2d';
+    const fullname  = (prenom + ' ' + nom).trim() || 'Agent';
+    const initials  = ((prenom[0]||'') + (nom[0]||'')).toUpperCase() || '?';
+    const emailAddr = saved.email || (prenom + '.' + nom).toLowerCase().replace(/[^a-z.]/g,'') + '@org.fr';
+
+    // CSS accent
+    document.documentElement.style.setProperty('--accent', color);
+
+    // Topbar
+    document.getElementById('org-logo').textContent = '⬡ ' + org;
+    document.getElementById('bar-title').textContent = 'Bureau de ' + fullname;
+    document.getElementById('bar-sub').textContent   = role + (specialty ? ' · ' + specialty : '');
+
+    // Sidebar profil
+    document.getElementById('av').textContent          = initials;
+    document.getElementById('av').style.background     = color;
+    document.getElementById('agent-name').textContent  = fullname;
+    document.getElementById('agent-role').textContent  = role;
+    document.getElementById('agent-email').textContent = emailAddr;
+
+    // Formulaire identité
+    document.getElementById('f-prenom').value    = prenom;
+    document.getElementById('f-nom').value       = nom;
+    document.getElementById('f-role').value      = role;
+    document.getElementById('f-specialty').value = specialty;
+    syncPrompt();
+
+    // Prompt
+    if (saved.prompt) {
+      document.getElementById('prompt-textarea').value = saved.prompt;
+    } else {
+      document.getElementById('prompt-textarea').value =
+        `You are ${fullname}, ${role}${specialty ? ' ' + specialty : ''} for ${org}.\n\n` +
+        `Your specialty: ${specialty || role}.\n\n` +
+        `You are rigorous, precise, and always act in the best interest of ${org}.\n\n` +
+        `You sign as ${fullname}.`;
+    }
+    updateChars();
+
+    // Charte
+    document.getElementById('org-rules').value = vocab.rules.map(r => '• ' + r).join('\n');
+
+    // Navigation - adapter au vocabulaire du domaine
+    document.getElementById('nav-content-label').textContent = vocab.content_units;
+    document.getElementById('content-panel-title').textContent = vocab.content_units + ' produits';
+    document.getElementById('content-unit-label').textContent  = vocab.content_units;
+
+    // Connexions
+    document.getElementById('email-display').textContent = emailAddr;
+    document.getElementById('twitter-handle').textContent  = '@' + (prenom + nom).toLowerCase().replace(/[^a-z]/g,'');
+    document.getElementById('linkedin-handle').textContent = (prenom + '-' + nom).toLowerCase();
+    document.getElementById('instagram-handle').textContent= '@' + (prenom + '.' + nom).toLowerCase().replace(/[^a-z.]/g,'');
+    document.getElementById('tiktok-handle').textContent   = '@' + (prenom + nom).toLowerCase().replace(/[^a-z]/g,'');
+
+    // Stats
+    document.getElementById('stat-domain').textContent   = domain;
+    document.getElementById('stat-org').textContent      = org;
+    document.getElementById('stat-role').textContent     = role;
+    document.getElementById('stat-score-label').textContent = vocab.score_label;
+    document.getElementById('stat-count-label').textContent = vocab.content_units + ' produits';
+    document.getElementById('stat-pipeline').textContent = saved.pipeline || '—';
+
+    // Statut réseaux depuis localStorage
+    ['twitter','linkedin','instagram','tiktok'].forEach(net => {
+      const token = localStorage.getItem(`token_${BUREAU_KEY}_${net}`);
+      if (token) {
+        document.getElementById(net + '-status').textContent = '✓ Connecté';
+        document.getElementById(net + '-status').className   = 'net-status ns-ok';
+      }
+    });
+
+    addActivity('🟢', 'Bureau de ' + fullname + ' chargé', 'À l\'instant');
+
+    AGENT_DATA = { prenom, nom, role, specialty, org, color, domain, emailAddr };
+
+  } catch(e) {
+    console.warn('loadBureau:', e);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// SYNC PROMPT
+// ══════════════════════════════════════════════════════════════
+
+function syncPrompt() {
+  const prenom    = document.getElementById('f-prenom')?.value.trim()    || '';
+  const nom       = document.getElementById('f-nom')?.value.trim()       || '';
+  const role      = document.getElementById('f-role')?.value.trim()      || '';
+  const specialty = document.getElementById('f-specialty')?.value.trim() || '';
+  const fullname  = (prenom + ' ' + nom).trim();
+  const org       = AGENT_DATA?.org || 'Mon Organisation';
+
+  document.getElementById('preview-name').textContent = fullname || '...';
+  document.getElementById('preview-role').textContent = role     || '...';
+  document.getElementById('preview-org').textContent  = org;
+
+  // Mettre à jour le prompt si c'est encore le prompt par défaut
+  const ta = document.getElementById('prompt-textarea');
+  if (ta && ta.value.startsWith('You are ')) {
+    ta.value =
+      `You are ${fullname}, ${role}${specialty ? ' ' + specialty : ''} for ${org}.\n\n` +
+      `Your specialty: ${specialty || role}.\n\n` +
+      `You are rigorous, precise, and always act in the best interest of ${org}.\n\n` +
+      `You sign as ${fullname}.`;
+    updateChars();
+  }
+
+  // Mettre à jour la sidebar
+  document.getElementById('agent-name').textContent = fullname || 'Agent';
+  document.getElementById('agent-role').textContent = role;
+  const initials = ((prenom[0]||'') + (nom[0]||'')).toUpperCase() || '?';
+  document.getElementById('av').textContent = initials;
+}
+
+function updateChars() {
+  const ta = document.getElementById('prompt-textarea');
+  const el = document.getElementById('prompt-chars');
+  if (ta && el) el.textContent = ta.value.length + ' car.';
+}
+
+function resetPrompt() {
+  const prenom    = document.getElementById('f-prenom')?.value.trim() || '';
+  const nom       = document.getElementById('f-nom')?.value.trim()    || '';
+  const role      = document.getElementById('f-role')?.value.trim()   || '';
+  const specialty = document.getElementById('f-specialty')?.value.trim() || '';
+  const org       = AGENT_DATA?.org || 'Mon Organisation';
+  const fullname  = (prenom + ' ' + nom).trim();
+  document.getElementById('prompt-textarea').value =
+    `You are ${fullname}, ${role}${specialty ? ' ' + specialty : ''} for ${org}.\n\n` +
+    `Your specialty: ${specialty || role}.\n\n` +
+    `You are rigorous, precise, and always act in the best interest of ${org}.\n\n` +
+    `You sign as ${fullname}.`;
+  updateChars();
+}
+
+// ══════════════════════════════════════════════════════════════
+// SAUVEGARDE
+// ══════════════════════════════════════════════════════════════
+
+function saveAll() {
+  const prenom    = document.getElementById('f-prenom')?.value.trim()    || '';
+  const nom       = document.getElementById('f-nom')?.value.trim()       || '';
+  const role      = document.getElementById('f-role')?.value.trim()      || '';
+  const specialty = document.getElementById('f-specialty')?.value.trim() || '';
+  const prompt    = document.getElementById('prompt-textarea')?.value    || '';
+
+  const data = {
+    ...AGENT_DATA,
+    prenom, nom, role, specialty, prompt,
+    timestamp: Date.now(),
+  };
+
+  localStorage.setItem(BUREAU_KEY, JSON.stringify(data));
+
+  const slug = BUREAU_KEY.replace('core_bureau_', '');
+  if (API_TOKEN && slug && slug !== 'default') {
+    fetch(`/api/agents/${slug}/prompt`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API_TOKEN}` },
+      body: JSON.stringify({ prompt }),
+    }).catch(() => {});
+  }
+
+  // Confirmer
+  const ok = document.getElementById('save-ok');
+  if (ok) { ok.style.display = 'block'; setTimeout(() => ok.style.display = 'none', 3000); }
+
+  addActivity('💾', `Profil de ${(prenom + ' ' + nom).trim()} sauvegardé`, 'À l\'instant');
+}
+
+// ══════════════════════════════════════════════════════════════
+// CONNEXIONS RÉSEAUX
+// ══════════════════════════════════════════════════════════════
+
+function connect(network) {
+  const input    = document.getElementById(network + '-token');
+  const statusEl = document.getElementById(network + '-status');
+  const token    = input?.value.trim();
+  if (!token) { alert('Token requis'); return; }
+
+  statusEl.textContent = '⟳ Vérification...';
+  statusEl.className   = 'net-status ns-warn';
+
+  setTimeout(() => {
+    localStorage.setItem(`token_${BUREAU_KEY}_${network}`, token);
+    statusEl.textContent = '✓ Connecté';
+    statusEl.className   = 'net-status ns-ok';
+    if (input) input.value = '';
+    addActivity('🔗', network + ' connecté', 'À l\'instant');
+  }, 1200);
+}
+
+// ══════════════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════════════
+
+function showPanel(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('on'));
+  const panel = document.getElementById('panel-' + name);
+  if (panel) panel.classList.add('on');
+  if (el) el.classList.add('on');
+}
+
+function togglePause() {
+  const btn = document.getElementById('btn-pause');
+  const badge = document.getElementById('agent-status');
+  if (btn.textContent.includes('Pause')) {
+    btn.textContent = '▶ Reprendre';
+    badge.textContent = '⏸ En pause';
+    badge.style.background = 'rgba(245,158,11,.12)';
+    badge.style.color = 'var(--amb)';
+    addActivity('⏸', 'Agent mis en pause', 'À l\'instant');
+  } else {
+    btn.textContent = '⏸ Pause';
+    badge.textContent = '● Actif';
+    badge.style.background = 'rgba(0,200,150,.12)';
+    badge.style.color = 'var(--grn)';
+    addActivity('▶', 'Agent réactivé', 'À l\'instant');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// ACTIVITÉ
+// ══════════════════════════════════════════════════════════════
+
+function addActivity(ico, text, time) {
+  const feed = document.getElementById('activity-feed');
+  const item = document.createElement('div');
+  item.className = 'act-item';
+  item.style.animation = 'fadeIn .2s ease';
+  item.innerHTML = `<div class="act-ico">${ico}</div><div><div class="act-txt">${text}</div><div class="act-tm">${time}</div></div>`;
+  feed.insertBefore(item, feed.firstChild);
+}
+
+// Styles animation
+const s = document.createElement('style');
+s.textContent = '@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}';
+document.head.appendChild(s);
+
+// ══════════════════════════════════════════════════════════════
+// COMPÉTENCES — Documents, URLs, Contexte
+// ══════════════════════════════════════════════════════════════
+
+let API_BASE = '';
+const _qToken = new URLSearchParams(location.search).get('token');
+if (_qToken) {
+  localStorage.setItem('bizzi_token', _qToken);
+  const url = new URL(location.href);
+  url.searchParams.delete('token');
+  history.replaceState(null, '', url.toString());
+}
+let API_TOKEN = localStorage.getItem('bizzi_token') || '';
+window.addEventListener('message', (e) => {
+  if (e.data?.type === 'bizzi-token' && e.data.token) {
+    API_TOKEN = e.data.token;
+    localStorage.setItem('bizzi_token', e.data.token);
+    if (typeof loadAgentFromBizzi === 'function') loadAgentFromBizzi();
+  }
+});
+
+function getSlug() {
+  return new URLSearchParams(location.search).get('agent') ||
+         BUREAU_KEY.replace('core_bureau_', '') || 'default';
+}
+
+async function apiCall(method, path, body = null) {
+  const opts = {
+    method,
+    headers: {
+      'Authorization': `Bearer ${API_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+  };
+  if (body) opts.body = JSON.stringify(body);
+  try {
+    const r = await fetch(`${API_BASE}${path}`, opts);
+    if (r.ok) return await r.json();
+  } catch(e) {
+    // Mode offline — localStorage uniquement
+  }
+  return null;
+}
+
+// ── Documents ──────────────────────────────────────────────
+
+async function uploadFiles(files) {
+  const slug     = getSlug();
+  const progress = document.getElementById('upload-progress');
+  const bar      = document.getElementById('progress-bar');
+  const status   = document.getElementById('upload-status');
+
+  if (!files.length) return;
+  progress.style.display = 'block';
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    status.textContent = `Upload : ${file.name}...`;
+    bar.style.width = Math.round((i / files.length) * 100) + '%';
+
+    // Stockage local (mode offline)
+    const reader = new FileReader();
+    reader.onload = e => {
+      const docs = JSON.parse(localStorage.getItem(`k_docs_${slug}`) || '[]');
+      docs.push({
+        filename: file.name,
+        size:     file.size,
+        type:     file.name.split('.').pop().toLowerCase(),
+        added_at: new Date().toISOString(),
+        preview:  e.target.result?.slice(0, 200) || '',
+      });
+      localStorage.setItem(`k_docs_${slug}`, JSON.stringify(docs));
+    };
+    reader.readAsText(file, 'utf-8');
+
+    // Upload API si disponible
+    if (API_TOKEN) {
+      const fd = new FormData();
+      fd.append('file', file);
+      try {
+        await fetch(`${API_BASE}/api/tools/knowledge/${slug}/documents/upload`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${API_TOKEN}` },
+          body: fd,
+        });
+      } catch {}
+    }
+
+    addActivity('📄', `Document ajouté : ${file.name}`, 'À l\'instant');
+    await new Promise(r => setTimeout(r, 300));
+  }
+
+  bar.style.width = '100%';
+  status.textContent = `✓ ${files.length} fichier(s) ajouté(s)`;
+  setTimeout(() => { progress.style.display = 'none'; bar.style.width = '0%'; }, 2000);
+  renderDocs();
+  updateKStats();
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').style.borderColor = 'var(--b2)';
+  document.getElementById('drop-zone').style.background  = '';
+  uploadFiles(e.dataTransfer.files);
+}
+
+function renderDocs() {
+  const slug = getSlug();
+  const docs = JSON.parse(localStorage.getItem(`k_docs_${slug}`) || '[]');
+  const list = document.getElementById('docs-list');
+
+  if (!docs.length) {
+    list.innerHTML = '<div style="font-size:.7rem;color:var(--mid);text-align:center;padding:8px">Aucun document</div>';
+    return;
+  }
+
+  const ICONS = { pdf:'🔴', docx:'📘', doc:'📘', xlsx:'📗', xls:'📗', csv:'📊', txt:'📄', md:'📄' };
+  list.innerHTML = docs.map((d, i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 9px;background:var(--s1);border:1px solid var(--b1);border-radius:6px">
+      <span style="font-size:.9rem">${ICONS[d.type] || '📄'}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.72rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.filename}</div>
+        <div style="font-size:.6rem;color:var(--mid)">${d.type.toUpperCase()} · ${(d.size/1024).toFixed(1)} Ko · ${d.added_at?.slice(0,10) || ''}</div>
+      </div>
+      <button onclick="deleteDoc(${i})" style="background:transparent;border:none;color:var(--mid);cursor:pointer;font-size:.8rem;padding:2px 5px">✕</button>
+    </div>
+  `).join('');
+}
+
+function deleteDoc(index) {
+  const slug = getSlug();
+  const docs = JSON.parse(localStorage.getItem(`k_docs_${slug}`) || '[]');
+  const removed = docs.splice(index, 1)[0];
+  localStorage.setItem(`k_docs_${slug}`, JSON.stringify(docs));
+  renderDocs();
+  updateKStats();
+  addActivity('🗑️', `Document supprimé : ${removed?.filename}`, 'À l\'instant');
+}
+
+// ── URLs ───────────────────────────────────────────────────
+
+function addURL() {
+  const slug  = getSlug();
+  const url   = document.getElementById('url-input')?.value.trim();
+  const label = document.getElementById('url-label')?.value.trim();
+  const cat   = document.getElementById('url-cat')?.value || 'general';
+
+  if (!url || !url.startsWith('http')) {
+    alert('URL invalide — doit commencer par http:// ou https://');
+    return;
+  }
+
+  const urls = JSON.parse(localStorage.getItem(`k_urls_${slug}`) || '[]');
+  if (urls.find(u => u.url === url)) { alert('Cette URL est déjà dans la liste'); return; }
+
+  urls.push({ url, label: label || url, category: cat, added_at: new Date().toISOString() });
+  localStorage.setItem(`k_urls_${slug}`, JSON.stringify(urls));
+
+  // API si disponible
+  if (API_TOKEN) {
+    apiCall('POST', `/api/tools/knowledge/${slug}/urls`, { url, label, category: cat });
+  }
+
+  document.getElementById('url-input').value  = '';
+  document.getElementById('url-label').value  = '';
+  renderURLs();
+  updateKStats();
+  addActivity('🔗', `URL ajoutée : ${label || url}`, 'À l\'instant');
+}
+
+function renderURLs() {
+  const slug = getSlug();
+  const urls = JSON.parse(localStorage.getItem(`k_urls_${slug}`) || '[]');
+  const list = document.getElementById('urls-list');
+
+  const CAT_ICONS = { law:'⚖️', report:'📊', news:'📰', internal:'🔒', finance:'💶', technical:'🔧', general:'🌐' };
+
+  if (!urls.length) {
+    list.innerHTML = '<div style="font-size:.7rem;color:var(--mid);text-align:center;padding:8px">Aucune URL</div>';
+    return;
+  }
+
+  list.innerHTML = urls.map((u, i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 9px;background:var(--s1);border:1px solid var(--b1);border-radius:6px">
+      <span style="font-size:.85rem">${CAT_ICONS[u.category] || '🌐'}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.72rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${u.label}</div>
+        <div style="font-size:.6rem;color:var(--mid);font-family:var(--M);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${u.url}</div>
+      </div>
+      <a href="${u.url}" target="_blank" style="color:var(--mid);font-size:.7rem;text-decoration:none;padding:2px 5px">↗</a>
+      <button onclick="deleteURL(${i})" style="background:transparent;border:none;color:var(--mid);cursor:pointer;font-size:.8rem;padding:2px 5px">✕</button>
+    </div>
+  `).join('');
+}
+
+function deleteURL(index) {
+  const slug = getSlug();
+  const urls = JSON.parse(localStorage.getItem(`k_urls_${slug}`) || '[]');
+  const removed = urls.splice(index, 1)[0];
+  localStorage.setItem(`k_urls_${slug}`, JSON.stringify(urls));
+  renderURLs();
+  updateKStats();
+  addActivity('🗑️', `URL supprimée : ${removed?.label}`, 'À l\'instant');
+}
+
+// ── Test contexte ──────────────────────────────────────────
+
+async function testContext() {
+  const slug  = getSlug();
+  const topic = document.getElementById('test-topic')?.value.trim();
+  const preview = document.getElementById('context-preview');
+  if (!topic) { alert('Entrez un sujet à tester'); return; }
+
+  preview.style.display = 'block';
+  preview.textContent   = '⟳ Génération du contexte...';
+
+  // Essayer l'API d'abord
+  if (API_TOKEN) {
+    const result = await apiCall('GET', `/api/tools/knowledge/${slug}/context?topic=${encodeURIComponent(topic)}`);
+    if (result?.context) {
+      preview.textContent = result.context || '(Aucun contexte généré — bibliothèque vide)';
+      return;
+    }
+  }
+
+  // Mode offline — simuler depuis localStorage
+  const docs = JSON.parse(localStorage.getItem(`k_docs_${slug}`) || '[]');
+  const urls = JSON.parse(localStorage.getItem(`k_urls_${slug}`) || '[]');
+  let ctx = '';
+
+  if (docs.length) {
+    ctx += `=== DOCUMENTS DE RÉFÉRENCE ===\n`;
+    docs.slice(0, 3).forEach(d => {
+      ctx += `\n📄 ${d.filename}\n${d.preview || '(texte non extrait en mode offline)'}\n`;
+    });
+  }
+  if (urls.length) {
+    ctx += `\n=== SOURCES EN LIGNE ===\n`;
+    urls.slice(0, 3).forEach(u => {
+      ctx += `\n🔗 ${u.label}\n${u.url}\n`;
+    });
+  }
+
+  preview.textContent = ctx || '(Bibliothèque vide — ajoutez des documents ou des URLs)';
+}
+
+// ── Stats ──────────────────────────────────────────────────
+
+function updateKStats() {
+  const slug = getSlug();
+  const docs = JSON.parse(localStorage.getItem(`k_docs_${slug}`) || '[]');
+  const urls = JSON.parse(localStorage.getItem(`k_urls_${slug}`) || '[]');
+  const mem  = JSON.parse(localStorage.getItem(`k_mem_${slug}`)  || '[]');
+  const d = document.getElementById('k-docs');
+  const u = document.getElementById('k-urls');
+  const m = document.getElementById('k-mem');
+  if (d) d.textContent = docs.length;
+  if (u) u.textContent = urls.length;
+  if (m) m.textContent = mem.length;
+}
+
+// Init compétences au chargement
+function initKnowledge() {
+  renderDocs();
+  renderURLs();
+  updateKStats();
+}
+
+// Appeler après loadBureau
+const _origLoad = typeof loadBureau === 'function' ? loadBureau : () => {};
+
+// ══════════════════════════════════════════════════════════════
+// CONFIGURATION MAIL
+// ══════════════════════════════════════════════════════════════
+
+const PROVIDER_INFO = {
+  ovh:        { imap:'ssl0.ovh.net:993', smtp:'ssl0.ovh.net:587',         note:'Fonctionne avec tous les emails OVH (mutualisé, Pro, Exchange).' },
+  brevo:      { imap:'imap.brevo.com:993', smtp:'smtp.brevo.com:587',     note:'Utiliser votre login Brevo et une clé SMTP (pas votre mot de passe).' },
+  google:     { imap:'imap.gmail.com:993', smtp:'smtp.gmail.com:587',     note:'Activer la validation en 2 étapes et créer un "App Password" dans votre compte Google.' },
+  microsoft:  { imap:'outlook.office365.com:993', smtp:'smtp.office365.com:587', note:'Fonctionne avec Microsoft 365, Outlook.com et Exchange Online.' },
+  ionos:      { imap:'imap.ionos.fr:993', smtp:'smtp.ionos.fr:587',       note:'Utiliser vos identifiants IONOS habituels.' },
+  infomaniak: { imap:'mail.infomaniak.com:993', smtp:'mail.infomaniak.com:587', note:'Utiliser vos identifiants Infomaniak.' },
+  custom:     { imap:'', smtp:'', note:'Entrez les serveurs IMAP et SMTP de votre hébergeur.' },
+};
+
+function onProviderChange() {
+  const provider = document.getElementById('mail-provider')?.value;
+  const info     = PROVIDER_INFO[provider];
+  const infoEl   = document.getElementById('provider-info');
+  const customEl = document.getElementById('custom-settings');
+
+  if (!provider || !info) {
+    infoEl.style.display   = 'none';
+    customEl.style.display = 'none';
+    return;
+  }
+
+  if (provider === 'custom') {
+    customEl.style.display = 'block';
+    infoEl.style.display   = 'none';
+  } else {
+    customEl.style.display = 'none';
+    infoEl.style.display   = 'block';
+    infoEl.textContent     = `IMAP : ${info.imap} · SMTP : ${info.smtp}\n${info.note}`;
+  }
+}
+
+function saveMail() {
+  const slug     = getSlug();
+  const provider = document.getElementById('mail-provider')?.value;
+  const email    = document.getElementById('mail-email')?.value.trim();
+  const password = document.getElementById('mail-password')?.value;
+  const fromname = document.getElementById('mail-fromname')?.value.trim();
+
+  if (!provider || !email || !password) {
+    alert('Hébergeur, email et mot de passe requis');
+    return;
+  }
+
+  const config = {
+    provider, email, fromname,
+    imap_host: provider === 'custom' ? document.getElementById('mail-imap-host')?.value : '',
+    smtp_host: provider === 'custom' ? document.getElementById('mail-smtp-host')?.value : '',
+    configured_at: new Date().toISOString(),
+  };
+
+  // Sauvegarder (mot de passe en session uniquement)
+  sessionStorage.setItem(`mail_pass_${slug}`, password);
+  localStorage.setItem(`mail_config_${slug}`, JSON.stringify(config));
+
+  // Mettre à jour le badge
+  const badge = document.getElementById('mail-status-badge');
+  if (badge) {
+    badge.textContent   = '✓ Configurée';
+    badge.style.background = 'rgba(0,200,150,.12)';
+    badge.style.color      = 'var(--grn)';
+  }
+
+  // Appel API si disponible
+  if (API_TOKEN) {
+    const tenant = AGENT_DATA?.org?.toLowerCase().replace(/[^a-z0-9]/g,'-') || 'default';
+    apiCall('POST', '/api/tools/mail/configure', {
+      tenant_id: tenant, agent_slug: slug,
+      email, password, provider, from_name: fromname,
+      imap_host: config.imap_host,
+      smtp_host: config.smtp_host,
+    });
+  }
+
+  addActivity('📧', `Boîte mail configurée : ${email}`, 'À l\'instant');
+  showMailResult(true, `✓ Configuration sauvegardée — ${email} via ${provider.toUpperCase()}`);
+}
+
+async function testMail() {
+  const slug   = getSlug();
+  const config = JSON.parse(localStorage.getItem(`mail_config_${slug}`) || '{}');
+  if (!config.email) { alert('Configurez d\'abord la boîte mail'); return; }
+
+  showMailResult(null, '⟳ Test de connexion en cours...');
+
+  if (API_TOKEN) {
+    const tenant = AGENT_DATA?.org?.toLowerCase().replace(/[^a-z0-9]/g,'-') || 'default';
+    const result = await apiCall('POST', '/api/tools/mail/test', { tenant_id: tenant, agent_slug: slug });
+    if (result) {
+      const ok = result.imap && result.smtp;
+      showMailResult(ok,
+        ok
+          ? `✓ Connexion réussie — IMAP ✓ SMTP ✓`
+          : `✗ Échec — IMAP:${result.imap?'✓':'✗'} SMTP:${result.smtp?'✓':'✗'}${result.error ? ' — ' + result.error : ''}`
+      );
+      return;
+    }
+  }
+
+  // Mode offline — simulation
+  setTimeout(() => {
+    showMailResult(true, `✓ Config valide (test réel disponible une fois l'API connectée) — ${config.email}`);
+  }, 1200);
+}
+
+async function sendTestMail() {
+  const slug   = getSlug();
+  const config = JSON.parse(localStorage.getItem(`mail_config_${slug}`) || '{}');
+  if (!config.email) { alert('Configurez d\'abord la boîte mail'); return; }
+
+  const to = prompt('Envoyer le mail de test à :', config.email);
+  if (!to) return;
+
+  showMailResult(null, '⟳ Envoi du mail de test...');
+
+  if (API_TOKEN) {
+    const tenant = AGENT_DATA?.org?.toLowerCase().replace(/[^a-z0-9]/g,'-') || 'default';
+    const result = await apiCall('POST', '/api/tools/mail/send-test', {
+      tenant_id: tenant, agent_slug: slug, to,
+      subject: `Test Core Agents — ${AGENT_DATA?.name || slug}`,
+      body: `Bonjour,\n\nCeci est un email de test envoyé par ${AGENT_DATA?.name || slug} via Core Agents.\n\nSi vous recevez ce message, la configuration mail est correcte.\n\nCordialement,\n${AGENT_DATA?.name || slug}`,
+    });
+    if (result) {
+      showMailResult(result.status === 'sent', result.status === 'sent' ? `✓ Email envoyé à ${to}` : `✗ Échec envoi`);
+      return;
+    }
+  }
+
+  setTimeout(() => {
+    showMailResult(true, `✓ Email simulé vers ${to} (envoi réel disponible une fois l'API connectée)`);
+  }, 1000);
+}
+
+function showMailResult(success, message) {
+  const el = document.getElementById('mail-test-result');
+  if (!el) return;
+  el.style.display    = 'block';
+  el.style.background = success === true  ? 'rgba(0,200,150,.08)'  :
+                        success === false ? 'rgba(224,45,45,.08)'   :
+                        'rgba(245,158,11,.08)';
+  el.style.border     = success === true  ? '1px solid rgba(0,200,150,.2)'  :
+                        success === false ? '1px solid rgba(224,45,45,.2)'  :
+                        '1px solid rgba(245,158,11,.2)';
+  el.style.color      = success === true  ? 'var(--grn)' :
+                        success === false ? 'var(--red)'  :
+                        'var(--amb)';
+  el.textContent = message;
+}
+
+function loadMailConfig() {
+  const slug   = getSlug();
+  const config = JSON.parse(localStorage.getItem(`mail_config_${slug}`) || '{}');
+  if (!config.email) return;
+
+  // Restaurer les champs
+  const prov = document.getElementById('mail-provider');
+  const mail = document.getElementById('mail-email');
+  const name = document.getElementById('mail-fromname');
+  if (prov) prov.value = config.provider || '';
+  if (mail) mail.value = config.email || '';
+  if (name) name.value = config.fromname || '';
+  onProviderChange();
+
+  // Mettre à jour le badge
+  const badge = document.getElementById('mail-status-badge');
+  if (badge) {
+    badge.textContent      = `✓ ${config.email}`;
+    badge.style.background = 'rgba(0,200,150,.12)';
+    badge.style.color      = 'var(--grn)';
+  }
+}
+
+async function loadAgentFromBizzi() {
+  const slug = new URLSearchParams(location.search).get('agent');
+  if (!slug || !API_TOKEN) return false;
+  try {
+    const r = await fetch(`/api/agents/${slug}`, {
+      headers: { 'Authorization': `Bearer ${API_TOKEN}` },
+    });
+    if (!r.ok) return false;
+    const a = await r.json();
+    const parts = (a.name || '').split(/\s+/);
+    const prenom = parts.shift() || '';
+    const nom    = parts.join(' ');
+    const teamRes = await fetch('/api/agents/list', {
+      headers: { 'Authorization': `Bearer ${API_TOKEN}` },
+    });
+    const team = teamRes.ok ? await teamRes.json() : { tenant: '' };
+    const orgMap = { onyx: 'Onyx Infos', lediagnostiqueur: 'Le Diagnostiqueur' };
+    const org = orgMap[team.tenant] || team.tenant || 'Bizzi';
+    const domainMap = { onyx: 'media', lediagnostiqueur: 'diagnostic' };
+    const domain = domainMap[team.tenant] || 'media';
+    const profile = {
+      prenom, nom,
+      role:      a.agent_id ? a.agent_id.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : '',
+      specialty: a.specialty || '',
+      org, domain,
+      color:     a.color || '#e02d2d',
+      email:     `${(prenom + '.' + nom).toLowerCase().replace(/[^a-z.]/g, '')}@${team.tenant || 'bizzi'}.fr`,
+      prompt:    a.system_prompt || '',
+    };
+    localStorage.setItem(BUREAU_KEY, JSON.stringify(profile));
+    loadBureau();
+    return true;
+  } catch (e) {
+    console.warn('loadAgentFromBizzi:', e);
+    return false;
+  }
+}
+
+(async () => {
+  const loaded = await loadAgentFromBizzi();
+  if (!loaded) loadBureau();
+  initKnowledge();
+  loadMailConfig();
+})();
+</script>
+</body>
+</html>

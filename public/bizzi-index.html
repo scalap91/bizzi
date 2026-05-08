@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bizzi — Index provisoire des pages</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      background:#020200;color:#fff8e0;min-height:100vh;
+      padding:48px 24px;line-height:1.5;
+    }
+    .wrap{max-width:920px;margin:0 auto;}
+    h1{font-size:32px;letter-spacing:-.02em;color:#ffd23f;margin-bottom:6px;}
+    h1::before{content:"⬢  ";}
+    .sub{color:#8a7d40;font-size:14px;margin-bottom:6px;}
+    .warn{display:inline-block;background:rgba(255,210,63,.12);color:#ffd23f;
+          font-size:12px;padding:5px 11px;border-radius:100px;
+          letter-spacing:.06em;text-transform:uppercase;font-weight:700;margin-bottom:32px;}
+    h2{font-size:14px;color:#8a7d40;text-transform:uppercase;letter-spacing:.1em;
+       margin:36px 0 14px 0;padding-bottom:8px;border-bottom:1px solid #161500;}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+    a.card{
+      display:block;text-decoration:none;color:inherit;
+      background:#0f0e00;border:1px solid #161500;border-radius:12px;
+      padding:18px 18px 16px 18px;transition:border-color .15s, transform .15s, background .15s;
+    }
+    a.card:hover{border-color:#ffd23f;background:#161500;transform:translateY(-2px);}
+    .card-title{font-size:16px;font-weight:600;color:#fff8e0;margin-bottom:6px;
+                display:flex;align-items:center;gap:8px;}
+    .card-icon{font-size:20px;}
+    .card-desc{font-size:13px;color:#8a7d40;margin-bottom:10px;line-height:1.4;}
+    .card-url{font-family:"DM Mono",ui-monospace,Menlo,Consolas,monospace;
+              font-size:11px;color:#5a5030;word-break:break-all;}
+    .badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:100px;
+           font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-left:6px;}
+    .badge-new{background:rgba(46,160,67,.18);color:#3fb950;}
+    .badge-bug{background:rgba(248,81,73,.15);color:#f85149;}
+    .badge-old{background:rgba(255,210,63,.12);color:#ffd23f;}
+    footer{margin-top:48px;padding-top:24px;border-top:1px solid #161500;
+           color:#5a5030;font-size:12px;text-align:center;}
+    footer code{background:#0f0e00;padding:2px 8px;border-radius:4px;color:#8a7d40;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Bizzi — Index des pages</h1>
+    <p class="sub">Liste de toutes les interfaces actuellement deployees sur <strong>bizzi.fr</strong>.</p>
+    <span class="warn">Page provisoire de navigation</span>
+
+    <h2>Pages publiques / vitrine</h2>
+    <div class="grid">
+      <a class="card" href="/bizzi-home.html" target="_blank">
+        <div class="card-title"><span class="card-icon">🏠</span> Accueil public</div>
+        <div class="card-desc">Page d'accueil vitrine de Bizzi (ce que voient les visiteurs).</div>
+        <div class="card-url">/bizzi-home.html</div>
+      </a>
+      <a class="card" href="/bizzi-demo-chat.html" target="_blank">
+        <div class="card-title"><span class="card-icon">💬</span> Demo bulle de chat <span class="badge badge-new">Nouveau</span></div>
+        <div class="card-desc">Page test du loader JS (bulle de chat embarquable). Cree le 8 mai 2026.</div>
+        <div class="card-url">/bizzi-demo-chat.html</div>
+      </a>
+    </div>
+
+    <h2>Administration / Dashboards</h2>
+    <div class="grid">
+      <a class="card" href="/bizzi-admin.html" target="_blank">
+        <div class="card-title"><span class="card-icon">🔐</span> Admin global <span class="badge badge-bug">Bug API</span></div>
+        <div class="card-desc">Console admin globale (stats tenants). URL API corrigee, mais endpoints backend a implementer.</div>
+        <div class="card-url">/bizzi-admin.html</div>
+      </a>
+      <a class="card" href="/bizzi-dashboard.html" target="_blank">
+        <div class="card-title"><span class="card-icon">📊</span> Dashboard tenant</div>
+        <div class="card-desc">Dashboard d'un tenant (vue locataire d'un client Bizzi).</div>
+        <div class="card-url">/bizzi-dashboard.html</div>
+      </a>
+      <a class="card" href="/BIZZI-escalation-dashboard.html" target="_blank">
+        <div class="card-title"><span class="card-icon">⚡</span> Pipeline d'escalation</div>
+        <div class="card-desc">Pipeline de remontee hierarchique des affaires entre agents.</div>
+        <div class="card-url">/BIZZI-escalation-dashboard.html</div>
+      </a>
+    </div>
+
+    <h2>Bureau virtuel des agents</h2>
+    <div class="grid">
+      <a class="card" href="/bureau.html" target="_blank">
+        <div class="card-title"><span class="card-icon">🏢</span> Bureau v2 <span class="badge badge-new">Recent</span></div>
+        <div class="card-desc">Bureau virtuel des agents — version la plus recente (5 mai 2026).</div>
+        <div class="card-url">/bureau.html</div>
+      </a>
+      <a class="card" href="/bizzi-bureau.html" target="_blank">
+        <div class="card-title"><span class="card-icon">🏢</span> Bureau v1 <span class="badge badge-old">Ancien</span></div>
+        <div class="card-desc">Bureau v1 (21 avril 2026), conserve a fin de comparaison.</div>
+        <div class="card-url">/bizzi-bureau.html</div>
+      </a>
+      <a class="card" href="/bizzi-meeting-room.html" target="_blank">
+        <div class="card-title"><span class="card-icon">🗣️</span> Salle de reunion</div>
+        <div class="card-desc">Salle de reunion entre agents IA (ou ils se parlent et collaborent).</div>
+        <div class="card-url">/bizzi-meeting-room.html</div>
+      </a>
+    </div>
+
+    <h2>Onboarding / Configuration tenant</h2>
+    <div class="grid">
+      <a class="card" href="/bizzi-configurator.html" target="_blank">
+        <div class="card-title"><span class="card-icon">⚙️</span> Configurer mon organisation</div>
+        <div class="card-desc">Onboarding du tenant : definition de l'organisation, des agents, des roles.</div>
+        <div class="card-url">/bizzi-configurator.html</div>
+      </a>
+      <a class="card" href="/bizzi-mail-connect.html" target="_blank">
+        <div class="card-title"><span class="card-icon">📧</span> Connecter ma boite mail</div>
+        <div class="card-desc">Onboarding integration email (pour que les agents lisent / envoient des mails).</div>
+        <div class="card-url">/bizzi-mail-connect.html</div>
+      </a>
+    </div>
+
+    <footer>
+      Page generee automatiquement le 8 mai 2026 — <code>/opt/bizzi/public/bizzi-index.html</code><br>
+      Toutes les pages ont ete creees dans le commit initial <code>2b26d49</code> du 24 avril 2026 par <code>scalap91</code>,<br>
+      sauf <code>bureau.html</code> (5 mai, non versionne) et <code>bizzi-demo-chat.html</code> (8 mai, sub-agent loader).
+    </footer>
+  </div>
+</body>
+</html>

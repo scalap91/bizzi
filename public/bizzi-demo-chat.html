@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bizzi — Démo bulle de chat</title>
+  <style>
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      margin:0;padding:48px 24px;background:#fafafa;color:#222;line-height:1.5;
+    }
+    .wrap{max-width:760px;margin:0 auto;}
+    h1{margin:0 0 8px 0;font-size:28px;}
+    .meta{color:#666;font-size:14px;margin-bottom:24px;}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:24px;margin-bottom:18px;}
+    code{background:#f3f4f6;padding:2px 6px;border-radius:4px;font-size:13px;}
+    pre{background:#0f172a;color:#e2e8f0;padding:14px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.45;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Bizzi — Démo bulle de chat</h1>
+    <p class="meta">Page minimale de test pour <code>bizzi-loader.js</code>. La bulle apparaît en bas à droite.</p>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Tenant simulé</h2>
+      <p>Cette page monte le renderer <code>chat</code> avec <code>data-bizzi-tenant="airbizness"</code>.</p>
+      <p>Endpoint API : <code>https://bizzi.fr/api</code></p>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Intégration côté tenant</h2>
+      <pre>&lt;script src="https://bizzi.fr/bizzi-loader.js" defer&gt;&lt;/script&gt;
+&lt;div data-bizzi-mount="chat"
+     data-bizzi-tenant="airbizness"&gt;&lt;/div&gt;</pre>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Attributs supportés</h2>
+      <ul>
+        <li><code>data-bizzi-mount="chat"</code> — type de renderer (obligatoire)</li>
+        <li><code>data-bizzi-tenant="..."</code> — slug du tenant (obligatoire)</li>
+        <li><code>data-bizzi-api="..."</code> — override de l'URL API (optionnel)</li>
+        <li><code>data-bizzi-title="..."</code> — titre du panneau (optionnel)</li>
+        <li><code>data-bizzi-color="#hex"</code> — couleur primaire (optionnel)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Mount point Bizzi -->
+  <div data-bizzi-mount="chat"
+       data-bizzi-tenant="airbizness"
+       data-bizzi-title="Conseiller AirBizness"></div>
+
+  <!-- Loader Bizzi -->
+  <script src="/bizzi-loader.js" defer></script>
+</body>
+</html>
