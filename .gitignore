@@ -20,3 +20,9 @@ venv/
 # Backups / archives
 *.zip
 *.bak
+*.bak-*
+*.bak.*
+*.bak2-*
+*.bak3-*
+bizzi-v1.zip
+dashboard-deploy*.zip
