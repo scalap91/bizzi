@@ -143,7 +143,7 @@ nav{height:56px;background:var(--s1);border-bottom:1px solid var(--b1);display:f
 <!-- NAV -->
 <nav>
   <div class="logo">Bizzi</div>
-  <div class="nav-step-info" id="nav-step-info">Étape 1 sur 5</div>
+  <div class="nav-step-info" id="nav-step-info">Étape 1 sur 6</div>
 </nav>
 
 <!-- PROGRESS -->
@@ -167,6 +167,10 @@ nav{height:56px;background:var(--s1);border-bottom:1px solid var(--b1);display:f
     </div>
     <div class="pstep" id="ps5" onclick="goStep(5)">
       <div class="pstep-dot">5</div>
+      <div class="pstep-label">Connexion BD</div>
+    </div>
+    <div class="pstep" id="ps6" onclick="goStep(6)">
+      <div class="pstep-dot">6</div>
       <div class="pstep-label">Lancement</div>
     </div>
   </div>
@@ -368,12 +372,72 @@ nav{height:56px;background:var(--s1);border-bottom:1px solid var(--b1);display:f
 
     <div class="step-nav">
       <button class="btn-prev" onclick="goStep(3)">← Retour</button>
-      <button class="btn-next" onclick="goStep(5)">Suivant → Lancement</button>
+      <button class="btn-next" onclick="goStep(5)">Suivant → Connexion BD</button>
     </div>
   </div>
 
-  <!-- ÉTAPE 5 — Lancement -->
+  <!-- ÉTAPE 5 — Connexion BD (facultative) -->
   <div class="step" id="step5">
+    <div class="step-title">Connexion <span>base de données</span></div>
+    <div class="step-sub">Facultatif. Branche Bizzi sur votre BD pour activer les outils IA en lecture (factures, réservations, dossiers clients...). Vous pouvez configurer plus tard.</div>
+
+    <div class="field" style="background:var(--card);border:1px solid var(--b1);border-radius:10px;padding:16px;margin-bottom:20px">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:.82rem;color:var(--w);font-weight:500">
+        <input type="checkbox" id="db-enabled" onchange="toggleDbFields()" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer">
+        <span>Configurer la base de données de mon tenant maintenant <span style="color:var(--mid);font-size:.72rem">(recommandé pour activer les outils IA en lecture)</span></span>
+      </label>
+    </div>
+
+    <div id="db-fields" style="display:none">
+      <div class="field-row">
+        <div class="field">
+          <label>Type de BD</label>
+          <select id="db-type" onchange="updateYaml()">
+            <option value="postgres">PostgreSQL</option>
+            <option value="mysql" disabled>MySQL (bientôt)</option>
+            <option value="sqlite" disabled>SQLite (bientôt)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Host</label>
+          <input id="db-host" type="text" value="127.0.0.1" placeholder="127.0.0.1" oninput="updateYaml()">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Port</label>
+          <input id="db-port" type="number" value="5432" placeholder="5432" oninput="updateYaml()">
+        </div>
+        <div class="field">
+          <label>Nom de la base</label>
+          <input id="db-name" type="text" placeholder="airbizness" oninput="updateYaml()">
+        </div>
+      </div>
+      <div class="field">
+        <label>Utilisateur (read-only recommandé)</label>
+        <input id="db-user" type="text" placeholder="bizzi_reader_<slug>" oninput="updateYaml()">
+        <div class="field-hint">Si vide, sera <code style="color:var(--accent)">bizzi_reader_&lt;slug&gt;</code> automatiquement.</div>
+      </div>
+      <div class="field">
+        <label>Variable env du mot de passe</label>
+        <input id="db-password-env" type="text" placeholder="BIZZI_<SLUG>_DB_PASSWORD" oninput="updateYaml()">
+        <div class="field-hint">Le mot de passe ne sera <strong>jamais stocké en clair dans le YAML</strong>. Il faudra définir cette variable d'environnement côté serveur.</div>
+      </div>
+    </div>
+
+    <div id="db-disabled-note" style="padding:14px;background:rgba(255,210,63,.06);border:1px solid rgba(255,210,63,.2);border-radius:8px">
+      <div style="font-size:.72rem;color:var(--accent);font-weight:600;margin-bottom:4px">ⓘ Pas de BD configurée</div>
+      <div style="font-size:.7rem;color:var(--mid)">Le YAML contiendra un placeholder TODO. Vos agents IA fonctionneront pour les questions générales mais ne pourront pas accéder à vos données métier tant que la BD ne sera pas configurée.</div>
+    </div>
+
+    <div class="step-nav">
+      <button class="btn-prev" onclick="goStep(4)">← Retour</button>
+      <button class="btn-next" onclick="goStep(6)">Suivant → Lancement</button>
+    </div>
+  </div>
+
+  <!-- ÉTAPE 6 — Lancement -->
+  <div class="step" id="step6">
     <div class="step-title">Prêt à <span>lancer</span></div>
     <div class="step-sub">Votre configuration est complète. Choisissez votre plan et démarrez.</div>
 
@@ -418,8 +482,8 @@ nav{height:56px;background:var(--s1);border-bottom:1px solid var(--b1);display:f
     </div>
 
     <div class="step-nav">
-      <button class="btn-prev" onclick="goStep(4)">← Retour</button>
-      <button class="btn-next" id="launch-btn" onclick="launch()">🚀 Créer mon organisation</button>
+      <button class="btn-prev" onclick="goStep(5)">← Retour</button>
+      <button class="btn-next" id="launch-btn" onclick="launch()">✓ Créer le tenant maintenant</button>
     </div>
   </div>
 
@@ -440,8 +504,9 @@ nav{height:56px;background:var(--s1);border-bottom:1px solid var(--b1);display:f
       </div>
 
       <div class="success-actions">
-        <a href="bizzi-dashboard.html" class="btn-success bs-primary">Ouvrir mon dashboard →</a>
-        <button class="btn-success bs-secondary" onclick="downloadYaml()">⬇ Télécharger le YAML</button>
+        <a href="https://dashboard.bizzi.fr/" class="btn-success bs-primary">Voir la console admin →</a>
+        <a href="bizzi-dashboard.html" class="btn-success bs-secondary">Mon dashboard</a>
+        <button class="btn-success bs-secondary" onclick="downloadYaml()">📥 Télécharger le YAML</button>
         <a href="bizzi-home.html" class="btn-success bs-secondary">← Retour au site</a>
       </div>
     </div>
@@ -540,6 +605,7 @@ const DOMAIN_DEFAULTS = {
 // ══════════════════════════════════════════════════════════════
 // NAVIGATION
 // ══════════════════════════════════════════════════════════════
+const TOTAL_STEPS = 6;
 function goStep(n) {
   if (n > currentStep + 1) return; // Pas de saut en avant
   document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
@@ -550,9 +616,30 @@ function goStep(n) {
   });
   const stepEl = document.getElementById('step' + n);
   if (stepEl) stepEl.classList.add('active');
-  document.getElementById('nav-step-info').textContent = `Étape ${n} sur 5`;
+  document.getElementById('nav-step-info').textContent = `Étape ${n} sur ${TOTAL_STEPS}`;
   currentStep = n;
   updateYaml();
+}
+
+// Toggle affichage des champs DB selon checkbox
+function toggleDbFields() {
+  const enabled = document.getElementById('db-enabled')?.checked;
+  document.getElementById('db-fields').style.display = enabled ? 'block' : 'none';
+  document.getElementById('db-disabled-note').style.display = enabled ? 'none' : 'block';
+  // pré-remplir defaults si vide
+  if (enabled) {
+    const slug = currentSlug();
+    const userEl = document.getElementById('db-user');
+    const envEl  = document.getElementById('db-password-env');
+    if (userEl && !userEl.value) userEl.placeholder = `bizzi_reader_${slug}`;
+    if (envEl && !envEl.value)   envEl.placeholder  = `BIZZI_${slug.toUpperCase().replace(/-/g,'_')}_DB_PASSWORD`;
+  }
+  updateYaml();
+}
+
+function currentSlug() {
+  const name = document.getElementById('org-name')?.value.trim() || 'mon-tenant';
+  return name.toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'').slice(0,31) || 'mon-tenant';
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -656,7 +743,7 @@ function toggleTool(el, tool) {
 // PLAN
 // ══════════════════════════════════════════════════════════════
 function selectPlan(plan, el) {
-  document.querySelectorAll('#step5 .domain-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('#step6 .domain-card').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
   selectedPlan = plan;
 }
@@ -677,9 +764,138 @@ function syncColor(val) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// GÉNÉRATION YAML
+// GÉNÉRATION YAML — NOUVEAU FORMAT (tenants/<slug>.yaml)
 // ══════════════════════════════════════════════════════════════
+// Construit le payload JSON envoyé à POST /api/admin/tenants/create
+// (le backend produit le YAML de référence). Côté front on génère
+// quand même un aperçu YAML lisible pour la preview en temps réel.
+
+function buildPayload() {
+  const name    = document.getElementById('org-name')?.value.trim()    || 'Mon Organisation';
+  const tagline = document.getElementById('org-tagline')?.value.trim() || '';
+  const slug    = currentSlug();
+  const domain  = selectedDomain || 'custom';
+  const def     = DOMAIN_DEFAULTS[domain] || DOMAIN_DEFAULTS.custom;
+
+  // Persona = role du premier agent + tagline si dispo
+  const firstAgent = agents.find(a => a.name) || agents[0] || { role: 'Conseiller', name: '' };
+  const persona = `${firstAgent.role || 'Conseiller'} ${name}` + (tagline ? ` — ${tagline}` : '');
+
+  // Description = description domaine ou custom-desc
+  const customDesc = document.getElementById('custom-desc')?.value.trim() || '';
+  const description = customDesc || `${name} — domaine ${domain}, ${def.content_unit || 'contenu'}.`;
+
+  // System prompt construit à partir des règles + agents
+  const customRulesRaw = document.getElementById('custom-rules')?.value || '';
+  const allRules = [...def.rules];
+  if (customRulesRaw.trim()) {
+    customRulesRaw.split('\n').filter(r=>r.trim()).forEach(r => {
+      if (!allRules.includes(r.trim())) allRules.push(r.trim());
+    });
+  }
+  const rulesBlock = allRules.map(r => `- ${r}`).join('\n');
+  const system_prompt =
+    `Tu es l'agent support de ${name}.\n` +
+    `{persona}\n` +
+    `Règles éditoriales :\n${rulesBlock}\n` +
+    `Réponds en français, concis (3-5 phrases), professionnel.`;
+
+  const payload = {
+    slug,
+    name,
+    domain,
+    description,
+    agent_persona: persona,
+    system_prompt,
+    llm_model: 'claude-haiku-4-5',
+    llm_max_tokens: 1024,
+    llm_temperature: 0.7,
+    rate_limit_max_per_day: 100,
+    rate_limit_max_tokens_per_day: 200000,
+    db_type: '',
+    db_host: '127.0.0.1',
+    db_port: 5432,
+    db_name: '',
+    db_user: '',
+    db_password_env: '',
+  };
+
+  // Étape DB : si checkbox cochée et nom de BD renseigné
+  const dbEnabled = document.getElementById('db-enabled')?.checked;
+  if (dbEnabled) {
+    const dbName = document.getElementById('db-name')?.value.trim() || '';
+    if (dbName) {
+      payload.db_type        = document.getElementById('db-type')?.value || 'postgres';
+      payload.db_host        = document.getElementById('db-host')?.value.trim() || '127.0.0.1';
+      payload.db_port        = parseInt(document.getElementById('db-port')?.value || '5432', 10);
+      payload.db_name        = dbName;
+      payload.db_user        = document.getElementById('db-user')?.value.trim() || '';
+      payload.db_password_env= document.getElementById('db-password-env')?.value.trim() || '';
+    }
+  }
+
+  return payload;
+}
+
 function generateYaml() {
+  const p = buildPayload();
+  const slug = p.slug;
+
+  // Construit l'aperçu YAML (lecture humaine — le fichier réel sera
+  // produit par le backend). Format strictement aligné avec
+  // tenant_db.registry (clés : tenant, metadata, db, queries).
+  const indent = (s, n) => s.split('\n').map(l => ' '.repeat(n) + l).join('\n');
+  const promptIndented = indent(p.system_prompt, 4);
+
+  let yaml = `# Tenant ${slug} — aperçu (sera créé via configurator)
+# Format scalable consommé par tenant_db.registry
+
+tenant: ${slug}
+metadata:
+  name: ${p.name}
+  domain: ${p.domain}
+  description: "${p.description.replace(/"/g,'\\"')}"
+  agent_persona: "${p.agent_persona.replace(/"/g,'\\"')}"
+  system_prompt: |
+${promptIndented}
+  llm:
+    model: ${p.llm_model}
+    max_tokens: ${p.llm_max_tokens}
+    temperature: ${p.llm_temperature}
+  rate_limit:
+    max_per_day: ${p.rate_limit_max_per_day}
+    max_tokens_per_day: ${p.rate_limit_max_tokens_per_day}
+
+db:
+`;
+
+  if (p.db_type && p.db_name) {
+    const userFinal = p.db_user || `bizzi_reader_${slug}`;
+    const envFinal  = p.db_password_env || `BIZZI_${slug.toUpperCase().replace(/-/g,'_')}_DB_PASSWORD`;
+    yaml += `  type: ${p.db_type}
+  host: ${p.db_host}
+  port: ${p.db_port}
+  name: ${p.db_name}
+  user: ${userFinal}
+  password_env: ${envFinal}
+`;
+  } else {
+    yaml += `  type: postgres
+  host: 127.0.0.1
+  port: 5432
+  name: TODO_${slug}_db
+  user: bizzi_reader_${slug}
+  password: TODO_PLACEHOLDER_ROTATE_ME  # ⚠️ à remplacer par password_env
+`;
+  }
+
+  yaml += `\nqueries: {}\n`;
+
+  return { yaml, slug, payload: p };
+}
+
+// Ancienne version conservée pour debug/comparaison (PAS appelée par le bouton final)
+function generateLegacyYaml() {
   const name    = document.getElementById('org-name')?.value.trim()    || 'Mon Organisation';
   const site    = document.getElementById('org-site')?.value.trim()    || 'https://monsite.fr';
   const email   = document.getElementById('org-email')?.value.trim()   || 'contact@monsite.fr';
@@ -688,10 +904,8 @@ function generateYaml() {
   const tz      = document.getElementById('org-tz')?.value             || 'Europe/Paris';
   const color   = document.getElementById('org-color-hex')?.value      || '#ffd23f';
   const schedule= document.getElementById('pipeline-schedule')?.value  || '0 */3 * * *';
-
   const domain  = selectedDomain || 'custom';
   const def     = DOMAIN_DEFAULTS[domain] || DOMAIN_DEFAULTS.custom;
-
   const customRulesRaw = document.getElementById('custom-rules')?.value || '';
   const allRules = [...def.rules];
   if (customRulesRaw.trim()) {
@@ -699,81 +913,8 @@ function generateYaml() {
       if (!allRules.includes(r.trim())) allRules.push(r.trim());
     });
   }
-
   const slug = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g,'-');
-
-  let yaml = `# ${slug}.yaml
-# Généré par Bizzi Configurator
-# Organisation : ${name}
-
-domain: ${domain}
-version: "1.0"
-
-identity:
-  name: "${name}"
-  tagline: "${tagline || name}"
-  language: ${lang}
-  timezone: ${tz}
-  site_url: ${site}
-  contact_email: ${email}
-
-agents:
-`;
-
-  agents.forEach(a => {
-    const agentName = a.name || `[Prénom NOM]`;
-    const agentSlug = agentName.toLowerCase().replace(/[^a-z]/g,'-').replace(/-+/g,'-');
-    yaml += `  - id: ${a.agentId}
-    title: "${a.role}"
-    role: ${getRoleFromId(a.agentId)}
-    required: true
-    name: "${agentName}"
-    email: ${agentSlug}@${getDomain(site)}
-    color: "${a.color}"
-${a.specialty ? `    specialty: "${a.specialty}"\n` : ''}    prompt_base: |
-      Tu es ${agentName}, ${a.role} de {org_name}.
-      Tu travailles avec rigueur et professionnalisme.
-      ${a.specialty ? `Ta spécialité : ${a.specialty}.` : ''}
-
-`;
-  });
-
-  yaml += `pipeline:
-  schedule: "${schedule}"
-  steps: [monitor, meeting, write, validate, publish, distribute]
-
-output:
-  type: ${def.content_unit}
-  word_count_min: 200
-  word_count_max: 800
-  validation_score_min: 75
-  formats: [twitter_thread, linkedin_post, facebook_post, newsletter]
-
-editorial_rules:
-`;
-  allRules.forEach(r => { yaml += `  - "${r}"\n`; });
-
-  yaml += `
-tools:
-  chat: ${activeTools.includes('chat')}
-  email: ${activeTools.includes('email')}
-  phone: ${activeTools.includes('phone')}
-  poster: ${activeTools.includes('poster')}
-  complaint: ${activeTools.includes('complaint')}
-  rgpd: ${activeTools.includes('rgpd')}
-
-ui:
-  primary_color: "${color}"
-  vocabulary:
-    content_unit: "${def.content_unit}"
-    content_units: "${def.content_unit}s"
-    producer: "${def.producer}"
-    validator: "${def.validator}"
-    meeting_room: "salle de réunion"
-    workspace: "bureau"
-    score_label: "score qualité"
-`;
-
+  let yaml = `# ${slug}.yaml (legacy)\ndomain: ${domain}\nversion: "1.0"\nidentity:\n  name: "${name}"\n  tagline: "${tagline || name}"\n  language: ${lang}\n  timezone: ${tz}\n  site_url: ${site}\n  contact_email: ${email}\n`;
   return { yaml, slug };
 }
 
@@ -827,39 +968,89 @@ function downloadYaml() {
 }
 
 // ══════════════════════════════════════════════════════════════
-// LANCEMENT
+// LANCEMENT — POST /api/admin/tenants/create (auto-dépôt YAML)
 // ══════════════════════════════════════════════════════════════
+const API_CREATE_URL = (location.hostname === 'bizzi.fr' || location.hostname === 'www.bizzi.fr')
+  ? 'https://bizzi.fr/api/admin/tenants/create'
+  : '/api/admin/tenants/create'; // fallback même origine en dev
+
 async function launch() {
   const btn = document.getElementById('launch-btn');
   btn.disabled = true;
   btn.textContent = '⟳ Création en cours...';
 
-  const { yaml, slug } = generateYaml();
-  const name  = document.getElementById('org-name')?.value.trim() || 'Mon Organisation';
-  const email = document.getElementById('billing-email')?.value.trim() || document.getElementById('org-email')?.value.trim() || '';
+  const { yaml, slug, payload } = generateYaml();
+  const name = payload.name;
 
-  // Simuler l'appel API (en prod : POST /api/tenant/create)
-  await new Promise(r => setTimeout(r, 2000));
+  // Validation slug côté front (même regex que le backend)
+  if (!/^[a-z][a-z0-9-]{1,30}$/.test(slug)) {
+    btn.disabled = false;
+    btn.textContent = '✓ Créer le tenant maintenant';
+    alert(`Slug invalide : "${slug}".\nRenomme l'organisation pour qu'elle commence par une lettre minuscule (2-31 caractères, lettres/chiffres/tirets).`);
+    return;
+  }
 
+  let resp, data;
+  try {
+    resp = await fetch(API_CREATE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    data = await resp.json().catch(() => ({}));
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = '✓ Créer le tenant maintenant';
+    showError(`Erreur réseau : ${e.message}. Tu peux quand même télécharger le YAML manuellement.`, true);
+    return;
+  }
+
+  if (resp.status === 409) {
+    btn.disabled = false;
+    btn.textContent = '✓ Créer le tenant maintenant';
+    showError(`Le slug "${slug}" existe déjà. Renomme ton organisation pour obtenir un slug différent.`, false);
+    return;
+  }
+  if (!resp.ok || !data.success) {
+    btn.disabled = false;
+    btn.textContent = '✓ Créer le tenant maintenant';
+    const msg = (data && (data.detail || data.message)) || `HTTP ${resp.status}`;
+    showError(`Erreur backend : ${msg}`, true);
+    return;
+  }
+
+  // Succès → affichage écran final
   const token = slug + '-' + Math.random().toString(36).slice(2,10).toUpperCase();
+  try {
+    localStorage.setItem('core_tenant_slug', slug);
+    localStorage.setItem('core_tenant_yaml', yaml);
+    localStorage.setItem('bizzi_config', JSON.stringify({
+      name, domain: selectedDomain,
+      color: document.getElementById('org-color-hex')?.value,
+      plan: selectedPlan, token, slug,
+    }));
+  } catch (_) {}
 
-  // Sauvegarder localement
-  localStorage.setItem('core_tenant_token', token);
-  localStorage.setItem('core_tenant_slug',  slug);
-  localStorage.setItem('core_tenant_yaml',  yaml);
-  localStorage.setItem('bizzi_config', JSON.stringify({
-    name, domain: selectedDomain, color: document.getElementById('org-color-hex')?.value,
-    plan: selectedPlan, token,
-  }));
-
-  // Afficher le succès
   document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.pstep').forEach(ps => ps.classList.add('done'));
   document.getElementById('step-success').classList.add('active');
   document.getElementById('success-token').textContent = token;
-  document.getElementById('success-domain').textContent = `domains/${slug}.yaml`;
-  document.getElementById('success-msg').textContent =
-    `${name} est configurée et opérationnelle. Vos ${agents.filter(a=>a.name).length || agents.length} agents sont prêts.`;
+  document.getElementById('success-domain').textContent = data.path || `tenants/${slug}.yaml`;
+  document.getElementById('success-msg').innerHTML =
+    `Tenant <strong style="color:var(--accent)">${slug}</strong> créé ! Visible immédiatement sur la console admin.<br><span style="font-size:.78rem;color:var(--mid)">${agents.filter(a=>a.name).length || agents.length} agents configurés.</span>`;
+}
+
+function showError(msg, allowFallback) {
+  // Affiche un bandeau d'erreur sous le bouton de l'étape 6
+  let el = document.getElementById('launch-error');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'launch-error';
+    el.style.cssText = 'margin-top:14px;padding:14px;background:rgba(255,80,80,.08);border:1px solid rgba(255,80,80,.3);border-radius:8px;color:#ff8080;font-size:.78rem';
+    const step6 = document.getElementById('step6');
+    if (step6) step6.appendChild(el);
+  }
+  el.innerHTML = `${msg}` + (allowFallback ? `<br><br><button class="btn-success bs-secondary" style="margin-top:6px" onclick="downloadYaml()">📥 Télécharger le YAML manuellement</button>` : '');
 }
 
 // ══════════════════════════════════════════════════════════════
