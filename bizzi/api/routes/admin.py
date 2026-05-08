@@ -1,311 +1,381 @@
-"""api/routes/admin.py — Endpoints admin Bizzi"""
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy import func, case
-from datetime import datetime, timedelta
-from database.models import Tenant, Agent, Production, PipelineRun
-from database.models import ProductionStatus, PipelineStatus, AgentStatus
+"""api/routes/admin.py — Endpoints admin Bizzi (vrais tenants).
+
+Lecture des stats depuis le log JSON Lines /var/log/bizzi-chat.log.
+Liste des tenants depuis tenant_db.list_tenants() (yaml dans /opt/bizzi/bizzi/tenants/).
+
+Wiring (dans api/main.py) :
+    from api.routes import admin as admin_routes
+    app.include_router(admin_routes.router, prefix="/api/admin", tags=["Admin"])
+
+Note : un module `admin_usage.py` séparé monte aussi sur /api/admin (routes
+/usage_stats, /usage_recent). Aucun conflit de chemin avec celles définies ici.
+"""
+from __future__ import annotations
+
+import json
+import logging
+import re
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any
+
+import yaml as _yaml
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, Field
+
+try:
+    from tenant_db import list_tenants, load_tenant
+except Exception:  # pragma: no cover
+    list_tenants = lambda: []
+    load_tenant = lambda slug: None
 
 router = APIRouter()
+logger = logging.getLogger("api.routes.admin")
 
-# En prod → injecter la session DB via Depends
-# Ici on utilise un mock pour la démo
-def get_db():
-    pass
+CHAT_LOG_PATH = Path("/var/log/bizzi-chat.log")
+TENANTS_DIR = Path("/opt/bizzi/bizzi/tenants")
+SLUG_RE = re.compile(r"^[a-z][a-z0-9-]{1,30}$")
 
 
-# ── STATS GLOBALES ────────────────────────────────────────────
+# ── Helpers ──────────────────────────────────────────────────────────
+
+def _parse_ts(s: str) -> datetime | None:
+    if not s:
+        return None
+    try:
+        # Supporte "...+00:00" et "...Z"
+        s2 = s.replace("Z", "+00:00")
+        return datetime.fromisoformat(s2)
+    except Exception:
+        return None
+
+
+def _read_chat_log() -> list[dict[str, Any]]:
+    """Parse le log JSON Lines. Retourne liste vide si absent/illisible."""
+    if not CHAT_LOG_PATH.exists():
+        return []
+    rows: list[dict[str, Any]] = []
+    try:
+        with CHAT_LOG_PATH.open("r", encoding="utf-8", errors="replace") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    rows.append(json.loads(line))
+                except Exception:
+                    continue
+    except Exception as e:
+        logger.warning(f"chat log unreadable: {e}")
+        return []
+    return rows
+
+
+def _is_today(ts_str: str, now: datetime) -> bool:
+    ts = _parse_ts(ts_str)
+    if ts is None:
+        return False
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=timezone.utc)
+    return (now - ts) <= timedelta(hours=24)
+
+
+def _row_cost(row: dict[str, Any]) -> float:
+    # accepte "cost" ou "cost_estimated"
+    v = row.get("cost")
+    if v is None:
+        v = row.get("cost_estimated", 0.0)
+    try:
+        return float(v or 0.0)
+    except Exception:
+        return 0.0
+
+
+def _row_tools_called(row: dict[str, Any]) -> int:
+    tc = row.get("tools_called") or []
+    if isinstance(tc, list):
+        return len(tc)
+    if isinstance(tc, int):
+        return tc
+    return 0
+
+
+def _safe_int(v: Any, default: int = 0) -> int:
+    try:
+        return int(v)
+    except Exception:
+        return default
+
+
+# ── /stats/global ────────────────────────────────────────────────────
 
 @router.get("/stats/global")
 async def global_stats():
-    """
-    Stats globales pour la vue d'ensemble admin.
-    Retourne : clients actifs, MRR, productions, poubelle, alertes, uptime.
-    """
-    # En prod : requêtes SQL réelles
-    # SELECT COUNT(*) FROM tenants WHERE is_active = true
-    # SELECT SUM(mrr) FROM tenants WHERE is_active = true
-    # SELECT COUNT(*) FROM productions WHERE created_at >= date_trunc('month', now())
-    # SELECT COUNT(*) FROM productions WHERE status = 'trashed' AND ...
+    rows = _read_chat_log()
+    now = datetime.now(timezone.utc)
+    tenants_all = list_tenants() or []
+
+    messages_total = len(rows)
+    messages_today = 0
+    tokens_in_total = 0
+    tokens_out_total = 0
+    cost_total_usd = 0.0
+    cost_today_usd = 0.0
+    tools_called_total = 0
+    duration_sum = 0
+    duration_count = 0
+    active_today_set: set[str] = set()
+
+    for r in rows:
+        tin = _safe_int(r.get("input_tokens"))
+        tout = _safe_int(r.get("output_tokens"))
+        tokens_in_total += tin
+        tokens_out_total += tout
+        c = _row_cost(r)
+        cost_total_usd += c
+        tools_called_total += _row_tools_called(r)
+        d = _safe_int(r.get("duration_ms"))
+        if d > 0:
+            duration_sum += d
+            duration_count += 1
+        ts_str = r.get("ts") or r.get("timestamp") or ""
+        if _is_today(ts_str, now):
+            messages_today += 1
+            cost_today_usd += c
+            t = r.get("tenant")
+            if t:
+                active_today_set.add(t)
+
+    avg_duration_ms = int(duration_sum / duration_count) if duration_count else 0
 
     return {
-        "tenants_active":      9,
-        "tenants_new_month":   2,
-        "mrr":                 5218,
-        "mrr_growth":          398,
-        "productions_month":   1847,
-        "productions_growth":  340,
-        "trashed_month":       124,
-        "trashed_pct":         6.7,
-        "alerts_active":       2,
-        "uptime_pct":          99.8,
-        "agents_active":       56,
-        "pipeline_running":    1,
+        "tenants_total":       len(tenants_all),
+        "tenants_active_today": len(active_today_set),
+        "messages_total":      messages_total,
+        "messages_today":      messages_today,
+        "tokens_in_total":     tokens_in_total,
+        "tokens_out_total":    tokens_out_total,
+        "cost_total_usd":      round(cost_total_usd, 6),
+        "cost_today_usd":      round(cost_today_usd, 6),
+        "tools_called_total":  tools_called_total,
+        "avg_duration_ms":     avg_duration_ms,
     }
 
 
-# ── STATS PAR TENANT ─────────────────────────────────────────
+# ── /stats/tenants ───────────────────────────────────────────────────
 
 @router.get("/stats/tenants")
 async def all_tenants_stats():
-    """
-    Stats de tous les clients pour le tableau de l'admin.
-    Retourne uniquement des métriques — pas de contenu.
-    """
-    # En prod :
-    # SELECT t.*, 
-    #   COUNT(p.id) FILTER (WHERE p.status = 'published') as prod_published,
-    #   COUNT(p.id) FILTER (WHERE p.status = 'trashed') as prod_trashed,
-    #   AVG(p.qa_score) as avg_score,
-    #   COUNT(a.id) FILTER (WHERE a.status = 'active') as agents_active
-    # FROM tenants t
-    # LEFT JOIN productions p ON p.tenant_id = t.id AND p.created_at >= date_trunc('month', now())
-    # LEFT JOIN agents a ON a.tenant_id = t.id
-    # GROUP BY t.id
+    rows = _read_chat_log()
+    now = datetime.now(timezone.utc)
 
-    return {
-        "tenants": [
-            {
-                "slug":           "les-democrates",
-                "name":           "Les Démocrates",
-                "domain":         "politics",
-                "plan":           "pro",
-                "color":          "#D6140D",
-                "site":           "lesdemocrates.org",
-                "productions":    284,
-                "trashed":        18,
-                "trashed_pct":    6.3,
-                "agents_active":  6,
-                "agents_total":   6,
-                "avg_score":      87.0,
-                "status":         "ok",
-                "mrr":            299,
-                "pipeline_status":"scheduled",
-                "last_run":       "Il y a 2h",
-            },
-            {
-                "slug":           "onyx-news",
-                "name":           "Onyx-news",
-                "domain":         "media",
-                "plan":           "pro",
-                "color":          "#00c896",
-                "site":           "onyx-news.fr",
-                "productions":    512,
-                "trashed":        31,
-                "trashed_pct":    6.1,
-                "agents_active":  10,
-                "agents_total":   10,
-                "avg_score":      81.0,
-                "status":         "ok",
-                "mrr":            299,
-                "pipeline_status":"completed",
-                "last_run":       "Il y a 2min",
-            },
-            {
-                "slug":           "groupe-helios",
-                "name":           "Groupe Helios",
-                "domain":         "diagnostic",
-                "plan":           "business",
-                "color":          "#f59e0b",
-                "site":           "groupe-helios.fr",
-                "productions":    198,
-                "trashed":        9,
-                "trashed_pct":    4.5,
-                "agents_active":  12,
-                "agents_total":   12,
-                "avg_score":      90.0,
-                "status":         "ok",
-                "mrr":            699,
-                "pipeline_status":"scheduled",
-                "last_run":       "Hier",
-            },
-            {
-                "slug":           "le-reseau-local",
-                "name":           "Le Réseau Local",
-                "domain":         "media",
-                "plan":           "enterprise",
-                "color":          "#00c896",
-                "site":           "reseaulocal.info",
-                "productions":    892,
-                "trashed":        54,
-                "trashed_pct":    6.1,
-                "agents_active":  15,
-                "agents_total":   15,
-                "avg_score":      79.0,
-                "status":         "ok",
-                "mrr":            2926,
-                "pipeline_status":"running",
-                "last_run":       "En cours",
-            },
-            {
-                "slug":           "cabinet-mercier",
-                "name":           "Cabinet Mercier",
-                "domain":         "diagnostic",
-                "plan":           "starter",
-                "color":          "#3b82f6",
-                "site":           "cabinet-mercier.fr",
-                "productions":    127,
-                "trashed":        4,
-                "trashed_pct":    3.1,
-                "agents_active":  3,
-                "agents_total":   3,
-                "avg_score":      92.0,
-                "status":         "ok",
-                "mrr":            99,
-                "pipeline_status":"completed",
-                "last_run":       "Il y a 1h",
-            },
-            {
-                "slug":           "mairie-valbonne",
-                "name":           "Mairie de Valbonne",
-                "domain":         "custom",
-                "plan":           "pro",
-                "color":          "#4a5070",
-                "site":           "valbonne.fr",
-                "productions":    43,
-                "trashed":        5,
-                "trashed_pct":    11.6,
-                "agents_active":  5,
-                "agents_total":   7,
-                "avg_score":      74.0,
-                "status":         "warn",
-                "mrr":            299,
-                "pipeline_status":"error",
-                "last_run":       "Erreur mail",
-            },
-            {
-                "slug":           "cabinet-fontaine",
-                "name":           "Cabinet Fontaine",
-                "domain":         "diagnostic",
-                "plan":           "starter",
-                "color":          "#e02d2d",
-                "site":           "fontaine-expert.fr",
-                "productions":    31,
-                "trashed":        8,
-                "trashed_pct":    25.8,
-                "agents_active":  2,
-                "agents_total":   2,
-                "avg_score":      68.0,
-                "status":         "warn",
-                "mrr":            99,
-                "pipeline_status":"slow",
-                "last_run":       "Ollama lent 45s",
-            },
-        ]
-    }
+    # Pré-calcule un index par tenant pour ne parcourir le log qu'une fois
+    by_tenant: dict[str, dict[str, Any]] = {}
+    for r in rows:
+        slug = r.get("tenant") or "unknown"
+        bucket = by_tenant.setdefault(slug, {
+            "messages_total": 0,
+            "messages_today": 0,
+            "tokens_in_total": 0,
+            "tokens_out_total": 0,
+            "cost_total_usd": 0.0,
+            "cost_today_usd": 0.0,
+        })
+        bucket["messages_total"] += 1
+        bucket["tokens_in_total"] += _safe_int(r.get("input_tokens"))
+        bucket["tokens_out_total"] += _safe_int(r.get("output_tokens"))
+        c = _row_cost(r)
+        bucket["cost_total_usd"] += c
+        ts_str = r.get("ts") or r.get("timestamp") or ""
+        if _is_today(ts_str, now):
+            bucket["messages_today"] += 1
+            bucket["cost_today_usd"] += c
+
+    out: list[dict[str, Any]] = []
+    for slug in (list_tenants() or []):
+        # Charge le YAML/config tenant
+        name = slug
+        domain = ""
+        model = ""
+        queries_count = 0
+        plan = "pro"
+        try:
+            prov = load_tenant(slug)
+            cfg = getattr(prov, "config", None) or prov
+            md = getattr(cfg, "metadata", {}) or {}
+            name = md.get("name", slug)
+            domain = md.get("domain", "")
+            llm = getattr(cfg, "llm", None)
+            model = getattr(llm, "model", "") if llm else (md.get("llm", {}) or {}).get("model", "")
+            queries = getattr(cfg, "queries", {}) or {}
+            queries_count = len(queries)
+            plan = md.get("plan", "pro")
+        except Exception as e:
+            logger.warning(f"tenant load failed for {slug}: {e}")
+            # Fallback : lit directement le YAML (utile pour tenants
+            # nouvellement créés dont la DB password env n'est pas encore set).
+            try:
+                yaml_path = TENANTS_DIR / f"{slug}.yaml"
+                if yaml_path.exists():
+                    raw = _yaml.safe_load(yaml_path.read_text(encoding="utf-8")) or {}
+                    md = raw.get("metadata", {}) or {}
+                    name = md.get("name", slug)
+                    domain = md.get("domain", "")
+                    model = (md.get("llm", {}) or {}).get("model", "")
+                    queries_count = len(raw.get("queries", {}) or {})
+                    plan = md.get("plan", "pro")
+            except Exception as e2:
+                logger.warning(f"tenant YAML fallback failed for {slug}: {e2}")
+
+        b = by_tenant.get(slug, {})
+        messages_total = int(b.get("messages_total", 0))
+        messages_today = int(b.get("messages_today", 0))
+
+        # Statut basique : actif si activité 24h, warning si jamais de message, sinon active
+        if messages_today > 0:
+            status = "active"
+        elif messages_total > 0:
+            status = "active"
+        else:
+            status = "warning"
+
+        out.append({
+            "slug":             slug,
+            "name":             name,
+            "domain":           domain,
+            "status":           status,
+            "plan":             plan,
+            "messages_total":   messages_total,
+            "messages_today":   messages_today,
+            "tokens_in_total":  int(b.get("tokens_in_total", 0)),
+            "tokens_out_total": int(b.get("tokens_out_total", 0)),
+            "cost_total_usd":   round(float(b.get("cost_total_usd", 0.0)), 6),
+            "cost_today_usd":   round(float(b.get("cost_today_usd", 0.0)), 6),
+            "queries_count":    queries_count,
+            "model":            model,
+            "created_at":       None,
+        })
+
+    out.sort(key=lambda t: t["messages_total"], reverse=True)
+    return {"tenants": out, "total": len(out)}
 
 
-# ── STATS D'UN TENANT ─────────────────────────────────────────
+# ── /tenants/create ──────────────────────────────────────────────────
+# Sprint 3 : auto-dépôt YAML scalable via configurator (pas de code spécifique tenant).
 
-@router.get("/stats/tenant/{slug}")
-async def tenant_stats(slug: str):
-    """
-    Stats détaillées d'un client.
-    Métriques uniquement — pas de contenu (chiffré côté client).
-    """
-    # En prod : requête SQL sur le tenant + ses agents + ses productions
+class TenantCreate(BaseModel):
+    slug: str = Field(..., pattern=r"^[a-z][a-z0-9-]{1,30}$")
+    name: str
+    domain: str  # media|politics|diagnostic|travel|custom|...
+    description: str = ""
+    agent_persona: str
+    system_prompt: str = ""  # peut être vide → backend met un défaut
+    llm_model: str = "claude-haiku-4-5"
+    llm_max_tokens: int = 1024
+    llm_temperature: float = 0.7
+    rate_limit_max_per_day: int = 100
+    rate_limit_max_tokens_per_day: int = 200000
+    # Connexion DB (facultative)
+    db_type: str = ""  # "" si pas configuré, sinon "postgres"
+    db_host: str = "127.0.0.1"
+    db_port: int = 5432
+    db_name: str = ""
+    db_user: str = ""
+    db_password_env: str = ""  # nom de la variable env
 
-    return {
-        "slug":          slug,
-        "productions": {
-            "total":     284,
-            "published": 248,
-            "pending":   18,
-            "trashed":   18,
-            "trashed_pct": 6.3,
+
+@router.post("/tenants/create")
+async def create_tenant(payload: TenantCreate):
+    # 1. validation slug + non-collision
+    if not SLUG_RE.match(payload.slug):
+        raise HTTPException(400, f"slug invalide '{payload.slug}' (regex: ^[a-z][a-z0-9-]{{1,30}}$)")
+    target = TENANTS_DIR / f"{payload.slug}.yaml"
+    if target.exists():
+        raise HTTPException(409, f"tenant '{payload.slug}' existe déjà")
+
+    # 2. construction du YAML structuré
+    default_prompt = (
+        f"Tu es l'agent support de {payload.name}.\n"
+        "{persona}\n"
+        "Réponds en français, concis (3-5 phrases), professionnel."
+    )
+    metadata = {
+        "name": payload.name,
+        "domain": payload.domain,
+        "description": payload.description or f"Tenant {payload.slug}",
+        "agent_persona": payload.agent_persona,
+        "system_prompt": payload.system_prompt or default_prompt,
+        "llm": {
+            "model": payload.llm_model,
+            "max_tokens": payload.llm_max_tokens,
+            "temperature": payload.llm_temperature,
         },
-        "quality": {
-            "avg_score":   87.0,
-            "score_trend": "+4 pts ce mois",
-            "qa_passed":   266,
-            "qa_rejected": 18,
-            "rejection_rate": 6.3,
+        "rate_limit": {
+            "max_per_day": payload.rate_limit_max_per_day,
+            "max_tokens_per_day": payload.rate_limit_max_tokens_per_day,
         },
-        "agents": [
-            {"name":"Pascal RÉPIR",  "role":"Président",        "status":"active", "productions":0,   "score":None, "color":"#6a0572", "initials":"P"},
-            {"name":"Karim BOUCHRA", "role":"Porte-parole",     "status":"active", "productions":0,   "score":87.0, "color":"#374151", "initials":"K"},
-            {"name":"Lucas MARTIN",  "role":"Analyste national","status":"active", "productions":142, "score":88.0, "color":"#023e8a", "initials":"L"},
-            {"name":"Alice ROY",     "role":"Analyste local",   "status":"active", "productions":98,  "score":85.0, "color":"#2d6a4f", "initials":"A"},
-            {"name":"Sico DIA",      "role":"Community Manager","status":"active", "productions":44,  "score":91.0, "color":"#e91e8c", "initials":"S"},
-            {"name":"Émile LEFÈVRE", "role":"Juriste",          "status":"idle",   "productions":0,   "score":None, "color":"#4a5070", "initials":"E"},
-        ],
-        "pipeline": {
-            "status":      "scheduled",
-            "last_run":    "Il y a 2h",
-            "next_run":    "Dans 1h 23min",
-            "avg_duration_sec": 187,
-            "runs_month":  240,
-        },
-        "activity": [
-            {"type":"pipeline",   "label":"Pipeline terminé · 8 productions · score moy. 87",   "time":"Il y a 2h"},
-            {"type":"production", "label":"18 productions en attente de validation",              "time":"Il y a 2h"},
-            {"type":"trash",      "label":"3 productions mises à la poubelle · score < 70",      "time":"Il y a 4h"},
-            {"type":"pipeline",   "label":"Pipeline terminé · 6 productions · score moy. 84",   "time":"Hier"},
-        ]
     }
 
-
-# ── STATS AGENTS D'UN TENANT ─────────────────────────────────
-
-@router.get("/stats/tenant/{slug}/agents")
-async def tenant_agents(slug: str):
-    """Statut de chaque agent d'un client."""
-    # En prod : SELECT * FROM agents WHERE tenant_id = ...
-    return {
-        "slug":   slug,
-        "agents": [
-            {"name":"Pascal RÉPIR",  "role":"Président",        "status":"active", "last_active":"Il y a 5min",  "color":"#6a0572", "initials":"P"},
-            {"name":"Karim BOUCHRA", "role":"Porte-parole",     "status":"active", "last_active":"Il y a 2h",    "color":"#374151", "initials":"K"},
-            {"name":"Lucas MARTIN",  "role":"Analyste",         "status":"active", "last_active":"Il y a 2h",    "color":"#023e8a", "initials":"L"},
-            {"name":"Alice ROY",     "role":"Analyste local",   "status":"active", "last_active":"Il y a 3h",    "color":"#2d6a4f", "initials":"A"},
-            {"name":"Sico DIA",      "role":"Community Manager","status":"active", "last_active":"Il y a 1h",    "color":"#e91e8c", "initials":"S"},
-            {"name":"Émile LEFÈVRE", "role":"Juriste",          "status":"idle",   "last_active":"Il y a 3 jours","color":"#4a5070","initials":"E"},
-        ]
+    yaml_data: dict[str, Any] = {
+        "tenant": payload.slug,
+        "metadata": metadata,
     }
 
+    # 3. db facultatif
+    if payload.db_type and payload.db_name:
+        yaml_data["db"] = {
+            "type": payload.db_type,
+            "host": payload.db_host,
+            "port": payload.db_port,
+            "name": payload.db_name,
+            "user": payload.db_user or f"bizzi_reader_{payload.slug}",
+            "password_env": payload.db_password_env or f"BIZZI_{payload.slug.upper().replace('-', '_')}_DB_PASSWORD",
+        }
+    else:
+        # Placeholder direct (pas password_env) pour que tenant_db.registry ne crash pas au boot.
+        yaml_data["db"] = {
+            "type": "postgres",
+            "host": "127.0.0.1",
+            "port": 5432,
+            "name": f"TODO_{payload.slug}_db",
+            "user": f"bizzi_reader_{payload.slug}",
+            "password": "TODO_PLACEHOLDER_ROTATE_ME",
+        }
+    yaml_data["queries"] = {}
 
-# ── ALERTES ───────────────────────────────────────────────────
+    # 4. écriture
+    yaml_text = _yaml.dump(
+        yaml_data,
+        sort_keys=False,
+        allow_unicode=True,
+        default_flow_style=False,
+    )
+    header = (
+        f"# Tenant {payload.slug} — créé via configurator le "
+        f"{datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}\n"
+        f"# Format scalable consommé par tenant_db.registry\n\n"
+    )
+    try:
+        TENANTS_DIR.mkdir(parents=True, exist_ok=True)
+        target.write_text(header + yaml_text, encoding="utf-8")
+    except Exception as e:
+        logger.error(f"écriture tenant {payload.slug} échouée: {e}")
+        raise HTTPException(500, f"impossible d'écrire le fichier tenant: {e}")
 
-@router.get("/alerts")
-async def get_alerts():
-    """Liste des alertes actives sur tous les tenants."""
+    # 5. invalidation cache tenant_db si déjà chargé
+    try:
+        from tenant_db.registry import _CACHE  # type: ignore
+        _CACHE.pop(payload.slug, None)
+    except Exception:
+        pass
+
     return {
-        "alerts": [
-            {
-                "id":       1,
-                "tenant":   "Mairie de Valbonne",
-                "slug":     "mairie-valbonne",
-                "type":     "mail_config",
-                "severity": "warning",
-                "message":  "Aucune boîte IMAP configurée · distribution bloquée",
-                "since":    "Il y a 2 jours",
-            },
-            {
-                "id":       2,
-                "tenant":   "Cabinet Fontaine",
-                "slug":     "cabinet-fontaine",
-                "type":     "ollama_slow",
-                "severity": "warning",
-                "message":  "Latence Ollama 45s · normale < 8s",
-                "since":    "Il y a 3h",
-            },
-        ]
-    }
-
-
-# ── PIPELINES ─────────────────────────────────────────────────
-
-@router.get("/pipelines")
-async def get_pipelines():
-    """État des pipelines de tous les tenants."""
-    return {
-        "pipelines": [
-            {"tenant":"Le Réseau Local",   "status":"running",   "step":"7/10 · validation", "duration":"3min 14s"},
-            {"tenant":"Les Démocrates",    "status":"scheduled", "step":"Dans 1h 23min",      "duration":"—"},
-            {"tenant":"Onyx-news",         "status":"completed", "step":"8 productions · 81", "duration":"4min 38s"},
-            {"tenant":"Groupe Helios",     "status":"scheduled", "step":"Pipeline 8h00",      "duration":"—"},
-            {"tenant":"Cabinet Mercier",   "status":"completed", "step":"3 rapports envoyés", "duration":"2min 11s"},
-            {"tenant":"Mairie de Valbonne","status":"error",     "step":"IMAP non configuré", "duration":"—"},
-            {"tenant":"Cabinet Fontaine",  "status":"slow",      "step":"Ollama 45s",         "duration":"+45s"},
-        ]
+        "success": True,
+        "slug": payload.slug,
+        "path": str(target),
+        "yaml_preview": yaml_text[:500],
+        "next_step": (
+            "Tenant visible immédiatement dans /api/admin/stats/tenants. "
+            "Configurer queries/DB plus tard pour activer les tools."
+        ),
     }
