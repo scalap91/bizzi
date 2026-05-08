@@ -87,6 +87,32 @@ class MeetingRoom:
                 return agent
         return None
 
+    def _get_verifier(self):
+        for agent in self.agents:
+            if agent.role == "verification" and agent.status == "active":
+                return agent
+        return None
+
+    def _team_brief(self) -> str:
+        lines = []
+        for a in self.agents:
+            if a.status != "active":
+                continue
+            spec = f" — {a.specialty}" if a.specialty else ""
+            lines.append(f"  • {a.name} ({a.title}{spec})")
+        return "Équipe présente :\n" + "\n".join(lines)
+
+    def _match_producer(self, topic: str, producers: list, taken: set):
+        topic_low = topic.lower()
+        free = [p for p in producers if p.slug not in taken]
+        if not free:
+            return None
+        for p in free:
+            spec_words = [w.lower() for w in (p.specialty or "").split() if len(w) >= 4]
+            if any(w in topic_low for w in spec_words):
+                return p
+        return free[0]
+
     def _get_producers(self):
         """Trouve tous les agents de production actifs."""
         return [a for a in self.agents if a.role == "production" and a.status == "active"]
@@ -106,107 +132,121 @@ class MeetingRoom:
             MeetingReport avec transcript et décisions
         """
         start = datetime.utcnow()
-        messages   = []
-        decisions  = []
+        agenda = agenda or []
+        messages    = []
+        decisions   = []
         assignments = {}
 
-        director   = self._get_director()
-        validator  = self._get_validator()
+        director    = self._get_director()
+        validator   = self._get_validator()
         distributor = self._get_distributor()
-        producers  = self._get_producers()
-        absent     = self._get_absent()
+        verifier    = self._get_verifier()
+        producers   = self._get_producers()
+        absent      = self._get_absent()
 
-        org       = self.domain.name
-        vocab     = self.vocab
-        content   = vocab.content_unit
-        contents  = vocab.content_units
+        org   = self.domain.name
+        vocab = self.vocab
+        team_brief = self._team_brief()
 
         logger.info(
-            f"[{vocab.meeting_room.upper()}] Démarrage · {org} · "
-            f"{len(producers)} {vocab.producers} actifs · "
+            f"[{vocab.meeting_room.upper()}] {org} · "
+            f"{len(producers)} {vocab.producers} · "
+            f"{1 if validator else 0} validateur · "
+            f"{1 if verifier else 0} vérificateur · "
             f"{len(absent)} absents"
         )
 
-        # ── 1. Ouverture par le directeur ─────────────────────
+        # ── 1. Direction : ouverture ─────────────────────────────
         if director:
             ctx = (
-                f"Tu ouvres la réunion de {org}. "
-                f"Sujets à l'ordre du jour : {', '.join(agenda) if agenda else 'revue générale'}. "
-                f"{len(absent)} membres absents. "
-                f"Sois bref et direct. 2-3 phrases."
+                f"{team_brief}\n\n"
+                f"Tu ouvres la conférence de rédaction de {org}. "
+                f"Ordre du jour : {', '.join(agenda) if agenda else 'revue générale'}. "
+                f"Salue brièvement et donne le ton (3-4 phrases max)."
             )
             speech = await director.speak(ctx)
             if speech:
                 messages.append(MeetingMessage(
-                    speaker = director.name,
-                    role    = director.title,
-                    content = speech,
-                ))
+                    speaker=director.name, role=director.title, content=speech))
 
-        # ── 2. Le distributeur présente les tendances / actualités ──
+        # ── 2. Distribution : tendances ──────────────────────────
         if distributor:
             ctx = (
-                f"Tu présentes les dernières tendances et actualités pertinentes pour {org}. "
-                f"Tu recommandes les sujets prioritaires. 2-3 phrases."
+                f"Tu fais le point sur les tendances réseaux et signaux faibles "
+                f"que tu as captés ce matin pour {org}. "
+                f"Cite 2 ou 3 tendances précises. 3-4 phrases max."
             )
             speech = await distributor.speak(ctx)
             if speech:
                 messages.append(MeetingMessage(
-                    speaker = distributor.name,
-                    role    = distributor.title,
-                    content = speech,
-                ))
+                    speaker=distributor.name, role=distributor.title, content=speech))
 
-        # ── 3. Le validateur tranche les priorités ────────────
-        if validator and agenda:
-            for topic in agenda[:3]:
-                ctx = (
-                    f"Tu décides qui traite '{topic}' et avec quel angle. "
-                    f"Assigne un {vocab.producer} et fixe la priorité. 1-2 phrases."
-                )
-                speech = await validator.speak(ctx)
-                if speech:
-                    messages.append(MeetingMessage(
-                        speaker = validator.name,
-                        role    = validator.title,
-                        content = speech,
-                    ))
-                    # Assigner au premier producteur disponible
-                    if producers and topic not in assignments.values():
-                        producer = producers[len(assignments) % len(producers)]
-                        assignments[producer.slug] = topic
-                        decisions.append(f"{producer.name} → {topic}")
+        # ── 3. Pré-assignation algorithmique des sujets ──────────
+        taken = set()
+        for topic in agenda:
+            p = self._match_producer(topic, producers, taken)
+            if p:
+                assignments[p.slug] = topic
+                decisions.append(f"{p.name} → {topic}")
+                taken.add(p.slug)
 
-        # ── 4. Les producteurs répondent ──────────────────────
-        for producer in producers[:3]:
-            assigned = assignments.get(producer.slug, "")
+        # ── 4. Validation : Victor distribue (sans inventer) ─────
+        if validator and assignments:
+            assignment_lines = "\n".join([
+                f"  • {topic} → {next((p.name for p in producers if p.slug == slug), slug)}"
+                for slug, topic in assignments.items()
+            ])
             ctx = (
-                f"Tu confirmes ta prise en charge"
-                f"{f' de : {assigned}' if assigned else ''}. "
-                f"Tu mentionnes brièvement ton angle ou tes ressources. 1-2 phrases."
+                f"{team_brief}\n\n"
+                f"Voici les assignations qui viennent d'être actées :\n{assignment_lines}\n\n"
+                f"Pour chaque assignation, indique en UNE phrase l'angle attendu et la priorité. "
+                f"N'invente AUCUN nom de journaliste : utilise UNIQUEMENT les noms ci-dessus."
+            )
+            speech = await validator.speak(ctx)
+            if speech:
+                messages.append(MeetingMessage(
+                    speaker=validator.name, role=validator.title, content=speech))
+
+        # ── 5. Chaque journaliste assigné confirme son angle ─────
+        for slug, topic in assignments.items():
+            producer = next((p for p in producers if p.slug == slug), None)
+            if not producer:
+                continue
+            ctx = (
+                f"On vient de te confier le sujet : « {topic} ».\n"
+                f"Tu confirmes brièvement (2-3 phrases max) ton angle de traitement "
+                f"et tes premières sources. Reste fidèle à ton style perso."
             )
             speech = await producer.speak(ctx)
             if speech:
                 messages.append(MeetingMessage(
-                    speaker = producer.name,
-                    role    = producer.title,
-                    content = speech,
-                ))
+                    speaker=producer.name, role=producer.title, content=speech))
 
-        # ── 5. Clôture par le directeur ───────────────────────
-        if director:
+        # ── 6. Vérification : Alex pointe les vigilances ─────────
+        if verifier and assignments:
+            topics_list = " ; ".join(assignments.values())
             ctx = (
-                f"Tu clôtures la réunion. "
-                f"Décisions prises : {', '.join(decisions) if decisions else 'pipeline standard'}. "
-                f"1-2 phrases."
+                f"Tu interviens en fin de réunion comme fact-checker. "
+                f"Liste 3 à 5 points de vigilance ou sources prioritaires à vérifier "
+                f"sur ces sujets : {topics_list}. "
+                f"Format puces courtes."
+            )
+            speech = await verifier.speak(ctx)
+            if speech:
+                messages.append(MeetingMessage(
+                    speaker=verifier.name, role=verifier.title, content=speech))
+
+        # ── 7. Direction : clôture ───────────────────────────────
+        if director:
+            decisions_str = " ; ".join(decisions) if decisions else "pipeline standard"
+            ctx = (
+                f"Tu clôtures la conférence. Décisions actées : {decisions_str}. "
+                f"Une phrase de clôture, donne le top départ."
             )
             speech = await director.speak(ctx)
             if speech:
                 messages.append(MeetingMessage(
-                    speaker = director.name,
-                    role    = director.title,
-                    content = speech,
-                ))
+                    speaker=director.name, role=director.title, content=speech))
 
         # ── 6. Résumés pour les absents ───────────────────────
         absence_summaries = {}
