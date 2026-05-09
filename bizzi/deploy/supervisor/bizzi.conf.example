@@ -1,0 +1,12 @@
+[program:bizzi-api]
+command=/opt/bizzi/bizzi/venv/bin/uvicorn api.main:app --host 0.0.0.0 --port 3000 --workers 1
+directory=/opt/bizzi/bizzi
+user=root
+autostart=true
+autorestart=true
+stdout_logfile=/var/log/bizzi-api.log
+stderr_logfile=/var/log/bizzi-api.error.log
+# OPENAI_API_KEY vide = analyzer en fallback heuristique (catégories du YAML
+# tenant respectées mais classification dégradée). Pascal : édite cette
+# ligne pour activer gpt-4o-mini, puis 'sudo supervisorctl update bizzi-api'.
+environment=BIZZI_AUDIENCE_JWT_SECRET="<TODO_random_64_hex>",OPENAI_API_KEY="",ANTHROPIC_API_KEY="<TODO_anthropic_api_key>",BIZZI_AIRBIZNESS_DB_PASSWORD="<TODO_pwd_aibrizness_reader>",BIZZI_ONYX_DB_PASSWORD="<TODO_pwd_onyx_reader>",DATABASE_URL="postgresql://bizzi_admin:<TODO_pwd>@localhost/bizzi"
