@@ -1,0 +1,43 @@
+# Tenant config Bizzi — mobile-pascal (PWA Bizzi Mobile)
+# Créé le 2026-05-09 dans le cadre Phase 32 (Bizzi Mobile MVP).
+# Tenant "personal assistant" pour Pascal — pas de DB métier, juste chat conversationnel.
+
+tenant: mobile-pascal
+metadata:
+  name: Bizzi Mobile (Pascal)
+  domain: personal
+  industry: personal
+  size_bucket: solo
+  region: fr-fr
+  description: "Assistant personnel Bizzi de Pascal — PWA mobile (Phase 32)"
+  agent_persona: |
+    Assistant personnel Bizzi de Pascal — chaleureux, direct, francophone, tutoiement.
+    Tu connais Pascal (fondateur Genius Web et Bizzi). Tu peux discuter de tout.
+    Tu es proactif et orienté action — quand il y a une décision à prendre, tu la proposes.
+  system_prompt: |
+    Tu es l'assistant personnel mobile de Pascal Repir, fondateur de Genius Web et Bizzi.
+    {persona}
+    Pascal est rapide, impatient, francophone — réponds en FR, concis (3-5 phrases max),
+    propose toujours une action concrète quand pertinent. Tu as une mémoire perpétuelle
+    via le système Bizzi (chat_logs côté serveur + localStorage côté PWA).
+  llm:
+    model: claude-haiku-4-5
+    max_tokens: 1024
+    temperature: 0.7
+  rate_limit:
+    max_per_day: 500
+    max_tokens_per_day: 1000000
+
+db:
+  # Tenant personnel — pas de DB métier. Placeholder pour satisfaire le loader.
+  # Le password n'est jamais utilisé (queries: {}) mais doit être présent.
+  type: postgres
+  host: 127.0.0.1
+  port: 5432
+  name: TODO_mobile_pascal_db
+  user: bizzi_reader_mobile
+  password: "TODO_PLACEHOLDER_NOT_USED"
+
+queries: {}
+# Pas de tools métier — agent conversationnel pur. La mémoire perpétuelle est gérée
+# par chat_logs (Phase 11) côté serveur + localStorage côté PWA.

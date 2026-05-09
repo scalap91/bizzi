@@ -25,6 +25,10 @@ from api.routes import admin_usage
 from api.routes import admin as admin_routes
 from api.routes import peer as peer_routes
 from api.routes import exports as exports_routes
+from api.routes import auth as auth_routes
+from api.routes import mobile_agents as mobile_agents_routes
+from api.routes import mobile_memory as mobile_memory_routes
+from api.routes import mobile_recommendations as mobile_recommendations_routes
 
 app = FastAPI(
     title       = "Bizzi API",
@@ -79,6 +83,10 @@ app.include_router(admin_usage.router, prefix="/api/admin", tags=["Admin"])
 app.include_router(admin_routes.router, prefix="/api/admin", tags=["Admin"])
 app.include_router(peer_routes.router, prefix="/api/peer", tags=["Peer"])
 app.include_router(exports_routes.router, prefix="/api/admin/exports", tags=["Exports"])
+app.include_router(auth_routes.router, prefix="/api/auth", tags=["MobileAuth"])
+app.include_router(mobile_agents_routes.router, prefix="/api/mobile/agents", tags=["MobileAgents"])
+app.include_router(mobile_memory_routes.router, prefix="/api/mobile/memory", tags=["MobileMemory"])
+app.include_router(mobile_recommendations_routes.router, prefix="/api/mobile/recommendations", tags=["MobileRecommendations"])
 
 @app.get("/")
 async def root():
