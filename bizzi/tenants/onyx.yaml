@@ -24,16 +24,15 @@ metadata:
     max_tokens_per_day: 200000
 
 db:
-  # TODO : configurer DB de ce tenant — pour l'instant placeholder
+  # DB dédiée onyx_content (créée Phase 14a, 2026-05-09) — propriété d'Onyx,
+  # alignée CGU client. Bizzi lit en READ-ONLY via bizzi_reader_onyx.
   type: postgres
   host: 127.0.0.1
   port: 5432
-  name: TODO_onyx_db
+  name: onyx_content
   user: bizzi_reader_onyx
-  # TODO Pascal : quand DB prête, retirer `password` ci-dessous + ajouter
-  # `password_env: BIZZI_ONYX_DB_PASSWORD` + setter la var dans /etc/supervisor/conf.d/bizzi.conf
-  password: "TODO_PLACEHOLDER_ROTATE_ME"
+  password_env: BIZZI_ONYX_DB_PASSWORD
 
 queries: {}
-# NB : queries vides = pas de tools dispo pour cet agent. À compléter plus tard quand DB du tenant
-# sera connectée à Bizzi (créer user PG `bizzi_reader_onyx` READ-ONLY + grant SELECT + définir queries).
+# NB : queries vides = pas de tools dispo pour l'agent conversationnel Bizzi.
+# Les routes /api/content/* utilisent un engine SQLAlchemy dédié (pas tenant_db.queries).
