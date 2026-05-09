@@ -3,31 +3,87 @@ import os
 api/routes/content.py
 ======================
 API contenu ONYX — lit depuis la table productions (tenant_id=1)
+
+Phase 14a (2026-05-09) — migration : la DB n'est plus `bizzi` mais
+`onyx_content` (DB dédiée propriété d'Onyx, alignée CGU). Bizzi lit en
+READ-ONLY via bizzi_reader_onyx. La DSN est chargée depuis le YAML
+tenant `tenants/onyx.yaml` via le module tenant_db.
 """
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from sqlalchemy import create_engine, text
+from sqlalchemy.engine.url import URL
 import logging
 
 router = APIRouter()
 logger = logging.getLogger("api.content")
 
-_db = create_engine(os.environ.get("DATABASE_URL", "postgresql://bizzi_admin:CHANGE_ME@localhost/bizzi"))
-
 ONYX_TENANT_ID = 1
+ONYX_BASE_URL  = "https://onyx-infos.fr"
+
+# ─── Engine multi-tenant ──────────────────────────────────────────────────
+# Pour Onyx : lit le YAML tenant pour récupérer host/port/db/user/password_env
+# et construit un engine SQLAlchemy dédié. Pour rétro-compat / legacy
+# `get_tenant_from_token`, on garde un fallback `_legacy_db` qui pointe sur
+# DATABASE_URL (DB bizzi) — utilisé UNIQUEMENT pour le lookup token_hash dans
+# la table tenants. Les data Onyx (productions/categories/regions/agents) sont
+# lues depuis `_db` qui pointe désormais sur onyx_content.
+
+_engines: dict[str, "any"] = {}
+
+def _build_engine_from_yaml(slug: str):
+    """Lit tenants/<slug>.yaml et construit un engine SQLAlchemy."""
+    import yaml
+    from pathlib import Path
+    yaml_path = Path(__file__).resolve().parent.parent.parent / "tenants" / f"{slug}.yaml"
+    raw = yaml.safe_load(yaml_path.read_text(encoding="utf-8"))
+    db = raw["db"]
+    pwd_env = db.get("password_env")
+    pwd = os.getenv(pwd_env) if pwd_env else db.get("password")
+    if not pwd:
+        raise RuntimeError(f"DB password not found for tenant {slug} (env={pwd_env})")
+    url = URL.create(
+        drivername="postgresql+psycopg2",
+        username=db["user"],
+        password=pwd,
+        host=db.get("host", "127.0.0.1"),
+        port=int(db.get("port", 5432)),
+        database=db["name"],
+    )
+    return create_engine(url, pool_pre_ping=True, pool_size=5, max_overflow=5)
+
+
+def get_engine(tenant_slug: str = "onyx"):
+    """Retourne un engine SQLAlchemy memoizé pour le tenant donné."""
+    if tenant_slug in _engines:
+        return _engines[tenant_slug]
+    eng = _build_engine_from_yaml(tenant_slug)
+    _engines[tenant_slug] = eng
+    logger.info(f"engine created for tenant={tenant_slug}")
+    return eng
+
+
+# Engine par défaut = Onyx (toutes les routes de ce module sont onyx-only)
+_db = get_engine("onyx")
+
+# Engine legacy bizzi (lookup token_hash dans tenants — futur multi-tenant)
+_legacy_db = create_engine(os.environ.get("DATABASE_URL", "postgresql://bizzi_admin:CHANGE_ME@localhost/bizzi"))
+
 
 def get_tenant_from_token(request):
     from fastapi import Request
     auth = request.headers.get("Authorization", "")
     if auth.startswith("Bearer "):
         token = auth[7:]
-        with _db.connect() as conn:
-            row = conn.execute(text("SELECT id, site_url FROM tenants WHERE token_hash = :t"), {"t": token}).fetchone()
-            if row:
-                return row[0], row[1]
+        try:
+            with _legacy_db.connect() as conn:
+                row = conn.execute(text("SELECT id, site_url FROM tenants WHERE token_hash = :t"), {"t": token}).fetchone()
+                if row:
+                    return row[0], row[1]
+        except Exception as e:
+            logger.warning(f"legacy tenant lookup failed: {e}")
     return ONYX_TENANT_ID, ONYX_BASE_URL
-ONYX_BASE_URL  = "https://onyx-infos.fr"
 
 
 def _build_og_html(title, content, image_url, slug):
@@ -150,7 +206,7 @@ async def article_meta(id: int = 0):
                 FROM productions
                 WHERE tenant_id = :tid AND status = 'published'
                 ORDER BY created_at DESC LIMIT 200
-            """), {"tid": tenant_id}).fetchall()
+            """), {"tid": ONYX_TENANT_ID}).fetchall()
             if id >= len(rows):
                 return RedirectResponse(ONYX_BASE_URL)
             r = rows[id]
@@ -181,7 +237,7 @@ async def sitemap():
                 WHERE tenant_id = :tid AND status = 'published'
                   AND slug IS NOT NULL AND slug != ''
                 ORDER BY created_at DESC LIMIT 5000
-            """), {"tid": tenant_id}).fetchall()
+            """), {"tid": ONYX_TENANT_ID}).fetchall()
         urls = [
             f"<url><loc>{ONYX_BASE_URL}/</loc><changefreq>hourly</changefreq><priority>1.0</priority></url>",
             f"<url><loc>{ONYX_BASE_URL}/onyx-archives.html</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>",
